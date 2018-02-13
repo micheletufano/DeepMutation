@@ -4,7 +4,8 @@ public class MethodExtractorTest {
 
 	public static void main(String[] args) {
 
-		String dataPath = "data/";
+        //String dataPath = "data/defects4j/";
+        String dataPath = "data/";
 
 		//Lang
 //		String srcRootPath = "/scratch/mtufano.scratch/projects/deeprepair/systems/Lang/";
