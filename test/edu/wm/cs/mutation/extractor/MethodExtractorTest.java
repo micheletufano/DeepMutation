@@ -4,6 +4,8 @@ public class MethodExtractorTest {
 
 	public static void main(String[] args) {
 
+		String dataPath = "data/";
+
 		//Lang
 //		String srcRootPath = "/scratch/mtufano.scratch/projects/deeprepair/systems/Lang/";
 //		String outRootPath = "/scratch/mtufano.scratch/tmp/spoonKeys/out/Lang/";
@@ -17,11 +19,10 @@ public class MethodExtractorTest {
 //		String libDir = "/scratch/mtufano.scratch/tmp/spoonKeys/lib/Time";
 		
 		//Chart
-		String dataPath = "/Users/sw/Desktop/src2txt_data";
-		String srcRootPath = dataPath+"/Chart/";
-		String outRootPath = dataPath +"/out/Chart/";
-		String modelBuildingInfoPath = dataPath + "/model/Chart.json";
-		String libDir = dataPath + "/lib/Chart";
+		String srcRootPath = dataPath + "Chart/";
+		String outRootPath = dataPath + "out/Chart/";
+		String modelBuildingInfoPath = dataPath + "spoonModel/model/Chart.json";
+		String libDir = dataPath + "spoonModel/lib/Chart";
 		boolean compiled = true;
 
 		//Math
