@@ -43,8 +43,7 @@ public class MethodGeneratorTest {
 //		String modelBuildingInfoPath = "/scratch/mtufano.scratch/projects/deeprepair/spoonModel/model/Mockito.json";
 //		String libDir = "/scratch/mtufano.scratch/projects/deeprepair/spoonModel/lib/Mockito";
 //		boolean compiled = true;
-		
-		
+
 		MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
 	}
 
