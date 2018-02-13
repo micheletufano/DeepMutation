@@ -1,6 +1,6 @@
 package edu.wm.cs.mutation.extractor;
 
-public class MethodGeneratorTest {
+public class MethodExtractorTest {
 
 	public static void main(String[] args) {
 
