@@ -45,7 +45,7 @@ public class MethodGeneratorTest {
 //		boolean compiled = true;
 		
 		
-		MethodGenerator.generateMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
+		MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
 	}
 
 }

@@ -13,13 +13,13 @@ import spoon.reflect.declaration.CtAnonymousExecutable;
 import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.visitor.filter.TypeFilter;
 
-public class MethodGenerator {
+public class MethodExtractor {
 	private static final String GRANULARITY_EXECUTABLE = "executables";
 	private static final String BUGGY_DIR = "/b/";
 	private static final String FIXED_DIR = "/f/";
 	private static List<CtExecutable> executables;
 	
-	public static void generateMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath, String libDir, boolean compiled){
+	public static void extractMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath, String libDir, boolean compiled){
 
 		ModelConfig modelConfig = new ModelConfig();	
 		modelConfig.init(modelBuildingInfoPath);
