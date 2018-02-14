@@ -4,13 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-import edu.wm.cs.mutation.extractor.ast.ASTBuilder;
-import edu.wm.cs.mutation.extractor.ast.ASTPrinter;
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
@@ -20,6 +15,8 @@ import spoon.reflect.visitor.filter.TypeFilter;
 public class MethodExtractor {
 
     private static final String BUGGY_DIR = "/b/";
+    private static final String KEY_OUTPUT = "methods.key";
+    private static final String SRC_OUTPUT = "methods.src";
 
     public static void extractMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath,
                                       String libDir, boolean compiled) {
@@ -31,9 +28,9 @@ public class MethodExtractor {
         File[] revisions = new File(srcRootPath).listFiles(File::isDirectory);
         sortRevisionDirectories(revisions);
 
-        for (int i=0; i<revisions.length; i++) {
-            File rev = revisions[i];
-            System.out.println("  Processing " + rev.toString() + " (" + (i+1) + "/" + revisions.length + ")... ");
+        int i=0;
+        for (File rev : revisions) {
+            System.out.println("  Processing " + rev.toString() + " (" + ++i + "/" + revisions.length + ")... ");
 
             //Extract Model Building Info
             int confID = Integer.parseInt(rev.getName());
@@ -62,46 +59,31 @@ public class MethodExtractor {
             // Write methods
             System.out.println("    Writing methods... ");
 
-            String keysFile = outDir + "keys";
-            try {
-                Files.createFile(Paths.get(keysFile));
-            } catch (Exception e) {}
-
-            int j=0;
-            Map<String,String> methodsMap = new HashMap<>();
+            List<String> signatures = new ArrayList<>();
+            List<String> bodies = new ArrayList<>();
 
             for(CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
                 SourcePosition sp = method.getPosition();
-                String srcCode = sp.getCompilationUnit()
-                                   .getOriginalSourceCode()
-                                   .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
-                String formatted = ASTBuilder.formatCode(srcCode, complianceLvl);
+                String body = sp.getCompilationUnit()
+                                .getOriginalSourceCode()
+                                .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
 
-                methodsMap.put(signature, formatted);
+                signatures.add(signature);
+                bodies.add(body);
+
+//                System.out.println("Method Name:");
+//                System.out.println(methodName);
+//                System.out.println("Method Source Code:");
+//                System.out.println(srcCode);
             }
 
-////                System.out.println("Method Name:");
-////                System.out.println(methodName);
-////                System.out.println("Method Source Code:");
-////                System.out.println(srcCode);
-
-//                //Write methods to file
-//                String methodID = "METHOD_" + j++;
-//                String methodPath = outDir + methodID;
-//                String mapEntry = methodID + " " + methodName + "\n";
-//                try {
-//                    Files.write(Paths.get(keysFile), mapEntry.getBytes(), StandardOpenOption.APPEND);
-//                    Files.write(Paths.get(methodPath), srcCode.getBytes());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-
-            for (String s : methodsMap.keySet()) {
-                System.out.println(s + " " + methodsMap.get(s));
+            try {
+                Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
+                Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
             System.out.println("  done.");
         }
         System.out.println("done.");
