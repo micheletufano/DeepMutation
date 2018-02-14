@@ -94,6 +94,7 @@ public class SpoonConfig {
 
     private static void buildSpoonModel(SpoonAPI spoon, String sourcePath, int complianceLvl){
         spoon.getEnvironment().setComplianceLevel(complianceLvl);
+        spoon.getEnvironment().setAutoImports(false);
         spoon.addInputResource(sourcePath);
         spoon.buildModel();
     }
