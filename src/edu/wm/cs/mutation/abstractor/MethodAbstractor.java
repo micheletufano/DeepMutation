@@ -8,7 +8,7 @@ import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 
 
-public class MethodsAbstractor {
+public class MethodAbstractor {
 	 private static Map <String, String>  abstractMethods;
 	 public static void generateAbsCode(Map<String, Map<String, String>> rawMethodsMap) {
 		 abstractMethods = new HashMap<>();

@@ -2,7 +2,7 @@ package edu.wm.cs.mutation.test;
 
 import java.util.Map;
 
-import edu.wm.cs.mutation.abstractor.MethodsAbstractor;
+import edu.wm.cs.mutation.abstractor.MethodAbstractor;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 
 public class MethodAbstractorTest {
@@ -17,7 +17,7 @@ public class MethodAbstractorTest {
 		
 		MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
 		Map<String, Map<String, String>> rawMethods = MethodExtractor.getRawMethods();
-		MethodsAbstractor.generateAbsCode(rawMethods);
+		MethodAbstractor.generateAbsCode(rawMethods);
 	}
 		
 }
