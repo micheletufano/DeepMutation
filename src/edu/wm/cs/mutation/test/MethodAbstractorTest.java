@@ -1,5 +1,6 @@
 package edu.wm.cs.mutation.test;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import edu.wm.cs.mutation.abstractor.MethodAbstractor;
@@ -16,7 +17,7 @@ public class MethodAbstractorTest {
 		boolean compiled = true;
 		
 		MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-		Map<String, Map<String, String>> rawMethods = MethodExtractor.getRawMethods();
+		Map<String, LinkedHashMap<String, String>> rawMethods = MethodExtractor.getRawMethods();
 		MethodAbstractor.generateAbsCode(rawMethods);
 	}
 		
