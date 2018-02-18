@@ -17,7 +17,7 @@ public class MethodExtractor {
     private static final String BUGGY_DIR = "/b/";
     private static final String KEY_OUTPUT = "methods.key";
     private static final String SRC_OUTPUT = "methods.src";
-    private static Map<String, Map<String, String>> rawMethodsMap;
+    private static Map<String, LinkedHashMap<String, String>> rawMethodsMap;
     
     public static void extractMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath,
                                       String libDir, boolean compiled) {
@@ -34,7 +34,7 @@ public class MethodExtractor {
         for (File rev : revisions) {
             System.out.println("  Processing " + rev.toString() + " (" + ++i + "/" + revisions.length + ")... ");
             
-            Map<String, String> revMethodsMap = new HashMap<>();
+            LinkedHashMap<String, String> revMethodsMap = new LinkedHashMap<>();
             //Extract Model Building Info
             int confID = Integer.parseInt(rev.getName());
             String srcDir = modelConfig.getSrcDir(confID);
@@ -77,7 +77,7 @@ public class MethodExtractor {
                 bodies.add(body);
                 revMethodsMap.put(signature, body);
             }
-            rawMethodsMap.put(sourcePath, new HashMap<String, String>(revMethodsMap));
+            rawMethodsMap.put(outDir, new LinkedHashMap<String, String>(revMethodsMap));
 
             try {
                 Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
@@ -103,7 +103,7 @@ public class MethodExtractor {
 
         return outDir;
     }
-    public static Map<String, Map<String, String>> getRawMethods() {
+    public static Map<String, LinkedHashMap<String, String>> getRawMethods() {
     	    return rawMethodsMap;
     }
     private static void sortRevisionDirectories(File[] revisions){
