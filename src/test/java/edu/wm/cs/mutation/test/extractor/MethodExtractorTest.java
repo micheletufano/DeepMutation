@@ -1,10 +1,10 @@
-package edu.wm.cs.mutation.extractor;
+package edu.wm.cs.mutation.test.extractor;
+
+import edu.wm.cs.mutation.extractor.MethodExtractor;
 
 public class MethodExtractorTest {
-
 	public static void main(String[] args) {
 
-        //String dataPath = "data/defects4j/";
         String dataPath = "data/";
 
 		//Lang

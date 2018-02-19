@@ -1,4 +1,4 @@
-package edu.wm.cs.mutation.test;
+package edu.wm.cs.mutation.test.abstractor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
