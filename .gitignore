@@ -8,4 +8,4 @@ data/
 .settings/
 .classpath
 .project
-/bin/
+bin/
