@@ -1,6 +1,4 @@
-package edu.wm.cs.mutation.test.extractor;
-
-import edu.wm.cs.mutation.extractor.MethodExtractor;
+package edu.wm.cs.mutation.extractor;
 
 public class MethodExtractorTest {
 	public static void main(String[] args) {

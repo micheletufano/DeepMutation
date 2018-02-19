@@ -1,9 +1,8 @@
-package edu.wm.cs.mutation.test.abstractor;
+package edu.wm.cs.mutation.abstractor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import edu.wm.cs.mutation.abstractor.MethodAbstractor;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 
 public class MethodAbstractorTest {
