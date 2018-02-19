@@ -3,6 +3,7 @@ data
 # IntelliJ IDEA
 .idea/
 *.iml
+out/
 
 # Eclipse
 .settings/
