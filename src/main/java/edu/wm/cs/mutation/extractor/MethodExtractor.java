@@ -18,32 +18,32 @@ public class MethodExtractor {
     private static final String KEY_OUTPUT = "methods.key";
     private static final String SRC_OUTPUT = "methods.src";
     private static Map<String, LinkedHashMap<String, String>> rawMethodsMap;
-    
+
     public static void extractMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath,
                                       String libDir, boolean compiled) {
-        
+
         System.out.println("Extracting methods... ");
 
         ModelConfig modelConfig = new ModelConfig();
         modelConfig.init(modelBuildingInfoPath);
         File[] revisions = new File(srcRootPath).listFiles(File::isDirectory);
         sortRevisionDirectories(revisions);
-        
+
         rawMethodsMap = new HashMap<>();
-        int i=0;
+        int i = 0;
         for (File rev : revisions) {
             System.out.println("  Processing " + rev.toString() + " (" + ++i + "/" + revisions.length + ")... ");
-            
+
             LinkedHashMap<String, String> revMethodsMap = new LinkedHashMap<>();
             //Extract Model Building Info
             int confID = Integer.parseInt(rev.getName());
             String srcDir = modelConfig.getSrcDir(confID);
             int complianceLvl = modelConfig.getComplianceLevel(confID);
             String sourcePath = rev.getAbsolutePath() + BUGGY_DIR + srcDir;
-            
+
             // Build Spoon model
             System.out.println("    Building spoon model... ");
-            if(compiled) {
+            if (compiled) {
                 libDir = rev.getAbsolutePath() + BUGGY_DIR;
             }
 
@@ -51,34 +51,33 @@ public class MethodExtractor {
 
             //Create out dir
             String outDir = createOutDir(outRootPath, rev);
-          
+
             // Generate methods
             System.out.println("    Generating methods... ");
-            
+
             List<CtMethod> methods = spoon.getFactory()
                     .Package()
                     .getRootPackage()
                     .getElements(new TypeFilter<>(CtMethod.class));
 
-            // Write methods
-            System.out.println("    Writing methods... ");
-
             List<String> signatures = new ArrayList<>();
-            List<String> bodies = new ArrayList<>();         
+            List<String> bodies = new ArrayList<>();
 
-            for(CtMethod method : methods) {
+            for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
                 SourcePosition sp = method.getPosition();
                 String body = sp.getCompilationUnit()
-                                .getOriginalSourceCode()
-                                .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
+                        .getOriginalSourceCode()
+                        .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
 
                 signatures.add(signature);
                 bodies.add(body);
                 revMethodsMap.put(signature, body);
             }
-            rawMethodsMap.put(outDir, new LinkedHashMap<String, String>(revMethodsMap));
+            rawMethodsMap.put(outDir, revMethodsMap);
 
+            // Write methods
+            System.out.println("    Writing methods... ");
             try {
                 Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
                 Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
@@ -91,7 +90,7 @@ public class MethodExtractor {
         System.out.println("done.");
     }
 
-    private static String createOutDir(String outRootPath, File rev){
+    private static String createOutDir(String outRootPath, File rev) {
         String outDir = outRootPath + rev.getName() + BUGGY_DIR;
 
         //Create dir
@@ -103,20 +102,22 @@ public class MethodExtractor {
 
         return outDir;
     }
+
     public static Map<String, LinkedHashMap<String, String>> getRawMethods() {
-    	    return rawMethodsMap;
+        return rawMethodsMap;
     }
-    private static void sortRevisionDirectories(File[] revisions){
-		Arrays.sort(revisions, new Comparator<File>() {
-			public int compare(File f1, File f2) {
-				try {
-					int i1 = Integer.parseInt(f1.getName());
-					int i2 = Integer.parseInt(f2.getName());
-					return i1 - i2;
-				} catch(NumberFormatException e) {
-					throw new AssertionError(e);
-				}
-			}
-		});
-	}
+
+    private static void sortRevisionDirectories(File[] revisions) {
+        Arrays.sort(revisions, new Comparator<File>() {
+            public int compare(File f1, File f2) {
+                try {
+                    int i1 = Integer.parseInt(f1.getName());
+                    int i2 = Integer.parseInt(f2.getName());
+                    return i1 - i2;
+                } catch (NumberFormatException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        });
+    }
 }

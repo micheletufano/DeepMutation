@@ -18,10 +18,10 @@ public class FileUtility {
         List<File> files = null;
         try {
             files = Files.walk(Paths.get(dirPath))
-            .filter(Files::isRegularFile)
-            .filter(p -> matcher.matches(p))
-            .map(Path::toFile)
-            .collect(Collectors.toList());
+                    .filter(Files::isRegularFile)
+                    .filter(p -> matcher.matches(p))
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
