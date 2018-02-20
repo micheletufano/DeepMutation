@@ -13,11 +13,13 @@ public class MethodAbstractorTest {
         String outRootPath = dataPath + "out/Chart/";
         String modelBuildingInfoPath = dataPath + "spoonModel/model/Chart.json";
         String libDir = dataPath + "spoonModel/lib/Chart";
+        //Idiom path
+        String idiomPath = dataPath + "idioms.csv";
         boolean compiled = true;
 
         MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
         Map<String, LinkedHashMap<String, String>> rawMethods = MethodExtractor.getRawMethods();
-        MethodAbstractor.abstractMethods(rawMethods);
+        MethodAbstractor.abstractMethods(rawMethods, idiomPath);
         Map<String, LinkedHashMap<String, String>> absMethods = MethodAbstractor.getAbstractedMethods();
     }
 
