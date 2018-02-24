@@ -1,26 +1,29 @@
 package edu.wm.cs.mutation.abstractor;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import edu.wm.cs.mutation.extractor.MethodExtractor;
+import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodAbstractorTest {
     public static void main(String[] args) {
+
         String dataPath = "data/";
+
         //Chart
         String srcRootPath = dataPath + "Chart/";
         String outRootPath = dataPath + "out/Chart/";
         String modelBuildingInfoPath = dataPath + "spoonModel/model/Chart.json";
         String libDir = dataPath + "spoonModel/lib/Chart";
-        //Idiom path
-        String idiomPath = dataPath + "idioms.csv";
         boolean compiled = true;
 
+        //Idiom path
+        String idiomPath = dataPath + "idioms.csv";
+
+        boolean abstracted = true;
         MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        Map<String, LinkedHashMap<String, String>> rawMethods = MethodExtractor.getRawMethods();
-        MethodAbstractor.abstractMethods(rawMethods, idiomPath);
-        Map<String, LinkedHashMap<String, String>> absMethods = MethodAbstractor.getAbstractedMethods();
+        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethods(), idiomPath);
+        IOHandler.writeMethods(MethodExtractor.getRawMethods(), false);
+        IOHandler.writeMethods(MethodAbstractor.getAbstractedMethods(), abstracted);
+        IOHandler.writeMappings(MethodAbstractor.getMappings());
     }
 
 }

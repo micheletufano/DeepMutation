@@ -1,20 +1,13 @@
 package edu.wm.cs.mutation.abstractor;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
+import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodAbstractor {
-//	private static final String KEY_OUTPUT = "methods.key1";
-	private static final String SRC_OUTPUT = "methods.abstract";
-	private static final String MAPPING_OUTPUT = "methods.map";
 	private static Map<String, LinkedHashMap<String, String>> absMethodsMap;
+	private static Map<String, List<String>> mappings;
 	private static Set<String> idioms;
 
 	public static void abstractMethods(Map<String, LinkedHashMap<String, String>> rawMethods, String idiomPath) {
@@ -22,42 +15,27 @@ public class MethodAbstractor {
 		System.out.println("Abstracting methods... ");
 
 		// Set up Idioms
-		idioms = new HashSet<>();
-		try (Stream<String> stream = Files.lines(Paths.get(idiomPath))) {
-			idioms = stream.collect(Collectors.toSet());
-		} catch (IOException e) {
-			e.printStackTrace();
+		idioms = IOHandler.readIdioms(idiomPath);
+		if (idioms == null) {
+			System.err.println("Could not load idioms");
+			return;
 		}
 
 		absMethodsMap = new HashMap<>();
+		mappings = new HashMap<>();
 		for (String revPath : rawMethods.keySet()) {
 			LinkedHashMap<String, String> revMethodMap = new LinkedHashMap<>(rawMethods.get(revPath));
-
-			String outPath = revPath; // output path for each revision
-			List<String> signatures = new ArrayList<>();
-			List<String> absMethods = new ArrayList<>();
 			List<String> mappingList = new ArrayList<>();
-
-			System.out.println("  Processing " + outPath);
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
 
 				String absCode = abstractCode(srcCode, mappingList);
-				signatures.add(signature);
-				absMethods.add(absCode);
 				revMethodMap.put(signature, absCode); // replace srcCode with absCode
 			}
-			absMethodsMap.put(outPath, revMethodMap);
+			absMethodsMap.put(revPath, revMethodMap);
+			mappings.put(revPath, mappingList);
 
-			System.out.println("    Writing files... ");
-			try {
-//				Files.write(Paths.get(outPath + KEY_OUTPUT), signatures);
-				Files.write(Paths.get(outPath + SRC_OUTPUT), absMethods);
-				Files.write(Paths.get(outPath + MAPPING_OUTPUT), mappingList);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			System.out.println("  done.");
+			System.out.println("done.");
 		}
 		System.out.println("done.");
 	}
@@ -89,7 +67,6 @@ public class MethodAbstractor {
 		mappingList.add(mappings);
 		// System.out.println("Signiture: "+signatrue);
 		// System.out.println("AfterTokenized: "+afterTokenized);
-		// System.out.println(mappings);
 
 		return afterTokenized;
 	}
@@ -98,4 +75,7 @@ public class MethodAbstractor {
 		return absMethodsMap;
 	}
 
+	public static Map<String, List<String>> getMappings() {
+		return mappings;
+	}
 }
