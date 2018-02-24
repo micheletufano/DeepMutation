@@ -13,6 +13,7 @@ import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 public class MethodAbstractor {
 	private static final String KEY_OUTPUT = "methods.key1";
 	private static final String SRC_OUTPUT = "methods.abstract";
+	private static final String MAPPING_OUTPUT = "methods.mappings";
 	private static Map<String, LinkedHashMap<String, String>> absMethodsMap;
 	private static Set<String> idioms;
 
@@ -35,11 +36,13 @@ public class MethodAbstractor {
 			String outPath = revPath; // output path for each revision
 			List<String> signatures = new ArrayList<>();
 			List<String> absMethods = new ArrayList<>();
+			List<String> mappingList = new ArrayList<>();
 
 			System.out.println("  Processing " + outPath);
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
-				String absCode = abstractCode(srcCode);
+
+				String absCode = abstractCode(srcCode, mappingList);
 				signatures.add(signature);
 				absMethods.add(absCode);
 				revMethodMap.put(signature, absCode); // replace srcCode with absCode
@@ -50,6 +53,7 @@ public class MethodAbstractor {
 			try {
 				Files.write(Paths.get(outPath + KEY_OUTPUT), signatures);
 				Files.write(Paths.get(outPath + SRC_OUTPUT), absMethods);
+				Files.write(Paths.get(outPath + MAPPING_OUTPUT), mappingList);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -58,7 +62,7 @@ public class MethodAbstractor {
 		System.out.println("done.");
 	}
 
-	private static String abstractCode(String srcCode) {
+	private static String abstractCode(String srcCode, List<String> mappingList) {
 		// Parser
 		MethodParser parser = new MethodParser();
 
@@ -81,10 +85,12 @@ public class MethodAbstractor {
 		tokenizer.setIdioms(idioms);
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
+		String mappings = tokenizer.getMapping();
+		mappingList.add(mappings);
 		// System.out.println("Signiture: "+signatrue);
 		// System.out.println("AfterTokenized: "+afterTokenized);
+		System.out.println(mappings);
 
-		// Add to result list for each revision
 		return afterTokenized;
 	}
 

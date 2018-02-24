@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,14 +27,14 @@ public class MethodLexer {
 	private int count_integer = 0;
 	private int count_string = 0;
 
-	private Map<String, String> stringLiteral = new HashMap<>();
-	private Map<String, String> characterLiteral = new HashMap<>();
-	private Map<String, String> integerLiteral = new HashMap<>();
-	private Map<String, String> floatingPointLiteral = new HashMap<>();
+	private LinkedHashMap<String, String> stringLiteral = new LinkedHashMap<>();
+	private LinkedHashMap<String, String> characterLiteral = new LinkedHashMap<>();
+	private LinkedHashMap<String, String> integerLiteral = new LinkedHashMap<>();
+	private LinkedHashMap<String, String> floatingPointLiteral = new LinkedHashMap<>();
 
-	private Map<String, String> typeMap = new HashMap<>();
-	private Map<String, String> methodMap = new HashMap<>();
-	private Map<String, String> varMap = new HashMap<>();
+	private LinkedHashMap<String, String> typeMap = new LinkedHashMap<>();
+	private LinkedHashMap<String, String> methodMap = new LinkedHashMap<>();
+	private LinkedHashMap<String, String> varMap = new LinkedHashMap<>();
 
 	// Parser sets
 	private Set<String> types;
@@ -291,6 +292,157 @@ public class MethodLexer {
 		}
 	}
 
+	// ------------------ GETTERS ----------------------
+	public String getMapping() {
+		StringBuilder sb = new StringBuilder();
+		// append actual id of vals
+		if (varMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String var : varMap.keySet()) {
+				sb.append(var + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+
+		// append actual id of types
+		if (typeMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String type : typeMap.keySet()) {
+				sb.append(type + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+
+		// append actual id of methods
+		if (methodMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String method : methodMap.keySet()) {
+				sb.append(method + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+
+		// append actual id of stringLiteral
+		if (stringLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String str : stringLiteral.keySet()) {
+				sb.append(str + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of characterLiteral
+		if (characterLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String ch : characterLiteral.keySet()) {
+				sb.append(ch + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of integerLiteral
+		if (integerLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String integer : integerLiteral.keySet()) {
+				sb.append(integer + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of floatingPointLiteral
+		if (floatingPointLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String flo : floatingPointLiteral.keySet()) {
+				sb.append(flo + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		return sb.toString();
+	}
+	public String getMappingIDs() {
+		StringBuilder sb = new StringBuilder();
+		// append actual id of vals
+		if (varMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String var : varMap.values()) {
+				sb.append(var + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+
+		// append actual id of types
+		if (typeMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String type : typeMap.values()) {
+				sb.append(type + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+
+		// append actual id of methods
+		if (methodMap.isEmpty())
+			sb.append(";");
+		else {
+			for (String method : methodMap.values()) {
+				sb.append(method + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+
+		// append actual id of stringLiteral
+		if (stringLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String str : stringLiteral.values()) {
+				sb.append(str + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of characterLiteral
+		if (characterLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String ch : characterLiteral.values()) {
+				sb.append(ch + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of integerLiteral
+		if (integerLiteral.isEmpty())
+			sb.append(";");
+		else {
+			for (String integer : integerLiteral.values()) {
+				sb.append(integer + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
+		}
+		// append actual id of floatingPointLiteral
+		if (!floatingPointLiteral.isEmpty()){
+			for (String flo : floatingPointLiteral.values()) {
+				sb.append(flo + ",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();
+	}
 	// ------------------ SETTERS ----------------------
 
 	public void setTypes(Set<String> types) {
