@@ -32,22 +32,17 @@ public class MethodAbstractor {
 		for (String revPath : rawMethods.keySet()) {
 			LinkedHashMap<String, String> revMethodMap = new LinkedHashMap<>(rawMethods.get(revPath));
 
-			String outPath = revPath; // output path for each revision
-			List<String> signatures = new ArrayList<>();
-			List<String> absMethods = new ArrayList<>();
 			List<String> mappingList = new ArrayList<>();
 
-			System.out.print("  Processing " + outPath + "... ");
+			System.out.print("  Processing " + revPath + "... ");
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
 
 				String absCode = abstractCode(srcCode, mappingList);
-				signatures.add(signature);
-				absMethods.add(absCode);
 				revMethodMap.put(signature, absCode); // replace srcCode with absCode
 			}
-			absMethodsMap.put(outPath, revMethodMap);
-			mappings.put(outPath, mappingList);
+			absMethodsMap.put(revPath, revMethodMap);
+			mappings.put(revPath, mappingList);
 
 			System.out.println("done.");
 		}
