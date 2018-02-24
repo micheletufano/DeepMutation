@@ -11,9 +11,9 @@ import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 
 public class MethodAbstractor {
-	private static final String KEY_OUTPUT = "methods.key1";
+//	private static final String KEY_OUTPUT = "methods.key1";
 	private static final String SRC_OUTPUT = "methods.abstract";
-	private static final String MAPPING_OUTPUT = "methods.mappings";
+	private static final String MAPPING_OUTPUT = "methods.map";
 	private static Map<String, LinkedHashMap<String, String>> absMethodsMap;
 	private static Set<String> idioms;
 
@@ -51,7 +51,7 @@ public class MethodAbstractor {
 
 			System.out.println("    Writing files... ");
 			try {
-				Files.write(Paths.get(outPath + KEY_OUTPUT), signatures);
+//				Files.write(Paths.get(outPath + KEY_OUTPUT), signatures);
 				Files.write(Paths.get(outPath + SRC_OUTPUT), absMethods);
 				Files.write(Paths.get(outPath + MAPPING_OUTPUT), mappingList);
 			} catch (IOException e) {
@@ -89,7 +89,7 @@ public class MethodAbstractor {
 		mappingList.add(mappings);
 		// System.out.println("Signiture: "+signatrue);
 		// System.out.println("AfterTokenized: "+afterTokenized);
-		System.out.println(mappings);
+		// System.out.println(mappings);
 
 		return afterTokenized;
 	}

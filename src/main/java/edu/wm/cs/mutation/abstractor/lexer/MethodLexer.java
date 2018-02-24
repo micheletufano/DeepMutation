@@ -325,6 +325,7 @@ public class MethodLexer {
 				sb.append(method + ",");
 			}
 			sb.deleteCharAt(sb.length() - 1);
+			sb.append(";");
 		}
 
 		// append actual id of stringLiteral
@@ -358,14 +359,11 @@ public class MethodLexer {
 			sb.append(";");
 		}
 		// append actual id of floatingPointLiteral
-		if (floatingPointLiteral.isEmpty())
-			sb.append(";");
-		else {
+		if (!floatingPointLiteral.isEmpty()) {
 			for (String flo : floatingPointLiteral.keySet()) {
 				sb.append(flo + ",");
 			}
 			sb.deleteCharAt(sb.length() - 1);
-			sb.append(";");
 		}
 		return sb.toString();
 	}
