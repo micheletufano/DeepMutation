@@ -15,8 +15,6 @@ import spoon.reflect.visitor.filter.TypeFilter;
 public class MethodExtractor {
 
     private static final String BUGGY_DIR = "/b/";
-    private static final String KEY_OUTPUT = "methods.key";
-    private static final String SRC_OUTPUT = "methods.src";
     private static Map<String, LinkedHashMap<String, String>> rawMethodsMap;
 
     public static void extractMethods(String srcRootPath, String outRootPath, String modelBuildingInfoPath,
@@ -60,9 +58,7 @@ public class MethodExtractor {
                     .getRootPackage()
                     .getElements(new TypeFilter<>(CtMethod.class));
 
-            List<String> signatures = new ArrayList<>();
-            List<String> bodies = new ArrayList<>();
-
+            System.out.println("    Saving methods... ");
             for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
                 SourcePosition sp = method.getPosition();
@@ -70,20 +66,9 @@ public class MethodExtractor {
                         .getOriginalSourceCode()
                         .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
 
-                signatures.add(signature);
-                bodies.add(body);
                 revMethodsMap.put(signature, body);
             }
             rawMethodsMap.put(outDir, revMethodsMap);
-
-            // Write methods
-            System.out.println("    Writing methods... ");
-            try {
-                Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
-                Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             System.out.println("  done.");
         }
 

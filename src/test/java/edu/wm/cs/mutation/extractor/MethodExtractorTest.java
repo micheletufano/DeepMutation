@@ -1,5 +1,7 @@
 package edu.wm.cs.mutation.extractor;
 
+import edu.wm.cs.mutation.io.IOHandler;
+
 public class MethodExtractorTest {
     public static void main(String[] args) {
 
@@ -44,7 +46,9 @@ public class MethodExtractorTest {
 //		String libDir = "/scratch/mtufano.scratch/projects/deeprepair/spoonModel/lib/Mockito";
 //		boolean compiled = true;
 
+        boolean abstracted = false;
         MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
+        IOHandler.writeMethods(MethodExtractor.getRawMethods(), abstracted);
     }
 
 }
