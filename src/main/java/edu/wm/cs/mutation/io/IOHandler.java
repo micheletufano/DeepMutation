@@ -11,8 +11,10 @@ public class IOHandler {
 
     private static final String KEY_OUTPUT = "methods.key";
     private static final String SRC_OUTPUT = "methods.src";
-    private static final String ABS_OUTPUT = "methods.abs";
     private static final String MAP_OUTPUT = "methods.map";
+
+    public static final String ABS_OUTPUT = "methods.abs";
+    public static final String ABS_SUFFIX = ".abs";
 
     public static void writeMethods(Map<String, LinkedHashMap<String, String>> map, boolean abstracted) {
         for (String outDir : map.keySet()) {
