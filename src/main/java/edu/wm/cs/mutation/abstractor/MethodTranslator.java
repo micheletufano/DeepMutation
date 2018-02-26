@@ -5,14 +5,18 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
+import edu.wm.cs.mutation.abstractor.parser.MethodParser;
+
 public class MethodTranslator {
 	private static final String KEY_OUTPUT = "methods.key";
 	private static final String SRC_OUTPUT = "methods.source";
-	
+
 	private static final String PRED_INPUT = "methods.pred";
 	private static final String PRED_OUT = "pred/";
 
@@ -52,36 +56,35 @@ public class MethodTranslator {
 
 	}
 
-	public static void translate(Map<String, LinkedHashMap<String, String>> predMethods,  Map<String, List<String>> mappings) {
+	public static void translate(Map<String, LinkedHashMap<String, String>> predMethods,
+			Map<String, List<String>> mappings) {
 
 		System.out.println("Translating predicted methods...");
 		for (String outPath : predMethods.keySet()) {
 			String predOutPath = outPath + PRED_OUT;
-			
+
 			LinkedHashMap<String, String> predMethodMap = new LinkedHashMap<>(predMethods.get(outPath));
 			List<String> signatures = new ArrayList<>();
 			List<String> transMethods = new ArrayList<>();
 
 			System.out.println("  Processing " + outPath);
 
-			List <String> mapping = mappings.get(outPath); // the mapping list for each method
-            int index = 0; // entry index of mapping and methods.abstract
+			List<String> mapping = mappings.get(outPath); // the mapping list for each method
+			int index = 0; // entry index of mapping and methods.abstract
 			for (String signature : predMethodMap.keySet()) {
 				String srcCode = predMethodMap.get(signature);
 
 				String[] dicts = mapping.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
 																		// 5:INT, 6:FLOAT
 				String transCode = translateCode(dicts, srcCode);
-				// if (!transCode.equals(ERROR)) {
-				// signatures.add(signature);
-				// transMethods.add(transCode);
-				// }
-				
-				signatures.add(signature);
-				transMethods.add(transCode);
-				System.out.println("Mappings: " + mapping.get(index - 1));
-				System.out.println("Before translation: " + srcCode);
-				System.out.println("After translation: " + transCode);
+				if (!transCode.equals(ERROR) && checkCode(transCode)) {
+					signatures.add(signature);
+					transMethods.add(transCode);
+					System.out.println("Mappings: " + mapping.get(index - 1));
+					System.out.println("Before translation: " + srcCode);
+					System.out.println("After translation: " + transCode);
+				}
+
 			}
 			System.out.println("    Writing files... ");
 			try {
@@ -159,5 +162,36 @@ public class MethodTranslator {
 			sb.append(" ");
 		}
 		return sb.toString();
+	}
+
+	public static boolean checkCode(String srcCode) {
+		// Parser
+		MethodParser parser = new MethodParser();
+
+		try {
+			parser.parse(srcCode);
+		} catch (Exception e) {
+			System.err.println("Exception during parsing:");
+			System.err.println(srcCode);
+			return false;
+		} catch (StackOverflowError e) {
+			System.err.println("StackOverflow during parsing:");
+			System.err.println(srcCode);
+			return false;
+		}
+		// Tokenizer
+		MethodLexer tokenizer = new MethodLexer();
+		tokenizer.setTypes(parser.getTypes());
+		tokenizer.setMethods(parser.getMethods());
+		tokenizer.setIdioms(new HashSet<String>());
+
+		String afterTokenized = tokenizer.tokenize(srcCode);
+		if (afterTokenized.equals(MethodLexer.ERROR_LEXER)) {
+			System.err.println("Exception during lexing:");
+			System.err.println(srcCode);
+			return false;
+		}
+
+		return true;
 	}
 }
