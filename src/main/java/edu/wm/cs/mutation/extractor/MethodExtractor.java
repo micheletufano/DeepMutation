@@ -1,9 +1,6 @@
 package edu.wm.cs.mutation.extractor;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import spoon.SpoonAPI;
@@ -18,11 +15,11 @@ public class MethodExtractor {
     private static Map<String, LinkedHashMap<String, String>> defects4jMap;
     private static LinkedHashMap<String,String> rawMethodsMap;
 
-    public static void extractMethods(String srcRootPath, String outRootPath, String sourcePath, String libDir,
+    public static void extractMethods(String rootPath, String sourcePath, String libDir,
                                       int complianceLvl, boolean compiled) {
         System.out.println("Extracting methods... ");
 
-        File project = new File(srcRootPath);
+        File project = new File(rootPath);
         rawMethodsMap = new LinkedHashMap<>();
         System.out.println("  Processing " + project.toString() + "... ");
 
@@ -33,9 +30,6 @@ public class MethodExtractor {
             libDir = project.getAbsolutePath() + "/";
         }
         SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
-
-        //Create out dir
-        String outDir = createOutDir(outRootPath, project);
 
         // Generate methods
         System.out.println("    Generating methods... ");
@@ -75,6 +69,7 @@ public class MethodExtractor {
             System.out.println("  Processing " + rev.toString() + " (" + ++i + "/" + revisions.length + ")... ");
 
             LinkedHashMap<String, String> revMethodsMap = new LinkedHashMap<>();
+
             //Extract Model Building Info
             int confID = Integer.parseInt(rev.getName());
             String srcDir = modelConfig.getSrcDir(confID);
@@ -86,11 +81,7 @@ public class MethodExtractor {
             if (compiled) {
                 libDir = rev.getAbsolutePath() + BUGGY_DIR;
             }
-
             SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
-
-            //Create out dir
-            String outDir = createOutDir(outRootPath, rev);
 
             // Generate methods
             System.out.println("    Generating methods... ");
@@ -110,24 +101,12 @@ public class MethodExtractor {
 
                 revMethodsMap.put(signature, body);
             }
+            String outDir = outRootPath + rev.getName() + BUGGY_DIR;
             defects4jMap.put(outDir, revMethodsMap);
             System.out.println("  done.");
         }
 
         System.out.println("done.");
-    }
-
-    private static String createOutDir(String outRootPath, File rev) {
-        String outDir = outRootPath + rev.getName() + BUGGY_DIR;
-
-        //Create dir
-        try {
-            Files.createDirectories(Paths.get(outDir));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return outDir;
     }
 
     public static LinkedHashMap<String, String> getRawMethodsMap() {

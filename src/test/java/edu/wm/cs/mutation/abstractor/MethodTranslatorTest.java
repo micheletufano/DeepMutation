@@ -23,8 +23,8 @@ public class MethodTranslatorTest {
         boolean abstracted = true;
         MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
         MethodAbstractor.abstractMethods(MethodExtractor.getDefects4jMap(), idiomPath);
-        IOHandler.writeMethods(MethodExtractor.getDefects4jMap(), false);
-        IOHandler.writeMethods(MethodAbstractor.getAbstractedMethods(), abstracted);
+        IOHandler.writeMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), false);
+        IOHandler.writeMethodsFromDefects4J(MethodAbstractor.getAbstractedMethods(), abstracted);
         IOHandler.writeMappings(MethodAbstractor.getMappings());
 
 // Feed the abstracted methods to predictor, generate mutated methods and put them to a LinkedHashMap		

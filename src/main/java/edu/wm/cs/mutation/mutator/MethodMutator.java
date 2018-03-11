@@ -27,7 +27,7 @@ public class MethodMutator {
         System.out.println("Mutating methods... ");
 
         // Write maps to file
-        IOHandler.writeMethods(absMethodsMap, true);
+        IOHandler.writeMethodsFromDefects4J(absMethodsMap, true);
 
         // Check for train_options.json and vocab files
         if (!foundFileDeps(modelDirs)) {

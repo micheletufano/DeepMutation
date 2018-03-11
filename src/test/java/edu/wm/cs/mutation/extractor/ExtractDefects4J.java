@@ -48,7 +48,7 @@ public class ExtractDefects4J {
 
         boolean abstracted = false;
         MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        IOHandler.writeMethods(MethodExtractor.getDefects4jMap(), abstracted);
+        IOHandler.writeMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), abstracted);
     }
 
 }

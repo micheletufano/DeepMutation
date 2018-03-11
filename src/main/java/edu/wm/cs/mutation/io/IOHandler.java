@@ -16,7 +16,24 @@ public class IOHandler {
     public static final String ABS_OUTPUT = "methods.abs";
     public static final String ABS_SUFFIX = ".abs";
 
-    public static void writeMethods(Map<String, LinkedHashMap<String, String>> map, boolean abstracted) {
+    public static void writeMethods(String outDir, LinkedHashMap<String, String> map, boolean abstracted) {
+        List<String> signatures = new ArrayList<>(map.keySet());
+        List<String> bodies = new ArrayList<>(map.values());
+
+        try {
+            Files.createDirectories(Paths.get(outDir));
+            Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
+            if (abstracted) {
+                Files.write(Paths.get(outDir + ABS_OUTPUT), bodies);
+            } else {
+                Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> map, boolean abstracted) {
         for (String outDir : map.keySet()) {
             LinkedHashMap<String, String> submap = map.get(outDir);
 
@@ -24,6 +41,7 @@ public class IOHandler {
             List<String> bodies = new ArrayList<>(submap.values());
 
             try {
+                Files.createDirectories(Paths.get(outDir));
                 Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
                 if (abstracted) {
                     Files.write(Paths.get(outDir + ABS_OUTPUT), bodies);
