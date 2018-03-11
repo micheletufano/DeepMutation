@@ -19,9 +19,9 @@ public class MethodAbstractorTest {
         String idiomPath = dataPath + "idioms.csv";
 
         boolean abstracted = true;
-        MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethods(), idiomPath);
-        IOHandler.writeMethods(MethodExtractor.getRawMethods(), false);
+        MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
+        MethodAbstractor.abstractMethods(MethodExtractor.getDefects4jMap(), idiomPath);
+        IOHandler.writeMethods(MethodExtractor.getDefects4jMap(), false);
         IOHandler.writeMethods(MethodAbstractor.getAbstractedMethods(), abstracted);
         IOHandler.writeMappings(MethodAbstractor.getMappings());
     }

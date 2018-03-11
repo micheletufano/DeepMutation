@@ -17,8 +17,8 @@ public class MethodMutatorTest {
         boolean compiled = true;
         String idiomPath = dataPath + "idioms.csv";
 
-        MethodExtractor.extractMethods(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethods(), idiomPath);
+        MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
+        MethodAbstractor.abstractMethods(MethodExtractor.getDefects4jMap(), idiomPath);
 
         // MethodMutator
         List<String> modelDirs = new ArrayList<>();
