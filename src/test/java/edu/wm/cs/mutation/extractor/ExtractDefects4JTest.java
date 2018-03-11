@@ -2,7 +2,7 @@ package edu.wm.cs.mutation.extractor;
 
 import edu.wm.cs.mutation.io.IOHandler;
 
-public class ExtractDefects4J {
+public class ExtractDefects4JTest {
     public static void main(String[] args) {
 
         String dataPath = "data/";

@@ -1,13 +1,11 @@
 package edu.wm.cs.mutation.abstractor;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 
-public class MethodTranslatorTest {
-	public static void main(String[] args) {
+public class AbstractDefects4JTest {
+    public static void main(String[] args) {
+
         String dataPath = "data/";
 
         //Chart
@@ -26,10 +24,6 @@ public class MethodTranslatorTest {
         IOHandler.writeMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), false);
         IOHandler.writeMethodsFromDefects4J(MethodAbstractor.getAbstractedDefects4JMethods(), abstracted);
         IOHandler.writeMappingsFromDefects4J(MethodAbstractor.getDefects4jMappings());
+    }
 
-// Feed the abstracted methods to predictor, generate mutated methods and put them to a LinkedHashMap		
-//		Map<String, LinkedHashMap<String, String>> predMethods = MethodMutator.getmutatedMethods();
-        Map<String, LinkedHashMap<String, String>> predMethods = MethodTranslator.getRewPredMethods(MethodAbstractor.getAbstractedDefects4JMethods());
-		MethodTranslator.translate(predMethods, MethodAbstractor.getDefects4jMappings());
-	}
 }

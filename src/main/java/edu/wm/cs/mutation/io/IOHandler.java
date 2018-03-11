@@ -54,13 +54,21 @@ public class IOHandler {
         }
     }
 
-    public static void writeMappings(Map<String, List<String>> map) {
+    public static void writeMappingsFromDefects4J(Map<String, List<String>> map) {
         for (String outDir : map.keySet()) {
             try {
                 Files.write(Paths.get(outDir + MAP_OUTPUT), map.get(outDir));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static void writeMappings(String outDir, List<String> mappings) {
+        try {
+            Files.write(Paths.get(outDir + MAP_OUTPUT), mappings);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

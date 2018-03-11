@@ -18,13 +18,13 @@ public class MethodMutatorTest {
         String idiomPath = dataPath + "idioms.csv";
 
         MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        MethodAbstractor.abstractMethods(MethodExtractor.getDefects4jMap(), idiomPath);
+        MethodAbstractor.abstractMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), idiomPath);
 
         // MethodMutator
         List<String> modelDirs = new ArrayList<>();
         modelDirs.add(dataPath + "models/50len_ident_lit/");
 
-        MethodMutator.mutateMethods(MethodAbstractor.getAbstractedMethods(), modelDirs);
+        MethodMutator.mutateMethods(MethodAbstractor.getAbstractedDefects4JMethods(), modelDirs);
     }
 
 }

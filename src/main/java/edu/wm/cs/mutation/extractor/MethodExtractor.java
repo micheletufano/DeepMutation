@@ -17,29 +17,23 @@ public class MethodExtractor {
 
     public static void extractMethods(String rootPath, String sourcePath, String libDir,
                                       int complianceLvl, boolean compiled) {
-        System.out.println("Extracting methods... ");
+        System.out.print("Extracting methods... ");
 
         File project = new File(rootPath);
         rawMethodsMap = new LinkedHashMap<>();
-        System.out.println("  Processing " + project.toString() + "... ");
 
         // Build Spoon model
-        System.out.println("    Building spoon model... ");
-
         if (compiled) {
             libDir = project.getAbsolutePath() + "/";
         }
         SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
 
         // Generate methods
-        System.out.println("    Generating methods... ");
-
         List<CtMethod> methods = spoon.getFactory()
                 .Package()
                 .getRootPackage()
                 .getElements(new TypeFilter<>(CtMethod.class));
 
-        System.out.println("    Saving methods... ");
         for (CtMethod method : methods) {
             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
             SourcePosition sp = method.getPosition();
@@ -49,7 +43,6 @@ public class MethodExtractor {
 
             rawMethodsMap.put(signature, body);
         }
-        System.out.println("  done.");
         System.out.println("done.");
     }
 
