@@ -61,6 +61,10 @@ public class MethodExtractor {
             System.out.println("    Saving methods... ");
             for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
+                // filter out methods that are getters/setters
+                String methodName = method.getSignature().split(" ")[1];
+                if (methodName.startsWith("set") || methodName.startsWith("get"))
+                		continue;
                 SourcePosition sp = method.getPosition();
                 String body = sp.getCompilationUnit()
                         .getOriginalSourceCode()
