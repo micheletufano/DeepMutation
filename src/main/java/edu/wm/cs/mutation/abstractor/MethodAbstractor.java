@@ -35,6 +35,9 @@ public class MethodAbstractor {
 			if (absCode == null) {
 				continue;
 			}
+			if (absCode.split(" ").length > 100) {
+				continue;
+			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
         }
 
@@ -57,6 +60,7 @@ public class MethodAbstractor {
 		for (String revPath : rawMethods.keySet()) {
 			System.out.println("  Processing " + revPath + "... ");
 			LinkedHashMap<String, String> revMethodMap = new LinkedHashMap<>(rawMethods.get(revPath));
+			LinkedHashMap<String, String> subAbsMap = new LinkedHashMap<>();
 			List<String> mappingList = new ArrayList<>();
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
@@ -65,6 +69,11 @@ public class MethodAbstractor {
 				if (absCode == null) {
 					continue;
 				}
+				// filter out methods that are longer than 100 words
+				if (absCode.split(" ").length > 100) {
+					continue;
+				}
+
 				revMethodMap.put(signature, absCode); // replace srcCode with absCode
 			}
 			defects4jMap.put(revPath, revMethodMap);
@@ -101,9 +110,8 @@ public class MethodAbstractor {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		String mappings = tokenizer.getMapping();
-		mappingList.add(mappings);
-		// System.out.println("Signiture: "+signatrue);
-		// System.out.println("AfterTokenized: "+afterTokenized);
+		if (afterTokenized.split(" ").length <= 100)
+			mappingList.add(mappings);
 
 		return afterTokenized;
 	}
