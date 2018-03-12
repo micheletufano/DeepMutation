@@ -1,6 +1,6 @@
 package edu.wm.cs.mutation.mutator;
 
-public class MutantGeneratorTest {
+public class GenerateDefects4JTest {
 
 	public static void main(String[] args) {
 		String dataPath = "data/";
