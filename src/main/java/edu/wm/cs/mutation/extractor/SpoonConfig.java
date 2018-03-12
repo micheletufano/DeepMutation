@@ -51,12 +51,15 @@ public class SpoonConfig {
     }
 
     private static void addJarFiles(List<String> paths, String path) {
-        List<String> jars = FileUtility.listJARFiles(path)
-                .stream()
-                .map(j -> j.getAbsolutePath())
-                .collect(Collectors.toList());
+        File file = new File(path);
+        if (file.exists()) {
+            List<String> jars = FileUtility.listJARFiles(path)
+                    .stream()
+                    .map(j -> j.getAbsolutePath())
+                    .collect(Collectors.toList());
 
-        paths.addAll(jars);
+            paths.addAll(jars);
+        }
     }
 
     private static void addFilesInDir(List<String> paths, String path) {
