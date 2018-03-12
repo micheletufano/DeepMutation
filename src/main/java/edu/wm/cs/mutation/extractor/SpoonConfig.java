@@ -51,12 +51,15 @@ public class SpoonConfig {
     }
 
     private static void addJarFiles(List<String> paths, String path) {
-        List<String> jars = FileUtility.listJARFiles(path)
-                .stream()
-                .map(j -> j.getAbsolutePath())
-                .collect(Collectors.toList());
+        File file = new File(path);
+        if (file.exists()) {
+            List<String> jars = FileUtility.listJARFiles(path)
+                    .stream()
+                    .map(j -> j.getAbsolutePath())
+                    .collect(Collectors.toList());
 
-        paths.addAll(jars);
+            paths.addAll(jars);
+        }
     }
 
     private static void addFilesInDir(List<String> paths, String path) {
@@ -80,16 +83,20 @@ public class SpoonConfig {
     }
 
     private static void configureClasspath(String libDir, SpoonAPI spoon) {
-        File[] libs = new File(libDir).listFiles();
-        ArrayList<String> libPaths = new ArrayList<>();
+        if (libDir != null) {
+            File[] libs = new File(libDir).listFiles();
+            ArrayList<String> libPaths = new ArrayList<>();
 
-        for (File l : libs) {
-            libPaths.add(l.getAbsolutePath());
+            for (File l : libs) {
+                libPaths.add(l.getAbsolutePath());
+            }
+
+            String[] classpath = libPaths.toArray(new String[libPaths.size()]);
+
+            spoon.getEnvironment().setSourceClasspath(classpath);
+        } else {
+            spoon.getEnvironment().setNoClasspath(true);
         }
-
-        String[] classpath = libPaths.toArray(new String[libPaths.size()]);
-
-        spoon.getEnvironment().setSourceClasspath(classpath);
     }
 
     private static void buildSpoonModel(SpoonAPI spoon, String sourcePath, int complianceLvl) {

@@ -16,18 +16,14 @@ public class MethodMutator {
     private static String VOCAB_TARGET = "vocab.before.txt";
     private static String TRAIN_OPTIONS = "train_options.json";
 
-    /**
-     * Mutates methods given abstracted methods and model directories.
-     *
-     * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
-     * @param absMethodsMap
-     * @param modelDirs
-     */
-    public static void mutateMethods(Map<String, LinkedHashMap<String, String>> absMethodsMap, List<String> modelDirs) {
+    private static Map<String, Map<String, LinkedHashMap<String,String>>> defects4jMap;
+    private static Map<String, LinkedHashMap<String,String>> mutantsMap;
+
+    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelDirs) {
         System.out.println("Mutating methods... ");
 
-        // Write maps to file
-        IOHandler.writeMethods(absMethodsMap, true);
+        // Write abstracted methods
+        IOHandler.writeMethods(outPath, absMethodsMap, true);
 
         // Check for train_options.json and vocab files
         if (!foundFileDeps(modelDirs)) {
@@ -36,20 +32,87 @@ public class MethodMutator {
         }
 
         // Run all models on all revisions
+        mutantsMap = new HashMap<>();
         for (String modelDir : modelDirs) {
             File modelFile = new File(modelDir);
-            System.out.println("  Running model " + modelFile.getName() + "... ");
+            String modelName = modelFile.getName();
+            System.out.print("  Running model " + modelName + "... ");
 
-            for (String revPath : absMethodsMap.keySet()) {
-                System.out.println("    Mutating " + revPath + "... ");
+            // Create new map to store mutants
+            LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap);
+
+            // Get absolute paths to input and output files
+            File outFile = new File(outPath);
+            String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
+
+            // Check that input file exists
+            if (!new File(input).isFile()) {
+                System.err.println("    ERROR: cannot find '" + input + "'");
+                continue;
+            }
+
+            // Run a model on a single revision
+            List<String> mutants = runModel(modelFile, input);
+            if (mutants == null) {
+                System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                continue;
+            }
+
+            int i=0;
+            for (String s : modelMap.keySet()) {
+                modelMap.put(s, mutants.get(i++));
+            }
+
+            mutantsMap.put(modelName, modelMap);
+
+//            // Write mutants
+//            try {
+//                Files.write(Paths.get(output), mutants);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
+            System.out.println("done.");
+        }
+        System.out.println("done.");
+    }
+
+    /**
+     * Mutates methods given abstracted methods and model directories.
+     *
+     * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
+     * @param absMethodsMap
+     * @param modelDirs
+     */
+    public static void mutateMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> absMethodsMap, List<String> modelDirs) {
+        System.out.println("Mutating methods... ");
+
+        // Write maps to file
+        IOHandler.writeMethodsFromDefects4J(absMethodsMap, true);
+
+        // Check for train_options.json and vocab files
+        if (!foundFileDeps(modelDirs)) {
+            System.err.println("ERROR: cannot find file dependencies");
+            return;
+        }
+
+        // Run all models on all revisions
+        defects4jMap = new HashMap<>();
+        for (String revPath : absMethodsMap.keySet()) {
+            System.out.println("  Mutating " + revPath + "... ");
+
+            Map<String, LinkedHashMap<String,String>> map = new HashMap<>();
+            for (String modelDir : modelDirs) {
+                File modelFile = new File(modelDir);
+                String modelName = modelFile.getName();
+                System.out.print("    Running model " + modelName + "... ");
 
                 // Create new map to store mutants
-                LinkedHashMap<String,String> revMethodMap = new LinkedHashMap<>(absMethodsMap.get(revPath));
+                LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap.get(revPath));
 
                 // Get absolute paths to input and output files
                 File revFile = new File(revPath);
-                String input = revFile.getAbsolutePath() + "/" + IOHandler.ABS_OUTPUT;
-                String output = revFile.getAbsolutePath() + "/" + modelFile.getName() + IOHandler.ABS_SUFFIX;
+                String input = revFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
 
                 // Check that input file exists
                 if (!new File(input).isFile()) {
@@ -59,14 +122,20 @@ public class MethodMutator {
 
                 // Run a model on a single revision
                 List<String> mutants = runModel(modelFile, input);
-
-                // Write mutants
-                try {
-                    Files.write(Paths.get(output), mutants);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (mutants == null) {
+                    System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                    continue;
                 }
+
+                int i=0;
+                for (String s : modelMap.keySet()) {
+                    modelMap.put(s, mutants.get(i++));
+                }
+                map.put(modelName, modelMap);
+
+                System.out.println("done.");
             }
+            defects4jMap.put(revPath, map);
 
             System.out.println("done.");
         }
@@ -136,4 +205,11 @@ public class MethodMutator {
         return cmd;
     }
 
+    public static Map<String, LinkedHashMap<String, String>> getMutantsMap() {
+        return mutantsMap;
+    }
+
+    public static Map<String, Map<String, LinkedHashMap<String, String>>> getDefects4jMap() {
+        return defects4jMap;
+    }
 }

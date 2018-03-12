@@ -6,11 +6,15 @@ import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodAbstractor {
-	private static Map<String, LinkedHashMap<String, String>> absMethodsMap;
-	private static Map<String, List<String>> mappings;
+	private static Map<String, LinkedHashMap<String, String>> defects4jMap;
+	private static Map<String, List<String>> defects4jMappings;
+
+	private static LinkedHashMap<String, String> absMethodsMap;
+	private static List<String> mappingList;
+
 	private static Set<String> idioms;
 
-	public static void abstractMethods(Map<String, LinkedHashMap<String, String>> rawMethods, String idiomPath) {
+	public static void abstractMethods(LinkedHashMap<String, String> rawMethods, String idiomPath) {
 
 		System.out.println("Abstracting methods... ");
 
@@ -21,42 +25,77 @@ public class MethodAbstractor {
 			return;
 		}
 
-		absMethodsMap = new HashMap<>();
-		mappings = new HashMap<>();
+		absMethodsMap = new LinkedHashMap<>();
+
+		mappingList = new ArrayList<>();
+        for (String signature : rawMethods.keySet()) {
+            String srcCode = rawMethods.get(signature);
+
+            String absCode = abstractCode(signature, srcCode, mappingList);
+			if (absCode == null) {
+				continue;
+			}
+			if (absCode.split(" ").length > 100) {
+				continue;
+			}
+            absMethodsMap.put(signature, absCode); // replace srcCode with absCode
+        }
+
+		System.out.println("done.");
+	}
+
+	public static void abstractMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> rawMethods, String idiomPath) {
+
+		System.out.println("Abstracting methods... ");
+
+		// Set up Idioms
+		idioms = IOHandler.readIdioms(idiomPath);
+		if (idioms == null) {
+			System.err.println("Could not load idioms");
+			return;
+		}
+
+		defects4jMap = new HashMap<>();
+		defects4jMappings = new HashMap<>();
 		for (String revPath : rawMethods.keySet()) {
+			System.out.println("  Processing " + revPath + "... ");
 			LinkedHashMap<String, String> revMethodMap = new LinkedHashMap<>(rawMethods.get(revPath));
 			LinkedHashMap<String, String> subAbsMap = new LinkedHashMap<>();
 			List<String> mappingList = new ArrayList<>();
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
 
-				String absCode = abstractCode(srcCode, mappingList);
-
-				// filter out methods that are longer than 100 words
-				if (absCode.split(" ").length > 100)
+				String absCode = abstractCode(signature, srcCode, mappingList);
+				if (absCode == null) {
 					continue;
-				subAbsMap.put(signature, absCode); // signature and abstract code of filtered method
-//				System.out.println("Signiture: " + signature);
-//				System.out.println("AfterTokenized: " + absCode);
+				}
+				// filter out methods that are longer than 100 words
+				if (absCode.split(" ").length > 100) {
+					continue;
+				}
+
+				revMethodMap.put(signature, absCode); // replace srcCode with absCode
 			}
-			absMethodsMap.put(revPath, subAbsMap);
-			mappings.put(revPath, mappingList);
+			defects4jMap.put(revPath, revMethodMap);
+			defects4jMappings.put(revPath, mappingList);
 
 			System.out.println("done.");
 		}
 		System.out.println("done.");
 	}
 
-	private static String abstractCode(String srcCode, List<String> mappingList) {
+	private static String abstractCode(String signature, String srcCode, List<String> mappingList) {
 		// Parser
 		MethodParser parser = new MethodParser();
 
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-			System.err.println("Exception during parsing!");
+			System.err.println("  Exception while parsing " + signature + "; ignored method.");
+			return null;
 		} catch (StackOverflowError e) {
-			System.err.println("StackOverflow during parsing!");
+			System.err.println("  StackOverflowError while parsing " + signature + "; ignored method.");
+			return null;
 		}
 
 		// Tokenizer
@@ -77,11 +116,19 @@ public class MethodAbstractor {
 		return afterTokenized;
 	}
 
-	public static Map<String, LinkedHashMap<String, String>> getAbstractedMethods() {
+	public static Map<String, LinkedHashMap<String, String>> getAbstractedDefects4JMethods() {
+		return defects4jMap;
+	}
+
+	public static Map<String, List<String>> getDefects4jMappings() {
+		return defects4jMappings;
+	}
+
+	public static LinkedHashMap<String, String> getAbstractedMethods() {
 		return absMethodsMap;
 	}
 
-	public static Map<String, List<String>> getMappings() {
-		return mappings;
+	public static List<String> getMappings() {
+		return mappingList;
 	}
 }

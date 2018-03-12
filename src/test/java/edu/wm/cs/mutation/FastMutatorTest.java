@@ -1,5 +1,7 @@
-package edu.wm.cs.mutation.abstractor;
+package edu.wm.cs.mutation;
 
+import edu.wm.cs.mutation.abstractor.MethodAbstractor;
+import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
@@ -7,17 +9,17 @@ import edu.wm.cs.mutation.mutator.MethodMutator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodTranslatorTest {
+public class FastMutatorTest {
 
     public static void main(String[] args) {
 
         String dataPath = "data/";
-        String rootPath = dataPath + "Chart/1/b/";
-        String sourcePath = rootPath + "source/";
-        String outPath = dataPath + "out/Chart/1/b/";
-        String libDir = dataPath + "spoonModel/lib/Chart";
+        String rootPath = dataPath + "WebServer/";
+        String sourcePath = rootPath + "src/";
+        String outPath = dataPath + "out/WebServer/";
+        String libDir = null;
         int complianceLvl = 4;
-        boolean compiled = true;
+        boolean compiled = false;
 
         String idiomPath = dataPath + "idioms.csv";
 
