@@ -30,7 +30,7 @@ public class MethodTranslatorTest {
 
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
-        MethodTranslator.translate(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
+        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
         IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);
     }
 

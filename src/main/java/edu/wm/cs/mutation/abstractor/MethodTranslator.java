@@ -33,8 +33,8 @@ public class MethodTranslator {
 
 	private static Map<String, LinkedHashMap<String,String>> translatedMutantsMap;
 
-	public static void translate(Map<String, LinkedHashMap<String, String>> mutantsMap,
-											  List<String> mappings, List<String> modelDirs) {
+	public static void translateMethods(Map<String, LinkedHashMap<String, String>> mutantsMap,
+                                        List<String> mappings, List<String> modelDirs) {
 
 		System.out.println("Translating abstract mutants...");
 

@@ -29,7 +29,7 @@ public class FastMutatorTest {
         MethodExtractor.extractMethods(rootPath, sourcePath, libDir, complianceLvl, compiled);
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelDirs);
-        MethodTranslator.translate(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
+        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
 
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);                     // originals
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), true);                      // abstract originals
