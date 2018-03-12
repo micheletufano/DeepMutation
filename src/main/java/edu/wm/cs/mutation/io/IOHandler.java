@@ -1,5 +1,6 @@
 package edu.wm.cs.mutation.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -8,6 +9,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class IOHandler {
+
+    private static final String METHODS = "methods";
+    private static final String MUTANTS = "mutants";
+
+    private static final String KEY_SUFFIX = ".key";
+    private static final String SRC_SUFFIX = ".src";
+    private static final String MAP_SUFFIX = ".map";
 
     private static final String KEY_OUTPUT = "methods.key";
     private static final String SRC_OUTPUT = "methods.src";
@@ -30,6 +38,30 @@ public class IOHandler {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    public static void writeMutants(String outDir, Map<String, LinkedHashMap<String, String>> modelsMap,
+                                    List<String> modelDirs, boolean abstracted) {
+        for (String modelDir : modelDirs) {
+            File modelFile = new File(modelDir);
+            String modelName = modelFile.getName();
+            LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+
+            List<String> signatures = new ArrayList<>(mutantsMap.keySet());
+            List<String> bodies = new ArrayList<>(mutantsMap.values());
+
+            try {
+                String modelOutDir = outDir + modelName + "/";
+                Files.createDirectories(Paths.get(modelOutDir));
+                Files.write(Paths.get(modelOutDir + MUTANTS + KEY_SUFFIX), signatures);
+                if (abstracted) {
+                    Files.write(Paths.get(modelOutDir + MUTANTS + ABS_SUFFIX), bodies);
+                } else {
+                    Files.write(Paths.get(modelOutDir + MUTANTS + SRC_SUFFIX), bodies);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

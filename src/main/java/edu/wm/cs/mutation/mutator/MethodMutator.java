@@ -16,6 +16,67 @@ public class MethodMutator {
     private static String VOCAB_TARGET = "vocab.before.txt";
     private static String TRAIN_OPTIONS = "train_options.json";
 
+    private static Map<String, LinkedHashMap<String,String>> mutantsMap;
+
+    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelDirs) {
+        System.out.println("Mutating methods... ");
+
+        // Write abstracted methods
+        IOHandler.writeMethods(outPath, absMethodsMap, true);
+
+        // Check for train_options.json and vocab files
+        if (!foundFileDeps(modelDirs)) {
+            System.err.println("ERROR: cannot find file dependencies");
+            return;
+        }
+
+        // Run all models on all revisions
+        mutantsMap = new HashMap<>();
+        for (String modelDir : modelDirs) {
+            File modelFile = new File(modelDir);
+            String modelName = modelFile.getName();
+            System.out.print("  Running model " + modelName + "... ");
+
+            // Create new map to store mutants
+            LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap);
+
+            // Get absolute paths to input and output files
+            File outFile = new File(outPath);
+            String input = outFile.getAbsolutePath() + "/" + IOHandler.ABS_OUTPUT;
+            String output = outFile.getAbsolutePath() + "/" + modelFile.getName() + IOHandler.ABS_SUFFIX;
+
+            // Check that input file exists
+            if (!new File(input).isFile()) {
+                System.err.println("    ERROR: cannot find '" + input + "'");
+                continue;
+            }
+
+            // Run a model on a single revision
+            List<String> mutants = runModel(modelFile, input);
+            if (mutants == null) {
+                System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                continue;
+            }
+
+            int i=0;
+            for (String s : modelMap.keySet()) {
+                modelMap.put(s, mutants.get(i++));
+            }
+
+            mutantsMap.put(modelName, modelMap);
+
+//            // Write mutants
+//            try {
+//                Files.write(Paths.get(output), mutants);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
+            System.out.println("done.");
+        }
+        System.out.println("done.");
+    }
+
     /**
      * Mutates methods given abstracted methods and model directories.
      *
@@ -23,7 +84,7 @@ public class MethodMutator {
      * @param absMethodsMap
      * @param modelDirs
      */
-    public static void mutateMethods(Map<String, LinkedHashMap<String, String>> absMethodsMap, List<String> modelDirs) {
+    public static void mutateMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> absMethodsMap, List<String> modelDirs) {
         System.out.println("Mutating methods... ");
 
         // Write maps to file
@@ -59,6 +120,10 @@ public class MethodMutator {
 
                 // Run a model on a single revision
                 List<String> mutants = runModel(modelFile, input);
+                if (mutants == null) {
+                    System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                    continue;
+                }
 
                 // Write mutants
                 try {
@@ -136,4 +201,7 @@ public class MethodMutator {
         return cmd;
     }
 
+    public static Map<String, LinkedHashMap<String, String>> getMutantsMap() {
+        return mutantsMap;
+    }
 }
