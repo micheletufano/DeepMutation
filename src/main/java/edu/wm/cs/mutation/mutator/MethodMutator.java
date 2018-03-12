@@ -38,10 +38,7 @@ public class MethodMutator {
             String modelName = modelFile.getName();
             System.out.print("  Running model " + modelName + "... ");
 
-            // Create new map to store mutants
-            LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap);
-
-            // Get absolute paths to input and output files
+            // Get absolute paths to input file
             File outFile = new File(outPath);
             String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
 
@@ -51,26 +48,23 @@ public class MethodMutator {
                 continue;
             }
 
-            // Run a model on a single revision
+            // Generate mutants
             List<String> mutants = runModel(modelFile, input);
             if (mutants == null) {
                 System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
                 continue;
             }
 
+            // Save mutants
+            LinkedHashMap<String,String> modelMap = new LinkedHashMap<>();
             int i=0;
-            for (String s : modelMap.keySet()) {
-                modelMap.put(s, mutants.get(i++));
+            for (String s : absMethodsMap.keySet()) {
+                String mutant = mutants.get(i++);
+                if (!mutant.equals(absMethodsMap.get(s))) {
+                    modelMap.put(s, mutant);
+                }
             }
-
             mutantsMap.put(modelName, modelMap);
-
-//            // Write mutants
-//            try {
-//                Files.write(Paths.get(output), mutants);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
 
             System.out.println("done.");
         }
