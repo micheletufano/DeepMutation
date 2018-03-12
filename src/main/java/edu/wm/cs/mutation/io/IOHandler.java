@@ -109,7 +109,7 @@ public class IOHandler {
                 String original = sp.getCompilationUnit().getOriginalSourceCode();
 
                 // XXXX_path.to.src.path.to.file.java
-                String fileName = String.format(format.toString(), counter++) + "_" +
+                String fileName = String.format(format.toString(), counter) + "_" +
                         srcPath.replace("/",".") + signature.split("#")[0] + ".java";
 
                 // construct and format mutated class
@@ -122,10 +122,11 @@ public class IOHandler {
                     String formattedSrc = new Formatter().formatSource(sb.toString());
                     Files.write(Paths.get(mutantDir + fileName), formattedSrc.getBytes());
                 } catch (FormatterException e) {
-                    System.out.println("Error in formating code: " + e.getMessage());
+                    System.err.println("    Error in formating mutant " + counter + ": " + e.getMessage());
                 } catch (IOException e) {
-                    System.out.println("Error in writing mutated class: " + e.getMessage());
+                    System.err.println("    Error in writing mutant " + counter + ": " + e.getMessage());
                 }
+                counter++;
             }
         }
         System.out.println("done.");
