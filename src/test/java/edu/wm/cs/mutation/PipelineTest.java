@@ -9,17 +9,16 @@ import edu.wm.cs.mutation.mutator.MethodMutator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FastMutatorTest {
+public class PipelineTest {
 
     public static void main(String[] args) {
-
         String dataPath = "data/";
-        String rootPath = dataPath + "WebServer/";
-        String sourcePath = rootPath + "src/";
-        String outPath = dataPath + "out/WebServer/";
-        String libDir = null;
+        String rootPath = dataPath + "Chart/1/b/";
+        String sourcePath = rootPath + "source/";
+        String outPath = dataPath + "out/Chart/1/b/";
+        String libDir = dataPath + "spoonModel/lib/Chart";
         int complianceLvl = 4;
-        boolean compiled = false;
+        boolean compiled = true;
 
         String idiomPath = dataPath + "idioms.csv";
 
@@ -39,5 +38,4 @@ public class FastMutatorTest {
         IOHandler.createMutantFiles(outPath, sourcePath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
                 MethodExtractor.getMethods(), modelDirs);
     }
-
 }
