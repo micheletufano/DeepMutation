@@ -92,13 +92,13 @@ public class IOHandler {
                 }
             }
 
+            // create format for padded mutantIDs
             int num_digits = Integer.toString(mutantsMap.keySet().size()).length();
             StringBuilder format = new StringBuilder();
             format.append("%0").append(num_digits).append("d");
 
             // replace original methods with mutants
             int counter = 0; // counter for mutated file
-
             for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
                 if (!mutantsMap.containsKey(signature)) {
@@ -108,9 +108,9 @@ public class IOHandler {
                 SourcePosition sp = method.getPosition();
                 String original = sp.getCompilationUnit().getOriginalSourceCode();
 
-                // XXXX_path.to.src.path.to.file.java
+                // XXXX_path-to-src-path-to-file.java
                 String fileName = String.format(format.toString(), counter) + "_" +
-                        srcPath.replace("/",".") + signature.split("#")[0] + ".java";
+                        srcPath.replace("/","-") + signature.split("#")[0].replace(".","-") + ".java";
 
                 // construct and format mutated class
                 StringBuilder sb = new StringBuilder();
