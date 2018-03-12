@@ -69,6 +69,7 @@ public class MethodExtractor {
                 String body = sp.getCompilationUnit()
                         .getOriginalSourceCode()
                         .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
+//                String body =  method.toString();
 
                 revMethodsMap.put(signature, body);
             }
