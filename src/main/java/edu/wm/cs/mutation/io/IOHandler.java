@@ -71,7 +71,7 @@ public class IOHandler {
     }
 
     public static void createMutantFiles(String outDir, String srcPath, Map<String, LinkedHashMap<String, String>> modelsMap,
-                                         SpoonAPI spoon, List<String> modelDirs) {
+                                         List<CtMethod> methods, List<String> modelDirs) {
         System.out.println("Creating mutant files... ");
 
         for (String modelDir : modelDirs) {
@@ -98,9 +98,6 @@ public class IOHandler {
 
             // replace original methods with mutants
             int counter = 0; // counter for mutated file
-
-            List<CtMethod> methods = spoon.getFactory().Package().getRootPackage()
-                    .getElements(new TypeFilter<>(CtMethod.class));
 
             for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();

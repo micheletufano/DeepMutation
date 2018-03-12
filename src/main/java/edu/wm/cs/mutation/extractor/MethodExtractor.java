@@ -14,7 +14,7 @@ public class MethodExtractor {
     private static final String BUGGY_DIR = "/b/";
     private static Map<String, LinkedHashMap<String, String>> defects4jMap;
     private static LinkedHashMap<String,String> rawMethodsMap;
-    private static SpoonAPI spoon;
+    private static List<CtMethod> methods;
 
     public static void extractMethods(String rootPath, String sourcePath, String libDir,
                                       int complianceLvl, boolean compiled) {
@@ -27,10 +27,10 @@ public class MethodExtractor {
         if (compiled) {
             libDir = project.getAbsolutePath() + "/";
         }
-        spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
+        SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
 
         // Generate methods
-        List<CtMethod> methods = spoon.getFactory()
+        methods = spoon.getFactory()
                 .Package()
                 .getRootPackage()
                 .getElements(new TypeFilter<>(CtMethod.class));
@@ -130,7 +130,7 @@ public class MethodExtractor {
         });
     }
 
-    public static SpoonAPI getSpoon() {
-        return spoon;
+    public static List<CtMethod> getMethods() {
+        return methods;
     }
 }

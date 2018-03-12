@@ -35,6 +35,6 @@ public class CreateMutantFilesTest {
         IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);  // mutants
 
         IOHandler.createMutantFiles(outPath, sourcePath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
-                MethodExtractor.getSpoon(), modelDirs);
+                MethodExtractor.getMethods(), modelDirs);
     }
 }
