@@ -32,7 +32,7 @@ public class FastPipelineTest {
         MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
 
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);                     // originals
-        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), true);                      // abstract originals
+        IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);                 // abstract originals
         IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelDirs, true);                // abstract mutants
         IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);  // mutants
 
