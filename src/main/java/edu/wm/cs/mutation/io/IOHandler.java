@@ -10,18 +10,12 @@ import java.util.stream.Stream;
 
 public class IOHandler {
 
-    private static final String METHODS = "methods";
-    private static final String MUTANTS = "mutants";
+    public static final String METHODS = "methods";
+    public static final String MUTANTS = "mutants";
 
-    private static final String KEY_SUFFIX = ".key";
-    private static final String SRC_SUFFIX = ".src";
-    private static final String MAP_SUFFIX = ".map";
-
-    private static final String KEY_OUTPUT = "methods.key";
-    private static final String SRC_OUTPUT = "methods.src";
-    private static final String MAP_OUTPUT = "methods.map";
-
-    public static final String ABS_OUTPUT = "methods.abs";
+    public static final String KEY_SUFFIX = ".key";
+    public static final String SRC_SUFFIX = ".src";
+    public static final String MAP_SUFFIX = ".map";
     public static final String ABS_SUFFIX = ".abs";
 
     public static void writeMethods(String outDir, LinkedHashMap<String, String> map, boolean abstracted) {
@@ -30,11 +24,11 @@ public class IOHandler {
 
         try {
             Files.createDirectories(Paths.get(outDir));
-            Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
+            Files.write(Paths.get(outDir + METHODS + KEY_SUFFIX), signatures);
             if (abstracted) {
-                Files.write(Paths.get(outDir + ABS_OUTPUT), bodies);
+                Files.write(Paths.get(outDir + METHODS + ABS_SUFFIX), bodies);
             } else {
-                Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
+                Files.write(Paths.get(outDir + METHODS + SRC_SUFFIX), bodies);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,11 +68,11 @@ public class IOHandler {
 
             try {
                 Files.createDirectories(Paths.get(outDir));
-                Files.write(Paths.get(outDir + KEY_OUTPUT), signatures);
+                Files.write(Paths.get(outDir + METHODS + KEY_SUFFIX), signatures);
                 if (abstracted) {
-                    Files.write(Paths.get(outDir + ABS_OUTPUT), bodies);
+                    Files.write(Paths.get(outDir + METHODS + ABS_SUFFIX), bodies);
                 } else {
-                    Files.write(Paths.get(outDir + SRC_OUTPUT), bodies);
+                    Files.write(Paths.get(outDir + METHODS + SRC_SUFFIX), bodies);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -89,7 +83,7 @@ public class IOHandler {
     public static void writeMappingsFromDefects4J(Map<String, List<String>> map) {
         for (String outDir : map.keySet()) {
             try {
-                Files.write(Paths.get(outDir + MAP_OUTPUT), map.get(outDir));
+                Files.write(Paths.get(outDir + METHODS + MAP_SUFFIX), map.get(outDir));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -98,7 +92,7 @@ public class IOHandler {
 
     public static void writeMappings(String outDir, List<String> mappings) {
         try {
-            Files.write(Paths.get(outDir + MAP_OUTPUT), mappings);
+            Files.write(Paths.get(outDir + METHODS + MAP_SUFFIX), mappings);
         } catch (IOException e) {
             e.printStackTrace();
         }

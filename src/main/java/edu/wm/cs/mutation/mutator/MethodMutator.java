@@ -16,6 +16,7 @@ public class MethodMutator {
     private static String VOCAB_TARGET = "vocab.before.txt";
     private static String TRAIN_OPTIONS = "train_options.json";
 
+    private static Map<String, Map<String, LinkedHashMap<String,String>>> defects4jMap;
     private static Map<String, LinkedHashMap<String,String>> mutantsMap;
 
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelDirs) {
@@ -42,8 +43,7 @@ public class MethodMutator {
 
             // Get absolute paths to input and output files
             File outFile = new File(outPath);
-            String input = outFile.getAbsolutePath() + "/" + IOHandler.ABS_OUTPUT;
-            String output = outFile.getAbsolutePath() + "/" + modelFile.getName() + IOHandler.ABS_SUFFIX;
+            String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
 
             // Check that input file exists
             if (!new File(input).isFile()) {
@@ -97,20 +97,22 @@ public class MethodMutator {
         }
 
         // Run all models on all revisions
-        for (String modelDir : modelDirs) {
-            File modelFile = new File(modelDir);
-            System.out.println("  Running model " + modelFile.getName() + "... ");
+        defects4jMap = new HashMap<>();
+        for (String revPath : absMethodsMap.keySet()) {
+            System.out.println("  Mutating " + revPath + "... ");
 
-            for (String revPath : absMethodsMap.keySet()) {
-                System.out.println("    Mutating " + revPath + "... ");
+            Map<String, LinkedHashMap<String,String>> map = new HashMap<>();
+            for (String modelDir : modelDirs) {
+                File modelFile = new File(modelDir);
+                String modelName = modelFile.getName();
+                System.out.print("    Running model " + modelName + "... ");
 
                 // Create new map to store mutants
-                LinkedHashMap<String,String> revMethodMap = new LinkedHashMap<>(absMethodsMap.get(revPath));
+                LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap.get(revPath));
 
                 // Get absolute paths to input and output files
                 File revFile = new File(revPath);
-                String input = revFile.getAbsolutePath() + "/" + IOHandler.ABS_OUTPUT;
-                String output = revFile.getAbsolutePath() + "/" + modelFile.getName() + IOHandler.ABS_SUFFIX;
+                String input = revFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
 
                 // Check that input file exists
                 if (!new File(input).isFile()) {
@@ -125,13 +127,15 @@ public class MethodMutator {
                     continue;
                 }
 
-                // Write mutants
-                try {
-                    Files.write(Paths.get(output), mutants);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                int i=0;
+                for (String s : modelMap.keySet()) {
+                    modelMap.put(s, mutants.get(i++));
                 }
+                map.put(modelName, modelMap);
+
+                System.out.println("done.");
             }
+            defects4jMap.put(revPath, map);
 
             System.out.println("done.");
         }
@@ -203,5 +207,9 @@ public class MethodMutator {
 
     public static Map<String, LinkedHashMap<String, String>> getMutantsMap() {
         return mutantsMap;
+    }
+
+    public static Map<String, Map<String, LinkedHashMap<String, String>>> getDefects4jMap() {
+        return defects4jMap;
     }
 }

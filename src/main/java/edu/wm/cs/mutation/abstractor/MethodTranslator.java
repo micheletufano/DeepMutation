@@ -12,10 +12,9 @@ import java.util.Map;
 
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
+import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodTranslator {
-	private static final String KEY_OUTPUT = "methods.key";
-	private static final String SRC_OUTPUT = "methods.source";
 
 	private static final String PRED_INPUT = "methods.pred";
 	private static final String PRED_OUT = "pred/";
@@ -56,8 +55,8 @@ public class MethodTranslator {
 
 	}
 
-	public static void translate(Map<String, LinkedHashMap<String, String>> predMethods,
-			Map<String, List<String>> mappings) {
+	public static void translateFromDefects4J(Map<String, LinkedHashMap<String, String>> predMethods,
+											  Map<String, List<String>> mappings) {
 
 		System.out.println("Translating predicted methods...");
 		for (String outPath : predMethods.keySet()) {
@@ -90,8 +89,8 @@ public class MethodTranslator {
 			try {
 				if (!Files.exists(Paths.get(predOutPath)))
 					Files.createDirectories(Paths.get(predOutPath));
-				Files.write(Paths.get(predOutPath + KEY_OUTPUT), signatures);
-				Files.write(Paths.get(predOutPath + SRC_OUTPUT), transMethods);
+				Files.write(Paths.get(predOutPath + IOHandler.METHODS + IOHandler.KEY_SUFFIX), signatures);
+				Files.write(Paths.get(predOutPath + IOHandler.METHODS + IOHandler.SRC_SUFFIX), transMethods);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
