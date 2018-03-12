@@ -25,14 +25,21 @@ public class MethodAbstractor {
 		mappings = new HashMap<>();
 		for (String revPath : rawMethods.keySet()) {
 			LinkedHashMap<String, String> revMethodMap = new LinkedHashMap<>(rawMethods.get(revPath));
+			LinkedHashMap<String, String> subAbsMap = new LinkedHashMap<>();
 			List<String> mappingList = new ArrayList<>();
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
 
 				String absCode = abstractCode(srcCode, mappingList);
-				revMethodMap.put(signature, absCode); // replace srcCode with absCode
+
+				// filter out methods that are longer than 100 words
+				if (absCode.split(" ").length > 100)
+					continue;
+				subAbsMap.put(signature, absCode); // signature and abstract code of filtered method
+//				System.out.println("Signiture: " + signature);
+//				System.out.println("AfterTokenized: " + absCode);
 			}
-			absMethodsMap.put(revPath, revMethodMap);
+			absMethodsMap.put(revPath, subAbsMap);
 			mappings.put(revPath, mappingList);
 
 			System.out.println("done.");
@@ -64,9 +71,8 @@ public class MethodAbstractor {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		String mappings = tokenizer.getMapping();
-		mappingList.add(mappings);
-		// System.out.println("Signiture: "+signatrue);
-		// System.out.println("AfterTokenized: "+afterTokenized);
+		if (afterTokenized.split(" ").length <= 100)
+			mappingList.add(mappings);
 
 		return afterTokenized;
 	}
