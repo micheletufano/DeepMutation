@@ -16,7 +16,7 @@ public class MethodAbstractor {
 
 	public static void abstractMethods(LinkedHashMap<String, String> rawMethods, String idiomPath) {
 
-		System.out.print("Abstracting methods... ");
+		System.out.println("Abstracting methods... ");
 
 		// Set up Idioms
 		idioms = IOHandler.readIdioms(idiomPath);
@@ -82,10 +82,10 @@ public class MethodAbstractor {
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-			System.err.println("\n  Exception while parsing " + signature + "; ignored method.");
+			System.err.println("  Exception while parsing " + signature + "; ignored method.");
 			return null;
 		} catch (StackOverflowError e) {
-			System.err.println("\n  StackOverflowError while parsing " + signature + "; ignored method.");
+			System.err.println("  StackOverflowError while parsing " + signature + "; ignored method.");
 			return null;
 		}
 

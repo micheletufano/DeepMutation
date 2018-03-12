@@ -1,8 +1,10 @@
-package edu.wm.cs.mutation.mutator;
+package edu.wm.cs.mutation;
 
 import edu.wm.cs.mutation.abstractor.MethodAbstractor;
+import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
+import edu.wm.cs.mutation.mutator.MethodMutator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,20 +21,19 @@ public class FastMutatorTest {
         int complianceLvl = 4;
         boolean compiled = false;
 
-        //Idiom path
         String idiomPath = dataPath + "idioms.csv";
 
-        MethodExtractor.extractMethods(rootPath, sourcePath, libDir, complianceLvl, compiled);
-        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-
-        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
-
-        // MethodMutator
         List<String> modelDirs = new ArrayList<>();
         modelDirs.add(dataPath + "models/50len_ident_lit/");
 
+        MethodExtractor.extractMethods(rootPath, sourcePath, libDir, complianceLvl, compiled);
+        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelDirs);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelDirs, true);
+
+        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
+
+        MethodTranslator.translate(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
+        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);
     }
 
 }

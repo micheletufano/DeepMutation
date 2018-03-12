@@ -1,5 +1,6 @@
 package edu.wm.cs.mutation.abstractor;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,6 +30,46 @@ public class MethodTranslator {
 	private static final String FLOAT_PREFIX = "FLOAT_";
 
 	private static final String ERROR = "error";
+
+	private static Map<String, LinkedHashMap<String,String>> translatedMutantsMap;
+
+	public static void translate(Map<String, LinkedHashMap<String, String>> mutantsMap,
+											  List<String> mappings, List<String> modelDirs) {
+
+		System.out.println("Translating abstract mutants...");
+
+		translatedMutantsMap = new HashMap<>();
+		for (String modelDir : modelDirs) {
+			File modelFile = new File(modelDir);
+			String modelName = modelFile.getName();
+			System.out.println("  Translating results from model " + modelName + "... ");
+
+			LinkedHashMap<String, String> modelMap = new LinkedHashMap<>(mutantsMap.get(modelName));
+			List<String> badMutants = new ArrayList<>();
+
+			int index = 0; // entry index of mapping and methods.abstract
+			for (String signature : modelMap.keySet()) {
+				String srcCode = modelMap.get(signature);
+
+				String[] dicts = mappings.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
+				// 5:INT, 6:FLOAT
+				String transCode = translateCode(dicts, srcCode);
+				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
+					modelMap.put(signature, transCode);
+				} else {
+					badMutants.add(signature);
+				}
+			}
+
+			for (String signature : badMutants) {
+				modelMap.remove(signature);
+			}
+
+			translatedMutantsMap.put(modelName, modelMap);
+			System.out.println("  done.");
+		}
+		System.out.println("done.");
+	}
 
 	public static Map<String, LinkedHashMap<String, String>> getRewPredMethods(
 			Map<String, LinkedHashMap<String, String>> absMethods) {
@@ -76,7 +117,7 @@ public class MethodTranslator {
 				String[] dicts = mapping.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
 																		// 5:INT, 6:FLOAT
 				String transCode = translateCode(dicts, srcCode);
-				if (!transCode.equals(ERROR) && checkCode(transCode)) {
+				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
 					signatures.add(signature);
 					transMethods.add(transCode);
 					System.out.println("Mappings: " + mapping.get(index - 1));
@@ -163,19 +204,17 @@ public class MethodTranslator {
 		return sb.toString();
 	}
 
-	public static boolean checkCode(String srcCode) {
+	public static boolean checkCode(String signature, String srcCode) {
 		// Parser
 		MethodParser parser = new MethodParser();
 
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-			System.err.println("Exception during parsing:");
-			System.err.println(srcCode);
+			System.err.println("    Exception while parsing " + signature + "; ignored method.");
 			return false;
 		} catch (StackOverflowError e) {
-			System.err.println("StackOverflow during parsing:");
-			System.err.println(srcCode);
+			System.err.println("    StackOverFlowError while parsing " + signature + "; ignored method.");
 			return false;
 		}
 		// Tokenizer
@@ -186,11 +225,14 @@ public class MethodTranslator {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		if (afterTokenized.equals(MethodLexer.ERROR_LEXER)) {
-			System.err.println("Exception during lexing:");
-			System.err.println(srcCode);
+			System.err.println("    Exception while lexing " + signature + "; ignored method.");
 			return false;
 		}
 
 		return true;
+	}
+
+	public static Map<String, LinkedHashMap<String, String>> getTranslatedMutantsMap() {
+		return translatedMutantsMap;
 	}
 }
