@@ -31,7 +31,10 @@ public class MethodAbstractor {
         for (String signature : rawMethods.keySet()) {
             String srcCode = rawMethods.get(signature);
 
-            String absCode = abstractCode(srcCode, mappingList);
+            String absCode = abstractCode(signature, srcCode, mappingList);
+			if (absCode == null) {
+				continue;
+			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
         }
 
@@ -58,7 +61,10 @@ public class MethodAbstractor {
 			for (String signature : revMethodMap.keySet()) {
 				String srcCode = revMethodMap.get(signature);
 
-				String absCode = abstractCode(srcCode, mappingList);
+				String absCode = abstractCode(signature, srcCode, mappingList);
+				if (absCode == null) {
+					continue;
+				}
 				revMethodMap.put(signature, absCode); // replace srcCode with absCode
 			}
 			defects4jMap.put(revPath, revMethodMap);
@@ -69,16 +75,18 @@ public class MethodAbstractor {
 		System.out.println("done.");
 	}
 
-	private static String abstractCode(String srcCode, List<String> mappingList) {
+	private static String abstractCode(String signature, String srcCode, List<String> mappingList) {
 		// Parser
 		MethodParser parser = new MethodParser();
 
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-			System.err.println("Exception during parsing!");
+			System.err.println("\n  Exception while parsing " + signature + "; ignored method.");
+			return null;
 		} catch (StackOverflowError e) {
-			System.err.println("StackOverflow during parsing!");
+			System.err.println("\n  StackOverflowError while parsing " + signature + "; ignored method.");
+			return null;
 		}
 
 		// Tokenizer
