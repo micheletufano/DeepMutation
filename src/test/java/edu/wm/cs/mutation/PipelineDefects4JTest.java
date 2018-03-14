@@ -1,30 +1,27 @@
-package edu.wm.cs.mutation.abstractor;
+package edu.wm.cs.mutation;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import edu.wm.cs.mutation.abstractor.MethodAbstractor;
+import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 
-public class TranslateDefects4JTest {
-	public static void main(String[] args) {
-        String dataPath = "data/";
+import java.util.ArrayList;
+import java.util.List;
 
-        //Chart
-        String projBasePath = dataPath + "Chart/";
-        String outBasePath = dataPath + "out/Chart/";
+public class PipelineDefects4JTest {
+
+    public static void main(String[] args) {
+        String dataPath = "data/";
+        String projBasePath = dataPath + "Chart/1/b/";
+        String outBasePath = dataPath + "out/Chart/1/b/";
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
         boolean compiled = true;
 
-        //Idiom path
         String idiomPath = dataPath + "idioms.csv";
 
-        // MethodMutator
         List<String> modelDirs = new ArrayList<>();
         modelDirs.add(dataPath + "models/50len_ident_lit/");
 
@@ -40,6 +37,9 @@ public class TranslateDefects4JTest {
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
             IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelDirs, true);
             IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);
+
+            IOHandler.createMutantFiles(input.getOutPath(), input.getSrcPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+                    MethodExtractor.getMethods(), modelDirs);
         }
-	}
+    }
 }

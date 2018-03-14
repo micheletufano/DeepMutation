@@ -25,7 +25,6 @@ public class IOHandler {
     public static final String SRC_SUFFIX = ".src";
     public static final String MAP_SUFFIX = ".map";
     public static final String ABS_SUFFIX = ".abs";
-    public static final String PATH_SUFFIX = ".path";
 
     public static final String MUTANT_DIR = "mutants/";
 
@@ -146,37 +145,6 @@ public class IOHandler {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    public static void writeMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> map, boolean abstracted) {
-        for (String outDir : map.keySet()) {
-            LinkedHashMap<String, String> submap = map.get(outDir);
-
-            List<String> signatures = new ArrayList<>(submap.keySet());
-            List<String> bodies = new ArrayList<>(submap.values());
-
-            try {
-                Files.createDirectories(Paths.get(outDir));
-                Files.write(Paths.get(outDir + METHODS + KEY_SUFFIX), signatures);
-                if (abstracted) {
-                    Files.write(Paths.get(outDir + METHODS + ABS_SUFFIX), bodies);
-                } else {
-                    Files.write(Paths.get(outDir + METHODS + SRC_SUFFIX), bodies);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public static void writeMappingsFromDefects4J(Map<String, List<String>> map) {
-        for (String outDir : map.keySet()) {
-            try {
-                Files.write(Paths.get(outDir + METHODS + MAP_SUFFIX), map.get(outDir));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 

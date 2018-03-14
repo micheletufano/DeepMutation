@@ -17,9 +17,6 @@ import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodTranslator {
 
-	private static final String PRED_INPUT = "methods.pred";
-	private static final String PRED_OUT = "pred/";
-
 	private static final String VAR_PREFIX = "VAR_";
 	private static final String TYPE_PREFIX = "TYPE_";
 	private static final String METHOD_PREFIX = "METHOD_";
@@ -44,97 +41,22 @@ public class MethodTranslator {
 			String modelName = modelFile.getName();
 			System.out.println("  Translating results from model " + modelName + "... ");
 
-			LinkedHashMap<String, String> modelMap = new LinkedHashMap<>(mutantsMap.get(modelName));
-			List<String> badMutants = new ArrayList<>();
+			LinkedHashMap<String, String> mutantMap = mutantsMap.get(modelName);
+			LinkedHashMap<String, String> modelMap = new LinkedHashMap<>();
 
 			int index = 0; // entry index of mapping and methods.abstract
-			for (String signature : modelMap.keySet()) {
-				String srcCode = modelMap.get(signature);
+			for (String signature : mutantMap.keySet()) {
+				String srcCode = mutantMap.get(signature);
 
 				String[] dicts = mappings.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
 				// 5:INT, 6:FLOAT
 				String transCode = translateCode(dicts, srcCode);
 				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
 					modelMap.put(signature, transCode);
-				} else {
-					badMutants.add(signature);
 				}
-			}
-
-			for (String signature : badMutants) {
-				modelMap.remove(signature);
 			}
 
 			translatedMutantsMap.put(modelName, modelMap);
-			System.out.println("  done.");
-		}
-		System.out.println("done.");
-	}
-
-	public static Map<String, LinkedHashMap<String, String>> getRewPredMethods(
-			Map<String, LinkedHashMap<String, String>> absMethods) {
-		System.out.println("Reading predicted methods...");
-		Map<String, LinkedHashMap<String, String>> predMethods = new HashMap<String, LinkedHashMap<String, String>>();
-		for (String outPath : absMethods.keySet()) {
-			String predPath = outPath + PRED_INPUT;
-			List<String> methods = null;
-			List<String> signatures = null;
-			try {
-				signatures = new ArrayList<String>(absMethods.get(outPath).keySet());
-				methods = Files.readAllLines(Paths.get(predPath));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			LinkedHashMap<String, String> methodMap = new LinkedHashMap<>();
-			int index = 0;
-			for (String sign : signatures)
-				methodMap.put(sign, methods.get(index++));
-			predMethods.put(outPath, methodMap);
-		}
-		System.out.println("done");
-		return predMethods;
-
-	}
-
-	public static void translateFromDefects4J(Map<String, LinkedHashMap<String, String>> predMethods,
-											  Map<String, List<String>> mappings) {
-
-		System.out.println("Translating predicted methods...");
-		for (String outPath : predMethods.keySet()) {
-			String predOutPath = outPath + PRED_OUT;
-
-			LinkedHashMap<String, String> predMethodMap = new LinkedHashMap<>(predMethods.get(outPath));
-			List<String> signatures = new ArrayList<>();
-			List<String> transMethods = new ArrayList<>();
-
-			System.out.println("  Processing " + outPath);
-
-			List<String> mapping = mappings.get(outPath); // the mapping list for each method
-			int index = 0; // entry index of mapping and methods.abstract
-			for (String signature : predMethodMap.keySet()) {
-				String srcCode = predMethodMap.get(signature);
-
-				String[] dicts = mapping.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
-																		// 5:INT, 6:FLOAT
-				String transCode = translateCode(dicts, srcCode);
-				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
-					signatures.add(signature);
-					transMethods.add(transCode);
-					System.out.println("Mappings: " + mapping.get(index - 1));
-					System.out.println("Before translation: " + srcCode);
-					System.out.println("After translation: " + transCode);
-				}
-
-			}
-			System.out.println("    Writing files... ");
-			try {
-				if (!Files.exists(Paths.get(predOutPath)))
-					Files.createDirectories(Paths.get(predOutPath));
-				Files.write(Paths.get(predOutPath + IOHandler.METHODS + IOHandler.KEY_SUFFIX), signatures);
-				Files.write(Paths.get(predOutPath + IOHandler.METHODS + IOHandler.SRC_SUFFIX), transMethods);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 			System.out.println("  done.");
 		}
 		System.out.println("done.");
