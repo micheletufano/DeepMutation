@@ -17,7 +17,7 @@ public class MethodExtractor {
 
     public static void extractMethods(String projPath, String srcPath, String libPath,
                                       int complianceLvl, boolean compiled) {
-        System.out.println("Extracting methods from " + projPath + "... ");
+        System.out.println("\nExtracting methods from " + projPath + "... ");
 
         File project = new File(projPath);
         rawMethodsMap = new LinkedHashMap<>();
