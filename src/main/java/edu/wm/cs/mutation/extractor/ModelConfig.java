@@ -46,7 +46,7 @@ public class ModelConfig {
         Collections.sort(srcKeys);
     }
 
-    public String getSrcDir(int confID) {
+    public String getSrcPath(int confID) {
         String dir = "";
 
         for (int conf : srcKeys) {

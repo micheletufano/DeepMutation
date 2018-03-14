@@ -4,10 +4,7 @@ import edu.wm.cs.mutation.io.IOHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class MethodMutator {
@@ -16,25 +13,31 @@ public class MethodMutator {
     private static String VOCAB_TARGET = "vocab.before.txt";
     private static String TRAIN_OPTIONS = "train_options.json";
 
-    private static Map<String, Map<String, LinkedHashMap<String,String>>> defects4jMap;
     private static Map<String, LinkedHashMap<String,String>> mutantsMap;
 
-    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelDirs) {
+    /**
+     * Mutates methods given abstracted methods and model directories.
+     *
+     * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
+     * @param absMethodsMap
+     * @param modelPaths
+     */
+    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
 
         // Write abstracted methods
         IOHandler.writeMethods(outPath, absMethodsMap, true);
 
         // Check for train_options.json and vocab files
-        if (!foundFileDeps(modelDirs)) {
+        if (!foundFileDeps(modelPaths)) {
             System.err.println("ERROR: cannot find file dependencies");
             return;
         }
 
         // Run all models on all revisions
         mutantsMap = new HashMap<>();
-        for (String modelDir : modelDirs) {
-            File modelFile = new File(modelDir);
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
             System.out.print("  Running model " + modelName + "... ");
 
@@ -51,7 +54,7 @@ public class MethodMutator {
             // Generate mutants
             List<String> mutants = runModel(modelFile, input);
             if (mutants == null) {
-                System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                System.err.println("    ERROR: could not run model " + modelPath + " on " + input);
                 continue;
             }
 
@@ -72,70 +75,6 @@ public class MethodMutator {
     }
 
     /**
-     * Mutates methods given abstracted methods and model directories.
-     *
-     * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
-     * @param absMethodsMap
-     * @param modelDirs
-     */
-    public static void mutateMethodsFromDefects4J(Map<String, LinkedHashMap<String, String>> absMethodsMap, List<String> modelDirs) {
-        System.out.println("Mutating methods... ");
-
-        // Write maps to file
-        IOHandler.writeMethodsFromDefects4J(absMethodsMap, true);
-
-        // Check for train_options.json and vocab files
-        if (!foundFileDeps(modelDirs)) {
-            System.err.println("ERROR: cannot find file dependencies");
-            return;
-        }
-
-        // Run all models on all revisions
-        defects4jMap = new HashMap<>();
-        for (String revPath : absMethodsMap.keySet()) {
-            System.out.println("  Mutating " + revPath + "... ");
-
-            Map<String, LinkedHashMap<String,String>> map = new HashMap<>();
-            for (String modelDir : modelDirs) {
-                File modelFile = new File(modelDir);
-                String modelName = modelFile.getName();
-                System.out.print("    Running model " + modelName + "... ");
-
-                // Create new map to store mutants
-                LinkedHashMap<String,String> modelMap = new LinkedHashMap<>(absMethodsMap.get(revPath));
-
-                // Get absolute paths to input and output files
-                File revFile = new File(revPath);
-                String input = revFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
-
-                // Check that input file exists
-                if (!new File(input).isFile()) {
-                    System.err.println("    ERROR: cannot find '" + input + "'");
-                    continue;
-                }
-
-                // Run a model on a single revision
-                List<String> mutants = runModel(modelFile, input);
-                if (mutants == null) {
-                    System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
-                    continue;
-                }
-
-                int i=0;
-                for (String s : modelMap.keySet()) {
-                    modelMap.put(s, mutants.get(i++));
-                }
-                map.put(modelName, modelMap);
-
-                System.out.println("done.");
-            }
-            defects4jMap.put(revPath, map);
-
-            System.out.println("done.");
-        }
-    }
-
-    /**
      * Returns true if all file dependencies were found for in all model directories.
      *
      * File dependencies:
@@ -143,15 +82,15 @@ public class MethodMutator {
      * - {@link MethodMutator#VOCAB_TARGET}
      * - {@link MethodMutator#TRAIN_OPTIONS}
      *
-     * @param modelDirs
+     * @param modelPaths
      * @return
      */
-    private static boolean foundFileDeps(List<String> modelDirs) {
+    private static boolean foundFileDeps(List<String> modelPaths) {
         List<String> fileDeps = new ArrayList<>();
-        for (String dir : modelDirs) {
-            fileDeps.add(dir + VOCAB_SOURCE);
-            fileDeps.add(dir + VOCAB_TARGET);
-            fileDeps.add(dir + TRAIN_OPTIONS);
+        for (String modelPath : modelPaths) {
+            fileDeps.add(modelPath + VOCAB_SOURCE);
+            fileDeps.add(modelPath + VOCAB_TARGET);
+            fileDeps.add(modelPath + TRAIN_OPTIONS);
         }
 
         for (String file : fileDeps) {
@@ -203,7 +142,4 @@ public class MethodMutator {
         return mutantsMap;
     }
 
-    public static Map<String, Map<String, LinkedHashMap<String, String>>> getDefects4jMap() {
-        return defects4jMap;
-    }
 }

@@ -1,14 +1,16 @@
-package edu.wm.cs.mutation.mutator;
+package edu.wm.cs.mutation;
 
 import edu.wm.cs.mutation.abstractor.MethodAbstractor;
+import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
+import edu.wm.cs.mutation.mutator.MethodMutator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MutateDefects4JTest {
+public class PipelineDefects4JTest {
 
     public static void main(String[] args) {
         String dataPath = "data/";
@@ -17,9 +19,9 @@ public class MutateDefects4JTest {
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
         boolean compiled = true;
+
         String idiomPath = dataPath + "idioms.csv";
 
-        // MethodMutator
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
@@ -28,12 +30,16 @@ public class MutateDefects4JTest {
             MethodExtractor.extractFromDefects4J(input, libPath, compiled);
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
+            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
 
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
             IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
             IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
+
+            IOHandler.createMutantFiles(input.getOutPath(), input.getSrcPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+                    MethodExtractor.getMethods(), modelPaths);
         }
     }
-
 }

@@ -1,8 +1,11 @@
 package edu.wm.cs.mutation.abstractor;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
@@ -12,25 +15,31 @@ public class TranslateDefects4JTest {
         String dataPath = "data/";
 
         //Chart
-        String srcRootPath = dataPath + "Chart/";
-        String outRootPath = dataPath + "out/Chart/";
-        String modelBuildingInfoPath = dataPath + "spoonModel/model/Chart.json";
-        String libDir = dataPath + "spoonModel/lib/Chart";
+        String projBasePath = dataPath + "Chart/";
+        String outBasePath = dataPath + "out/Chart/";
+        String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
+        String libPath = dataPath + "spoonModel/lib/Chart";
         boolean compiled = true;
 
         //Idiom path
         String idiomPath = dataPath + "idioms.csv";
 
-        boolean abstracted = true;
-        MethodExtractor.extractFromDefects4J(srcRootPath, outRootPath, modelBuildingInfoPath, libDir, compiled);
-        MethodAbstractor.abstractMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), idiomPath);
-        IOHandler.writeMethodsFromDefects4J(MethodExtractor.getDefects4jMap(), false);
-        IOHandler.writeMethodsFromDefects4J(MethodAbstractor.getAbstractedDefects4JMethods(), abstracted);
-        IOHandler.writeMappingsFromDefects4J(MethodAbstractor.getDefects4jMappings());
+        // MethodMutator
+        List<String> modelPaths = new ArrayList<>();
+        modelPaths.add(dataPath + "models/50len_ident_lit/");
 
-// Feed the abstracted methods to predictor, generate mutated methods and put them to a LinkedHashMap		
-		Map<String, Map<String, LinkedHashMap<String, String>>> predMethods = MethodMutator.getDefects4jMap();
-        //Map<String, LinkedHashMap<String, String>> predMethods = MethodTranslator.getRewPredMethods(MethodAbstractor.getAbstractedDefects4JMethods());
-		//MethodTranslator.translateFromDefects4J(predMethods, MethodAbstractor.getDefects4jMappings());
+        List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
+        for (Defects4JInput input : inputs) {
+            MethodExtractor.extractFromDefects4J(input, libPath, compiled);
+            MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
+            MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
+            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+
+            IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+            IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
+            IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
+            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
+        }
 	}
 }

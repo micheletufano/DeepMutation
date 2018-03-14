@@ -11,23 +11,22 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 public class MethodExtractor {
 
-    private static final String BUGGY_DIR = "/b/";
-    private static Map<String, LinkedHashMap<String, String>> defects4jMap;
+    public static final String BUGGY_DIR = "/b/";
     private static LinkedHashMap<String,String> rawMethodsMap;
     private static List<CtMethod> methods;
 
-    public static void extractMethods(String rootPath, String sourcePath, String libDir,
+    public static void extractMethods(String projPath, String srcPath, String libPath,
                                       int complianceLvl, boolean compiled) {
-        System.out.println("Extracting methods... ");
+        System.out.println("\nExtracting methods from " + projPath + "... ");
 
-        File project = new File(rootPath);
+        File project = new File(projPath);
         rawMethodsMap = new LinkedHashMap<>();
 
         // Build Spoon model
         if (compiled) {
-            libDir = project.getAbsolutePath() + "/";
+            libPath = project.getAbsolutePath() + "/";
         }
-        SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
+        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
         // Generate methods
         methods = spoon.getFactory()
@@ -54,73 +53,30 @@ public class MethodExtractor {
         System.out.println("done.");
     }
 
-    public static void extractFromDefects4J(String srcRootPath, String outRootPath, String modelBuildingInfoPath,
-                                            String libDir, boolean compiled) {
+    public static void extractFromDefects4J(Defects4JInput input, String libPath, boolean compiled) {
+        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled);
+    }
 
-        System.out.println("Extracting methods... ");
+    public static List<Defects4JInput> generateDefect4JInputs(String projBasePath, String outBasePath, String modelConfigPath) {
 
         ModelConfig modelConfig = new ModelConfig();
-        modelConfig.init(modelBuildingInfoPath);
-        File[] revisions = new File(srcRootPath).listFiles(File::isDirectory);
+        modelConfig.init(modelConfigPath);
+        File[] revisions = new File(projBasePath).listFiles(File::isDirectory);
         sortRevisionDirectories(revisions);
 
-        defects4jMap = new HashMap<>();
-        int i = 0;
+        List<Defects4JInput> inputs = new ArrayList<>();
         for (File rev : revisions) {
-            System.out.println("  Processing " + rev.toString() + " (" + ++i + "/" + revisions.length + ")... ");
-
-            LinkedHashMap<String, String> revMethodsMap = new LinkedHashMap<>();
-
-            //Extract Model Building Info
             int confID = Integer.parseInt(rev.getName());
-            String srcDir = modelConfig.getSrcDir(confID);
+
+            String projPath = projBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
+            String srcPath = projPath + modelConfig.getSrcPath(confID);
+            String outPath = outBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
             int complianceLvl = modelConfig.getComplianceLevel(confID);
-            String sourcePath = rev.getAbsolutePath() + BUGGY_DIR + srcDir;
 
-            // Build Spoon model
-            System.out.println("    Building spoon model... ");
-            if (compiled) {
-                libDir = rev.getAbsolutePath() + BUGGY_DIR;
-            }
-            SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
-
-            // Generate methods
-            System.out.println("    Generating methods... ");
-
-            List<CtMethod> methods = spoon.getFactory()
-                    .Package()
-                    .getRootPackage()
-                    .getElements(new TypeFilter<>(CtMethod.class));
-
-            System.out.println("    Saving methods... ");
-            for (CtMethod method : methods) {
-                String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
-                // filter out methods that are getters/setters
-                String methodName = method.getSignature().split(" ")[1];
-                if (methodName.startsWith("set") || methodName.startsWith("get"))
-                		continue;
-                SourcePosition sp = method.getPosition();
-                String body = sp.getCompilationUnit()
-                        .getOriginalSourceCode()
-                        .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
-//                String body =  method.toString();
-
-                revMethodsMap.put(signature, body);
-            }
-            String outDir = outRootPath + rev.getName() + BUGGY_DIR;
-            defects4jMap.put(outDir, revMethodsMap);
-            System.out.println("  done.");
+            inputs.add(new Defects4JInput(projPath, srcPath, outPath, complianceLvl));
         }
 
-        System.out.println("done.");
-    }
-
-    public static LinkedHashMap<String, String> getRawMethodsMap() {
-        return rawMethodsMap;
-    }
-
-    public static Map<String, LinkedHashMap<String, String>> getDefects4jMap() {
-        return defects4jMap;
+        return inputs;
     }
 
     private static void sortRevisionDirectories(File[] revisions) {
@@ -135,6 +91,10 @@ public class MethodExtractor {
                 }
             }
         });
+    }
+
+    public static LinkedHashMap<String, String> getRawMethodsMap() {
+        return rawMethodsMap;
     }
 
     public static List<CtMethod> getMethods() {
