@@ -53,7 +53,7 @@ public class MutantTester {
 
                 mutantProjDir[i] = mutantProj[i].getName();
             } catch (IOException e) {
-                System.err.println("    ERROR: could not copy project");
+                System.err.println("    ERROR: could not copy project(s)");
                 return;
             }
         }
@@ -104,7 +104,7 @@ public class MutantTester {
                             File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
 
                             System.out.println("    Testing mutant " + mutantID + ": " +
-                                    signatures.get(Integer.parseInt(mutantID)) + "... ");
+                                    signatures.get(Integer.parseInt(mutantID) - 1) + "... ");
 
                             // Copy original file
                             try {
@@ -172,7 +172,7 @@ public class MutantTester {
             try {
                 FileUtils.deleteDirectory(mutantProj[i]);
             } catch (IOException e) {
-                System.err.println("  WARNING: could not clean up directory");
+                System.err.println("  WARNING: could not clean up mutant project(s)");
             }
         }
 

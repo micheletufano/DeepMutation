@@ -96,7 +96,7 @@ public class IOHandler {
             format.append("%0").append(num_digits).append("d");
 
             // replace original methods with mutants
-            int counter = 0; // counter for mutated file
+            int counter = 1; // counter for mutated file
             for (CtMethod method : methods) {
                 String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
                 if (!mutantsMap.containsKey(signature)) {
