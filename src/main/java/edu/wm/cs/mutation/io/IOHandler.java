@@ -2,11 +2,9 @@ package edu.wm.cs.mutation.io;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
-import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
-import spoon.reflect.visitor.filter.TypeFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,26 +26,26 @@ public class IOHandler {
 
     public static final String MUTANT_DIR = "mutants/";
 
-    public static void writeMethods(String outDir, LinkedHashMap<String, String> map, boolean abstracted) {
+    public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
         List<String> signatures = new ArrayList<>(map.keySet());
         List<String> bodies = new ArrayList<>(map.values());
 
         try {
-            Files.createDirectories(Paths.get(outDir));
-            Files.write(Paths.get(outDir + METHODS + KEY_SUFFIX), signatures);
+            Files.createDirectories(Paths.get(outPath));
+            Files.write(Paths.get(outPath + METHODS + KEY_SUFFIX), signatures);
             if (abstracted) {
-                Files.write(Paths.get(outDir + METHODS + ABS_SUFFIX), bodies);
+                Files.write(Paths.get(outPath + METHODS + ABS_SUFFIX), bodies);
             } else {
-                Files.write(Paths.get(outDir + METHODS + SRC_SUFFIX), bodies);
+                Files.write(Paths.get(outPath + METHODS + SRC_SUFFIX), bodies);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public static void writeMutants(String outDir, Map<String, LinkedHashMap<String, String>> modelsMap,
-                                    List<String> modelDirs, boolean abstracted) {
-        for (String modelDir : modelDirs) {
-            File modelFile = new File(modelDir);
+    public static void writeMutants(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+                                    List<String> modelPaths, boolean abstracted) {
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
 
@@ -55,13 +53,13 @@ public class IOHandler {
             List<String> bodies = new ArrayList<>(mutantsMap.values());
 
             try {
-                String modelOutDir = outDir + modelName + "/";
-                Files.createDirectories(Paths.get(modelOutDir));
-                Files.write(Paths.get(modelOutDir + MUTANTS + KEY_SUFFIX), signatures);
+                String modelOutPath = outPath + modelName + "/";
+                Files.createDirectories(Paths.get(modelOutPath));
+                Files.write(Paths.get(modelOutPath + MUTANTS + KEY_SUFFIX), signatures);
                 if (abstracted) {
-                    Files.write(Paths.get(modelOutDir + MUTANTS + ABS_SUFFIX), bodies);
+                    Files.write(Paths.get(modelOutPath + MUTANTS + ABS_SUFFIX), bodies);
                 } else {
-                    Files.write(Paths.get(modelOutDir + MUTANTS + SRC_SUFFIX), bodies);
+                    Files.write(Paths.get(modelOutPath + MUTANTS + SRC_SUFFIX), bodies);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -69,22 +67,22 @@ public class IOHandler {
         }
     }
 
-    public static void createMutantFiles(String outDir, String srcPath, Map<String, LinkedHashMap<String, String>> modelsMap,
-                                         List<CtMethod> methods, List<String> modelDirs) {
+    public static void createMutantFiles(String outPath, String srcPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+                                         List<CtMethod> methods, List<String> modelPaths) {
         System.out.println("Creating mutant files... ");
 
-        for (String modelDir : modelDirs) {
-            File modelFile = new File(modelDir);
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
 
             // create directory
-            String mutantDir = outDir + modelName + "/" + MUTANT_DIR;
-            if (!Files.exists(Paths.get(mutantDir))) {
+            String mutantPath = outPath + modelName + "/" + MUTANT_DIR;
+            if (!Files.exists(Paths.get(mutantPath))) {
                 try {
-                    Files.createDirectories(Paths.get(mutantDir));
+                    Files.createDirectories(Paths.get(mutantPath));
                 } catch (IOException e) {
                     System.out.println("    Error in creating mutant directory: " + e.getMessage());
                     continue;
@@ -119,7 +117,7 @@ public class IOHandler {
 
                 try {
                     String formattedSrc = new Formatter().formatSource(sb.toString());
-                    Files.write(Paths.get(mutantDir + fileName), formattedSrc.getBytes());
+                    Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
                 } catch (FormatterException e) {
                     System.err.println("    Error in formating mutant " + counter + ": " + e.getMessage());
                 } catch (IOException e) {
@@ -131,9 +129,9 @@ public class IOHandler {
         System.out.println("done.");
     }
 
-    public static void writeMappings(String outDir, List<String> mappings) {
+    public static void writeMappings(String outPath, List<String> mappings) {
         try {
-            Files.write(Paths.get(outDir + METHODS + MAP_SUFFIX), mappings);
+            Files.write(Paths.get(outPath + METHODS + MAP_SUFFIX), mappings);
         } catch (IOException e) {
             e.printStackTrace();
         }

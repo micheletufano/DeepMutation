@@ -4,10 +4,7 @@ import edu.wm.cs.mutation.io.IOHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class MethodMutator {
@@ -23,24 +20,24 @@ public class MethodMutator {
      *
      * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
      * @param absMethodsMap
-     * @param modelDirs
+     * @param modelPaths
      */
-    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelDirs) {
+    public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
 
         // Write abstracted methods
         IOHandler.writeMethods(outPath, absMethodsMap, true);
 
         // Check for train_options.json and vocab files
-        if (!foundFileDeps(modelDirs)) {
+        if (!foundFileDeps(modelPaths)) {
             System.err.println("ERROR: cannot find file dependencies");
             return;
         }
 
         // Run all models on all revisions
         mutantsMap = new HashMap<>();
-        for (String modelDir : modelDirs) {
-            File modelFile = new File(modelDir);
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
             System.out.print("  Running model " + modelName + "... ");
 
@@ -57,7 +54,7 @@ public class MethodMutator {
             // Generate mutants
             List<String> mutants = runModel(modelFile, input);
             if (mutants == null) {
-                System.err.println("    ERROR: could not run model " + modelDir + " on " + input);
+                System.err.println("    ERROR: could not run model " + modelPath + " on " + input);
                 continue;
             }
 
@@ -85,15 +82,15 @@ public class MethodMutator {
      * - {@link MethodMutator#VOCAB_TARGET}
      * - {@link MethodMutator#TRAIN_OPTIONS}
      *
-     * @param modelDirs
+     * @param modelPaths
      * @return
      */
-    private static boolean foundFileDeps(List<String> modelDirs) {
+    private static boolean foundFileDeps(List<String> modelPaths) {
         List<String> fileDeps = new ArrayList<>();
-        for (String dir : modelDirs) {
-            fileDeps.add(dir + VOCAB_SOURCE);
-            fileDeps.add(dir + VOCAB_TARGET);
-            fileDeps.add(dir + TRAIN_OPTIONS);
+        for (String modelPath : modelPaths) {
+            fileDeps.add(modelPath + VOCAB_SOURCE);
+            fileDeps.add(modelPath + VOCAB_TARGET);
+            fileDeps.add(modelPath + TRAIN_OPTIONS);
         }
 
         for (String file : fileDeps) {

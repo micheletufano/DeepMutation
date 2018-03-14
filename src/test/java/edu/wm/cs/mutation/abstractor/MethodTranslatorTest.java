@@ -15,23 +15,23 @@ public class MethodTranslatorTest {
         String rootPath = dataPath + "Chart/1/b/";
         String sourcePath = rootPath + "source/";
         String outPath = dataPath + "out/Chart/1/b/";
-        String libDir = dataPath + "spoonModel/lib/Chart";
+        String libPath = dataPath + "spoonModel/lib/Chart";
         int complianceLvl = 4;
         boolean compiled = true;
 
         String idiomPath = dataPath + "idioms.csv";
 
-        List<String> modelDirs = new ArrayList<>();
-        modelDirs.add(dataPath + "models/50len_ident_lit/");
+        List<String> modelPaths = new ArrayList<>();
+        modelPaths.add(dataPath + "models/50len_ident_lit/");
 
-        MethodExtractor.extractMethods(rootPath, sourcePath, libDir, complianceLvl, compiled);
+        MethodExtractor.extractMethods(rootPath, sourcePath, libPath, complianceLvl, compiled);
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelDirs);
+        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
 
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
-        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelDirs);
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelDirs, false);
+        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
     }
 
 }

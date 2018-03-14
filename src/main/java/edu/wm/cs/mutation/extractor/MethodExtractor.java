@@ -15,18 +15,18 @@ public class MethodExtractor {
     private static LinkedHashMap<String,String> rawMethodsMap;
     private static List<CtMethod> methods;
 
-    public static void extractMethods(String rootPath, String sourcePath, String libDir,
+    public static void extractMethods(String projPath, String srcPath, String libPath,
                                       int complianceLvl, boolean compiled) {
-        System.out.println("Extracting methods... ");
+        System.out.println("Extracting methods from " + projPath + "... ");
 
-        File project = new File(rootPath);
+        File project = new File(projPath);
         rawMethodsMap = new LinkedHashMap<>();
 
         // Build Spoon model
         if (compiled) {
-            libDir = project.getAbsolutePath() + "/";
+            libPath = project.getAbsolutePath() + "/";
         }
-        SpoonAPI spoon = SpoonConfig.buildModel(sourcePath, complianceLvl, libDir, compiled);
+        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
         // Generate methods
         methods = spoon.getFactory()
@@ -69,7 +69,7 @@ public class MethodExtractor {
             int confID = Integer.parseInt(rev.getName());
 
             String projPath = projBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
-            String srcPath = projPath + modelConfig.getSrcDir(confID);
+            String srcPath = projPath + modelConfig.getSrcPath(confID);
             String outPath = outBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
             int complianceLvl = modelConfig.getComplianceLevel(confID);
 

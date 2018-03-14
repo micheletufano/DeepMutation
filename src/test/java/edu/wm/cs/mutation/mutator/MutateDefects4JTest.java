@@ -20,19 +20,19 @@ public class MutateDefects4JTest {
         String idiomPath = dataPath + "idioms.csv";
 
         // MethodMutator
-        List<String> modelDirs = new ArrayList<>();
-        modelDirs.add(dataPath + "models/50len_ident_lit/");
+        List<String> modelPaths = new ArrayList<>();
+        modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractFromDefects4J(input, libPath, compiled);
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-            MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelDirs);
+            MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
 
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
             IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelDirs, true);
+            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
         }
     }
 

@@ -10,14 +10,14 @@ import spoon.SpoonAPI;
 import spoon.compiler.ModelBuildingException;
 
 public class SpoonConfig {
-    public static SpoonAPI buildModel(String sourcePath, int complianceLvl, String libDir, boolean compiled) {
+    public static SpoonAPI buildModel(String sourcePath, int complianceLvl, String libPath, boolean compiled) {
         SpoonAPI spoon = new Launcher();
 
         //Configure classpath
         if (compiled) {
-            configureCompiledClasspath(libDir, spoon);
+            configureCompiledClasspath(libPath, spoon);
         } else {
-            configureClasspath(libDir, spoon);
+            configureClasspath(libPath, spoon);
         }
 
 
@@ -32,7 +32,7 @@ public class SpoonConfig {
 
     private static void configureCompiledClasspath(String srcRoot, SpoonAPI spoon) {
 
-        String libDir = srcRoot + "lib";
+        String libPath = srcRoot + "lib";
         String buildClasses = srcRoot + "build/classes";
         String buildTest = srcRoot + "build/test";
         String buildLib = srcRoot + "build/lib";
@@ -41,9 +41,9 @@ public class SpoonConfig {
         addIfExists(paths, buildClasses);
         addIfExists(paths, buildTest);
 
-        addFilesInDir(paths, buildLib);
-        addFilesInDir(paths, libDir);
-        addJarFiles(paths, libDir);
+        addFilesInPath(paths, buildLib);
+        addFilesInPath(paths, libPath);
+        addJarFiles(paths, libPath);
 
         String[] classpath = paths.toArray(new String[paths.size()]);
 
@@ -62,7 +62,7 @@ public class SpoonConfig {
         }
     }
 
-    private static void addFilesInDir(List<String> paths, String path) {
+    private static void addFilesInPath(List<String> paths, String path) {
         File dir = new File(path);
 
         if (dir.exists()) {
@@ -82,9 +82,9 @@ public class SpoonConfig {
         }
     }
 
-    private static void configureClasspath(String libDir, SpoonAPI spoon) {
-        if (libDir != null) {
-            File[] libs = new File(libDir).listFiles();
+    private static void configureClasspath(String libPath, SpoonAPI spoon) {
+        if (libPath != null) {
+            File[] libs = new File(libPath).listFiles();
             ArrayList<String> libPaths = new ArrayList<>();
 
             for (File l : libs) {

@@ -31,13 +31,13 @@ public class MethodTranslator {
 	private static Map<String, LinkedHashMap<String,String>> translatedMutantsMap;
 
 	public static void translateMethods(Map<String, LinkedHashMap<String, String>> mutantsMap,
-                                        List<String> mappings, List<String> modelDirs) {
+                                        List<String> mappings, List<String> modelPaths) {
 
 		System.out.println("Translating abstract mutants...");
 
 		translatedMutantsMap = new HashMap<>();
-		for (String modelDir : modelDirs) {
-			File modelFile = new File(modelDir);
+		for (String modelPath : modelPaths) {
+			File modelFile = new File(modelPath);
 			String modelName = modelFile.getName();
 			System.out.println("  Translating results from model " + modelName + "... ");
 
