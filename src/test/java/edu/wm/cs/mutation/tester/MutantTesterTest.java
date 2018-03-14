@@ -12,6 +12,17 @@ import java.util.List;
 public class MutantTesterTest {
 
     public static void main(String[] args) {
+//        String dataPath = "data/";
+//        String projPath = dataPath + "WebServer/";
+//        String srcPath = projPath + "src/";
+//        String outPath = dataPath + "out/WebServer/";
+//        String libPath = null;
+//        int complianceLvl = 4;
+//        boolean compiled = false;
+
+//        MutantTester.setCompileCmd(System.getProperty("user.home") + "/IdeaProjects/DeepMutation/data/WebServer/compile.sh");
+//        MutantTester.setTestCmd(System.getProperty("user.home") + "/IdeaProjects/DeepMutation/data/WebServer/test.sh");
+
         String dataPath = "data/";
         String projPath = dataPath + "Chart/1/b/";
         String srcPath = projPath + "source/";
@@ -20,14 +31,13 @@ public class MutantTesterTest {
         int complianceLvl = 4;
         boolean compiled = true;
 
-        String idiomPath = dataPath + "idioms.csv";
-
-        List<String> modelPaths = new ArrayList<>();
-        modelPaths.add(dataPath + "models/50len_ident_lit/");
-
         String defects4j = System.getProperty("user.home") + "/defects4j/framework/bin/defects4j";
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
+
+        String idiomPath = dataPath + "idioms.csv";
+        List<String> modelPaths = new ArrayList<>();
+        modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled);
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);

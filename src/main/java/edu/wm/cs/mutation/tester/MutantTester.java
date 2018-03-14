@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class MutantTester {
 
-    private static final String MUTANT_DIR_SUFFIX = "Mutant";
     private static final String COPY_SUFFIX = ".bak";
 
     private static final String COMPILE_LOG_SUFFIX = "_compile.log";
@@ -20,8 +20,11 @@ public class MutantTester {
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
 
+    private static final int OK_STATUS = 0;
+    private static final int ERROR_STATUS = 1;
+
     public static void testMutants(String outPath, String projPath,
-                                   Map<String, LinkedHashMap<String,String>> mutantsMap, List<String> modelPaths) {
+                                   Map<String, LinkedHashMap<String, String>> mutantsMap, List<String> modelPaths) {
 
         System.out.println("Testing " + projPath + "... ");
 
@@ -34,19 +37,25 @@ public class MutantTester {
             return;
         }
 
-        System.out.println("  Copying projects... ");
-        String projDir = null, mutantProjDir = null;
-        File origProj = null, mutantProj = null;
-        try {
-            origProj = new File(projPath);
-            mutantProj = new File(new File(projPath).getParent() + "/" + origProj.getName() + MUTANT_DIR_SUFFIX);
-            FileUtils.copyDirectory(origProj, mutantProj);
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        System.out.println("  Using " + numThreads + " threads...");
 
-            projDir = origProj.getName();
-            mutantProjDir = mutantProj.getName();
-        } catch (IOException e) {
-            System.err.println("    ERROR: could not copy project");
-            return;
+        System.out.println("  Copying projects... ");
+        File origProj = new File(projPath);
+        final String projDir = origProj.getName();
+
+        File[] mutantProj = new File[numThreads];
+        String[] mutantProjDir = new String[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            try {
+                mutantProj[i] = new File(new File(projPath).getParent() + "/" + origProj.getName() + i);
+                FileUtils.copyDirectory(origProj, mutantProj[i]);
+
+                mutantProjDir[i] = mutantProj[i].getName();
+            } catch (IOException e) {
+                System.err.println("    ERROR: could not copy project");
+                return;
+            }
         }
         System.out.println("  done.");
 
@@ -76,58 +85,95 @@ public class MutantTester {
                 continue;
             }
 
-            // Test each mutant
-            for (File mutantFile : mutantFiles) {
-                String mutantID = mutantFile.getName().split("_")[0];
-                File origFile = new File(mutantFile.getName()
-                        .split("_")[1]
-                        .replace("-","/")
-                        .replaceFirst(projDir, mutantProjDir));
-                File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
+            // Test each mutant in parallel
+            ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+            List<Callable<Object>> tasks = new ArrayList<>(numThreads);
 
-                System.out.println("    Testing mutant " + mutantID + ": " +
-                        signatures.get(Integer.parseInt(mutantID)) + "... ");
+            for (int i=0; i<numThreads; i++) {
+                tasks.add(new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        int threadID = (int) Thread.currentThread().getId() % numThreads;
+                        for (int j = threadID; j < mutantFiles.length; j += numThreads) {
+                            File mutantFile = mutantFiles[j];
+                            String mutantID = mutantFile.getName().split("_")[0];
+                            File origFile = new File(mutantFile.getName()
+                                    .split("_")[1]
+                                    .replace("-", "/")
+                                    .replaceFirst(projDir, mutantProjDir[threadID]));
+                            File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
 
-                // Copy original file
-                try {
-                    FileUtils.copyFile(origFile, copyFile);
-                } catch (IOException e) {
-                    System.err.println("    WARNING: could not copy original file");
-                    e.printStackTrace();
-                    continue;
+                            System.out.println("    Testing mutant " + mutantID + ": " +
+                                    signatures.get(Integer.parseInt(mutantID)) + "... ");
+
+                            // Copy original file
+                            try {
+                                FileUtils.copyFile(origFile, copyFile);
+                            } catch (IOException e) {
+                                System.err.println("    ERROR: could not copy original file");
+                                return ERROR_STATUS;
+                            }
+
+                            // Replace original file with mutant file
+                            try {
+                                FileUtils.copyFile(mutantFile, origFile);
+                            } catch (IOException e) {
+                                System.err.println("    ERROR: could not copy mutant file");
+                                FileUtils.deleteQuietly(copyFile);
+                                return ERROR_STATUS;
+                            }
+
+                            // Run test
+                            if (!compile(mutantID, mutantProj[threadID].getPath(), logPath)) {
+                                return ERROR_STATUS;
+                            }
+                            if (!test(mutantID, mutantProj[threadID].getPath(), logPath)) {
+                                return ERROR_STATUS;
+                            }
+
+                            // Replace mutant file with original file
+                            try {
+                                FileUtils.copyFile(copyFile, origFile);
+                            } catch (IOException e) {
+                                System.err.println("    ERROR: could not restore original file");
+                                return ERROR_STATUS;
+                            } finally {
+                                FileUtils.deleteQuietly(copyFile);
+                            }
+                        }
+                        return OK_STATUS;
+                    }
+                });
+            }
+
+            try {
+                List<Future<Object>> futures = executorService.invokeAll(tasks);
+                for (Future future : futures) {
+                    future.get();
                 }
-
-                // Replace original file with mutant file
+            } catch (InterruptedException e) {
+                System.err.println("    ERROR: main thread was interrupted");
+            } catch (ExecutionException e) {
+                System.err.println("    ERROR: worker thread threw an exception");
+            } finally {
+                System.out.print("    Stopping all threads...");
+                executorService.shutdown();
                 try {
-                    FileUtils.copyFile(mutantFile, origFile);
-                } catch (IOException e) {
-                    System.err.println("    WARNING: could not copy mutant file");
-                    FileUtils.deleteQuietly(copyFile);
-                    continue;
-                }
-
-                // Run test
-                compile(mutantID, mutantProj.getPath(), logPath);
-                test(mutantID, mutantProj.getPath(), logPath);
-
-                // Replace mutant file with original file
-                try {
-                    FileUtils.copyFile(copyFile, origFile);
-                } catch (IOException e) {
-                    System.err.println("    ERROR: could not restore original file");
-                    break;
-                } finally {
-                    FileUtils.deleteQuietly(copyFile);
+                    executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                } catch (InterruptedException e) {
+                    System.err.println("      ERROR: interrupted while stopping threads");
                 }
             }
 
             System.out.println("  done.");
         }
 
-        try {
-            FileUtils.deleteDirectory(mutantProj);
-        } catch (IOException e) {
-            System.err.println("  WARNING: could not clean up directory");
+        for (int i = 0; i < numThreads; i++) {
+            try {
+                FileUtils.deleteDirectory(mutantProj[i]);
+            } catch (IOException e) {
+                System.err.println("  WARNING: could not clean up directory");
+            }
         }
 
         System.out.println("done.");
@@ -135,11 +181,12 @@ public class MutantTester {
 
     /**
      * Compile project. Adapted from {@link ProcessBuilder} javadoc.
+     *
      * @param mutantID
      * @param mutantProjPath
      * @param logPath
      */
-    private static void compile(String mutantID, String mutantProjPath, String logPath) {
+    private static boolean compile(String mutantID, String mutantProjPath, String logPath) {
         File log = new File(logPath + mutantID + COMPILE_LOG_SUFFIX);
         FileUtils.deleteQuietly(log);
 
@@ -160,16 +207,19 @@ public class MutantTester {
         } catch (IOException e) {
             System.err.println("    ERROR: could not run compile command");
             FileUtils.deleteQuietly(log);
+            return false;
         }
+        return true;
     }
 
     /**
      * Run project tests. Adapted from {@link ProcessBuilder} javadoc.
+     *
      * @param mutantID
      * @param mutantProjPath
      * @param logPath
      */
-    private static void test(String mutantID, String mutantProjPath, String logPath) {
+    private static boolean test(String mutantID, String mutantProjPath, String logPath) {
         File log = new File(logPath + mutantID + TEST_LOG_SUFFIX);
         FileUtils.deleteQuietly(log);
 
@@ -190,7 +240,9 @@ public class MutantTester {
         } catch (IOException e) {
             System.err.println("    ERROR: could not run test command");
             FileUtils.deleteQuietly(log);
+            return false;
         }
+        return true;
     }
 
     public static void setCompileCmd(String... compileCmd) {
