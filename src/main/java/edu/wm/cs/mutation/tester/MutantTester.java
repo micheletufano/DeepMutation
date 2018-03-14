@@ -75,6 +75,7 @@ public class MutantTester {
                     FileUtils.copyFile(mutantFile, origFile);
                 } catch (IOException e) {
                     System.err.println("    WARNING: could not copy mutant file");
+                    FileUtils.deleteQuietly(copyFile);
                     continue;
                 }
 
@@ -83,9 +84,11 @@ public class MutantTester {
                 // Replace mutant file with original file
                 try {
                     FileUtils.copyFile(copyFile, origFile);
-                    FileUtils.forceDelete(copyFile);
                 } catch (IOException e) {
-                    System.err.println("    WARNING: could not restore original file");
+                    System.err.println("    ERROR: could not restore original file");
+                    break;
+                } finally {
+                    FileUtils.deleteQuietly(copyFile);
                 }
             }
 
@@ -100,4 +103,5 @@ public class MutantTester {
 
         System.out.println("done.");
     }
+
 }
