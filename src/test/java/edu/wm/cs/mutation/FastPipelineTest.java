@@ -14,8 +14,8 @@ public class FastPipelineTest {
     public static void main(String[] args) {
 
         String dataPath = "data/";
-        String rootPath = dataPath + "WebServer/";
-        String sourcePath = rootPath + "src/";
+        String projPath = dataPath + "WebServer/";
+        String srcPath = projPath + "src/";
         String outPath = dataPath + "out/WebServer/";
         String libPath = null;
         int complianceLvl = 4;
@@ -26,7 +26,7 @@ public class FastPipelineTest {
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
-        MethodExtractor.extractMethods(rootPath, sourcePath, libPath, complianceLvl, compiled);
+        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled);
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);                     // originals
 
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
@@ -39,7 +39,7 @@ public class FastPipelineTest {
         MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
         IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false); // mutants
 
-        IOHandler.createMutantFiles(outPath, sourcePath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+        IOHandler.createMutantFiles(outPath, srcPath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
                 MethodExtractor.getMethods(), modelPaths);
     }
 
