@@ -40,7 +40,7 @@ public class MutantTester {
         int numThreads = Runtime.getRuntime().availableProcessors();
         System.out.println("  Using " + numThreads + " threads...");
 
-        System.out.println("  Copying projects... ");
+        System.out.println("  Copying project(s)... ");
         File origProj = new File(projPath);
         final String projDir = origProj.getName();
 
@@ -50,6 +50,7 @@ public class MutantTester {
             try {
                 mutantProj[i] = new File(new File(projPath).getParent() + "/" + origProj.getName() + i);
                 FileUtils.copyDirectory(origProj, mutantProj[i]);
+                System.out.println("    Created " + mutantProj[i].getPath() + ".");
 
                 mutantProjDir[i] = mutantProj[i].getName();
             } catch (IOException e) {
@@ -90,10 +91,10 @@ public class MutantTester {
             List<Callable<Object>> tasks = new ArrayList<>(numThreads);
 
             for (int i=0; i<numThreads; i++) {
+                int threadID = i;
                 tasks.add(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        int threadID = (int) Thread.currentThread().getId() % numThreads;
                         for (int j = threadID; j < mutantFiles.length; j += numThreads) {
                             File mutantFile = mutantFiles[j];
                             String mutantID = mutantFile.getName().split("_")[0];
@@ -156,7 +157,7 @@ public class MutantTester {
             } catch (ExecutionException e) {
                 System.err.println("    ERROR: worker thread threw an exception");
             } finally {
-                System.out.print("    Stopping all threads...");
+                System.out.println("    Stopping all threads...");
                 executorService.shutdown();
                 try {
                     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -164,10 +165,10 @@ public class MutantTester {
                     System.err.println("      ERROR: interrupted while stopping threads");
                 }
             }
-
             System.out.println("  done.");
         }
 
+        System.out.println("  Deleting mutant project(s)...");
         for (int i = 0; i < numThreads; i++) {
             try {
                 FileUtils.deleteDirectory(mutantProj[i]);
@@ -175,6 +176,7 @@ public class MutantTester {
                 System.err.println("  WARNING: could not clean up mutant project(s)");
             }
         }
+        System.out.println("  done.");
 
         System.out.println("done.");
     }
