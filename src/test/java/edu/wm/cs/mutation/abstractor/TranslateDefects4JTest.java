@@ -1,9 +1,7 @@
 package edu.wm.cs.mutation.abstractor;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
@@ -30,7 +28,7 @@ public class TranslateDefects4JTest {
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
-            MethodExtractor.extractFromDefects4J(input, libPath, compiled);
+            MethodExtractor.extractMethods(input, libPath, compiled);
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
             MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);

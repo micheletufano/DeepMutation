@@ -53,7 +53,7 @@ public class MethodExtractor {
         System.out.println("done.");
     }
 
-    public static void extractFromDefects4J(Defects4JInput input, String libPath, boolean compiled) {
+    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled) {
         extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled);
     }
 
