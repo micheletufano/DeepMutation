@@ -27,14 +27,17 @@ public class FastPipelineTest {
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         MethodExtractor.extractMethods(rootPath, sourcePath, libPath, complianceLvl, compiled);
-        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
-
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);                     // originals
+
+        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
         IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);                 // abstract originals
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);                // abstract mutants
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);  // mutants
+        IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());                               // mappings
+
+        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
+        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);               // abstract mutants
+
+        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false); // mutants
 
         IOHandler.createMutantFiles(outPath, sourcePath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
                 MethodExtractor.getMethods(), modelPaths);

@@ -24,9 +24,9 @@ public class AbstractDefects4JTest {
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled);
-            MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+
+            MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
             IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
         }
