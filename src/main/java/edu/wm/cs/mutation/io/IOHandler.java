@@ -25,6 +25,7 @@ public class IOHandler {
     public static final String ABS_SUFFIX = ".abs";
 
     public static final String MUTANT_DIR = "mutants/";
+    public static final String LOG_DIR = "logs/";
 
     public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
         List<String> signatures = new ArrayList<>(map.keySet());
