@@ -59,6 +59,7 @@ public class MutantTester {
                 mutantProjPaths[i] = mutantProj[i].getPath() + "/";
             } catch (IOException e) {
                 System.err.println("    ERROR: could not copy project(s)");
+                e.printStackTrace();
                 return;
             }
         }
@@ -87,6 +88,7 @@ public class MutantTester {
                 Files.createDirectories(Paths.get(logPath));
             } catch (IOException e) {
                 System.err.println("    ERROR: could not create log directory");
+                e.printStackTrace();
                 continue;
             }
 
@@ -171,8 +173,10 @@ public class MutantTester {
                 }
             } catch (InterruptedException e) {
                 System.err.println("    ERROR: main thread was interrupted");
+                e.printStackTrace();
             } catch (ExecutionException e) {
                 System.err.println("    ERROR: worker thread threw an exception");
+                e.printStackTrace();
             } finally {
                 System.out.println("    Stopping all threads...");
                 executorService.shutdown();
@@ -180,6 +184,7 @@ public class MutantTester {
                     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
                 } catch (InterruptedException e) {
                     System.err.println("      ERROR: interrupted while stopping threads");
+                    e.printStackTrace();
                 }
             }
             System.out.println("  done.");
@@ -191,6 +196,7 @@ public class MutantTester {
                 FileUtils.deleteDirectory(mutantProj[i]);
             } catch (IOException e) {
                 System.err.println("  WARNING: could not clean up mutant project(s)");
+                e.printStackTrace();
             }
         }
         System.out.println("  done.");
@@ -226,6 +232,7 @@ public class MutantTester {
         } catch (IOException e) {
             System.err.println("    ERROR: could not run compile command");
             FileUtils.deleteQuietly(log);
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -259,6 +266,7 @@ public class MutantTester {
         } catch (IOException e) {
             System.err.println("    ERROR: could not run test command");
             FileUtils.deleteQuietly(log);
+            e.printStackTrace();
             return false;
         }
         return true;

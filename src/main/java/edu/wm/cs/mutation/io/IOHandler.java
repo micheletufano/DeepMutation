@@ -167,6 +167,7 @@ public class IOHandler {
                     Files.createDirectories(Paths.get(mutantPath));
                 } catch (IOException e) {
                     System.out.println("    Error in creating mutant directory: " + e.getMessage());
+                    e.printStackTrace();
                     continue;
                 }
             }
