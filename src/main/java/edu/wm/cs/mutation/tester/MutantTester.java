@@ -42,17 +42,16 @@ public class MutantTester {
 
         System.out.println("  Copying project(s)... ");
         File origProj = new File(projPath);
-        final String projDir = origProj.getName();
 
         File[] mutantProj = new File[numThreads];
-        String[] mutantProjDir = new String[numThreads];
+        String[] mutantProjPaths = new String[numThreads];
         for (int i = 0; i < numThreads; i++) {
             try {
                 mutantProj[i] = new File(new File(projPath).getParent() + "/" + origProj.getName() + i);
                 FileUtils.copyDirectory(origProj, mutantProj[i]);
                 System.out.println("    Created " + mutantProj[i].getPath() + ".");
 
-                mutantProjDir[i] = mutantProj[i].getName();
+                mutantProjPaths[i] = mutantProj[i].getPath() + "/";
             } catch (IOException e) {
                 System.err.println("    ERROR: could not copy project(s)");
                 return;
@@ -72,7 +71,7 @@ public class MutantTester {
             String mutantsPath = outPath + modelName + "/" + IOHandler.MUTANT_DIR;
             File[] mutantFiles = new File(mutantsPath).listFiles();
             if (mutantFiles == null) {
-                System.err.println("  ERROR: could not find any mutants");
+                System.err.println("    ERROR: could not find any mutants");
                 continue;
             }
             Arrays.sort(mutantFiles);
@@ -82,7 +81,7 @@ public class MutantTester {
             try {
                 Files.createDirectories(Paths.get(logPath));
             } catch (IOException e) {
-                System.err.println("  ERROR: could not create log directory");
+                System.err.println("    ERROR: could not create log directory");
                 continue;
             }
 
@@ -96,12 +95,15 @@ public class MutantTester {
                     @Override
                     public Object call() throws Exception {
                         for (int j = threadID; j < mutantFiles.length; j += numThreads) {
+                            // mutantFile.getName() == mutantID_path-to-src-path-to-file[$inner-class].java
                             File mutantFile = mutantFiles[j];
                             String mutantID = mutantFile.getName().split("_")[0];
+
                             File origFile = new File(mutantFile.getName()
                                     .split("_")[1]
                                     .replace("-", "/")
-                                    .replaceFirst(projDir, mutantProjDir[threadID]));
+                                    .replaceFirst(projPath, mutantProjPaths[threadID])
+                                    .replaceFirst("\\$.*\\.java",".java"));
                             File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
 
                             System.out.println("    Testing mutant " + mutantID + ": " +
@@ -111,7 +113,9 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(origFile, copyFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID + ": could not copy original file");
+                                System.err.println("    ERROR: " + mutantID +
+                                        ": could not copy original file: '" + origFile.getPath() + "'");
+                                e.printStackTrace();
                                 return ERROR_STATUS;
                             }
 
@@ -119,24 +123,28 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(mutantFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID + ": could not copy mutant file");
+                                System.err.println("    ERROR: " + mutantID +
+                                        ": could not copy mutant file: " + mutantFile.getPath() + "'");
+                                e.printStackTrace();
                                 FileUtils.deleteQuietly(copyFile);
                                 return ERROR_STATUS;
                             }
 
                             // Run test
-                            if (!compile(mutantID, mutantProj[threadID].getPath(), logPath)) {
-                                return ERROR_STATUS;
-                            }
-                            if (!test(mutantID, mutantProj[threadID].getPath(), logPath)) {
-                                return ERROR_STATUS;
-                            }
+//                            if (!compile(mutantID, mutantProj[threadID].getPath(), logPath)) {
+//                                return ERROR_STATUS;
+//                            }
+//                            if (!test(mutantID, mutantProj[threadID].getPath(), logPath)) {
+//                                return ERROR_STATUS;
+//                            }
 
                             // Replace mutant file with original file
                             try {
                                 FileUtils.copyFile(copyFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID + ": could not restore original file");
+                                System.err.println("    ERROR: " + mutantID +
+                                        ": could not restore original file: " + origFile.getPath() + "'");
+                                e.printStackTrace();
                                 return ERROR_STATUS;
                             } finally {
                                 FileUtils.deleteQuietly(copyFile);
