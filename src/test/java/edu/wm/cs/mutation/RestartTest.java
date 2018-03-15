@@ -16,7 +16,11 @@ public class RestartTest {
 
         String dataPath = "data/";
         String projPath = dataPath + "Chart/1/b/";
+        String srcPath = projPath + "source/";
         String outPath = dataPath + "out/Chart/1/b/";
+        String libPath = dataPath + "spoonModel/lib/Chart";
+        int complianceLvl = 4;
+        boolean compiled = true;
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
@@ -24,7 +28,12 @@ public class RestartTest {
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
 
+//        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
         MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
+
+//        IOHandler.createMutantFiles(outPath, srcPath, MethodTranslator.getTranslatedMutantsMap(),
+//                MethodExtractor.getMethods(), modelPaths);
+
         MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths);
     }
 }

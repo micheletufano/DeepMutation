@@ -187,9 +187,11 @@ public class IOHandler {
                 SourcePosition sp = method.getPosition();
                 String original = sp.getCompilationUnit().getOriginalSourceCode();
 
-                // XXXX_path-to-src-path-to-file.java
+                // XXXX_relative-path-to-file.java
                 String fileName = String.format(format.toString(), counter) + "_" +
-                        srcPath.replace("/","-") + signature.split("#")[0].replace(".","-") + ".java";
+                        sp.getCompilationUnit().getFile().getPath()
+                                .replaceFirst(System.getProperty("user.dir") + "/", "")
+                                .replace("/","-");
 
                 // construct and format mutated class
                 StringBuilder sb = new StringBuilder();

@@ -95,7 +95,7 @@ public class MutantTester {
                     @Override
                     public Object call() throws Exception {
                         for (int j = threadID; j < mutantFiles.length; j += numThreads) {
-                            // mutantFile.getName() == mutantID_path-to-src-path-to-file[$inner-class].java
+                            // mutantFile.getName() == mutantID_relative-path-to-file[$inner-class].java
                             File mutantFile = mutantFiles[j];
                             String mutantID = mutantFile.getName().split("_")[0];
 
@@ -131,12 +131,12 @@ public class MutantTester {
                             }
 
                             // Run test
-//                            if (!compile(mutantID, mutantProj[threadID].getPath(), logPath)) {
-//                                return ERROR_STATUS;
-//                            }
-//                            if (!test(mutantID, mutantProj[threadID].getPath(), logPath)) {
-//                                return ERROR_STATUS;
-//                            }
+                            if (!compile(mutantID, mutantProj[threadID].getPath(), logPath)) {
+                                return ERROR_STATUS;
+                            }
+                            if (!test(mutantID, mutantProj[threadID].getPath(), logPath)) {
+                                return ERROR_STATUS;
+                            }
 
                             // Replace mutant file with original file
                             try {
