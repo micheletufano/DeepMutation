@@ -120,6 +120,9 @@ public class MethodMutator {
             }
             p.waitFor();
 
+            if (mutants.size() == 0) {
+                return null;
+            }
             return mutants;
         } catch (Exception e) {
             e.printStackTrace();
