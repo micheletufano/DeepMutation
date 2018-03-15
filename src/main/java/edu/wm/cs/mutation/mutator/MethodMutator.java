@@ -9,9 +9,11 @@ import java.util.*;
 
 public class MethodMutator {
 
-    private static String VOCAB_SOURCE = "vocab.after.txt";
-    private static String VOCAB_TARGET = "vocab.before.txt";
-    private static String TRAIN_OPTIONS = "train_options.json";
+    private static final String VOCAB_SOURCE = "vocab.after.txt";
+    private static final String VOCAB_TARGET = "vocab.before.txt";
+    private static final String TRAIN_OPTIONS = "train_options.json";
+
+    private static String python = "python";
 
     private static Map<String, LinkedHashMap<String,String>> mutantsMap;
 
@@ -132,7 +134,7 @@ public class MethodMutator {
 
     private static List<String> buildCommand(String input) {
         List<String> cmd = new ArrayList<>();
-        cmd.add("python"); cmd.add("-m"); cmd.add("bin.infer");
+        cmd.add(python); cmd.add("-m"); cmd.add("bin.infer");
         cmd.add("--tasks");
         cmd.add("- class: DecodeText");
         cmd.add("--model_dir"); cmd.add(".");
@@ -147,5 +149,9 @@ public class MethodMutator {
 
     public static void setMutantsMap(Map<String, LinkedHashMap<String, String>> mutantsMap) {
         MethodMutator.mutantsMap = mutantsMap;
+    }
+
+    public static void setPython(String python) {
+        MethodMutator.python = python;
     }
 }
