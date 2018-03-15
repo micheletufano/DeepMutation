@@ -37,6 +37,11 @@ public class MethodExtractor {
         for (CtMethod method : methods) {
             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
 
+            // filter out inner classes
+            if (signature.contains("$")) {
+                continue;
+            }
+
             // filter out getters/setters
             String methodName = method.getSignature().split(" ")[1];
             if (methodName.startsWith("set") || methodName.startsWith("get")) {
