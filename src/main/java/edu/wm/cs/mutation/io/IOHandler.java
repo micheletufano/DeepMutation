@@ -43,6 +43,42 @@ public class IOHandler {
             e.printStackTrace();
         }
     }
+
+    public static LinkedHashMap<String,String> readMethods(String outPath, boolean abstracted) {
+        if (abstracted) {
+            System.out.println("Reading abstracted methods from file... ");
+        } else {
+            System.out.println("Reading methods from file... ");
+        }
+
+        LinkedHashMap<String,String> map = new LinkedHashMap<>();
+
+        List<String> signatures = null;
+        List<String> bodies = null;
+        try {
+            signatures = Files.readAllLines(Paths.get(outPath + METHODS + KEY_SUFFIX));
+            if (abstracted) {
+                bodies = Files.readAllLines(Paths.get(outPath + METHODS + ABS_SUFFIX));
+            } else {
+                bodies = Files.readAllLines(Paths.get(outPath + METHODS + SRC_SUFFIX));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (signatures == null || bodies == null) {
+            System.err.println("ERROR: could not load map from files");
+            return null;
+        }
+
+        for (int i=0; i<signatures.size(); i++) {
+            map.put(signatures.get(i), bodies.get(i));
+        }
+
+        System.out.println("done.");
+        return map;
+    }
+
     public static void writeMutants(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
                                     List<String> modelPaths, boolean abstracted) {
         for (String modelPath : modelPaths) {
@@ -66,6 +102,51 @@ public class IOHandler {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static Map<String, LinkedHashMap<String,String>> readMutants(String outPath, List<String> modelPaths,
+                                                                        boolean abstracted) {
+        if (abstracted) {
+            System.out.println("Reading abstracted mutants from files... ");
+        } else {
+            System.out.println("Reading mutants from files... ");
+        }
+
+        Map<String, LinkedHashMap<String,String>> modelsMap = new HashMap<>();
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            String modelOutPath = outPath + modelName + "/";
+
+            List<String> signatures = null;
+            List<String> bodies = null;
+
+            try {
+                signatures = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + KEY_SUFFIX));
+                if (abstracted) {
+                    bodies = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + ABS_SUFFIX));
+                } else {
+                    bodies = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + SRC_SUFFIX));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (signatures == null || bodies == null) {
+                System.err.println("ERROR: could not load map from files");
+                return null;
+            }
+
+            LinkedHashMap<String,String> mutantsMap = new LinkedHashMap<>();
+            for (int i=0; i<signatures.size(); i++) {
+                mutantsMap.put(signatures.get(i), bodies.get(i));
+            }
+
+            modelsMap.put(modelName, mutantsMap);
+        }
+        System.out.println("done.");
+        return modelsMap;
     }
 
     public static void createMutantFiles(String outPath, String srcPath, Map<String, LinkedHashMap<String, String>> modelsMap,
@@ -120,7 +201,7 @@ public class IOHandler {
                     String formattedSrc = new Formatter().formatSource(sb.toString());
                     Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
                 } catch (FormatterException e) {
-                    System.err.println("    Error in formating mutant " + counter + ": " + e.getMessage());
+                    System.err.println("    Error in formatting mutant " + counter + ": " + e.getMessage());
                 } catch (IOException e) {
                     System.err.println("    Error in writing mutant " + counter + ": " + e.getMessage());
                 }
@@ -136,6 +217,23 @@ public class IOHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static List<String> readMappings(String outPath) {
+        System.out.println("Reading mappings from file... ");
+        List<String> mappings = null;
+
+        try {
+            mappings = Files.readAllLines(Paths.get(outPath + METHODS + MAP_SUFFIX));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (mappings == null) {
+            System.err.println("ERROR: could not load mappings from file");
+        }
+        System.out.println("done.");
+        return mappings;
     }
 
     public static Set<String> readIdioms(String filePath) {
