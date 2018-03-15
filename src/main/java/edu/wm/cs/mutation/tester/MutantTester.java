@@ -40,6 +40,11 @@ public class MutantTester {
         int numThreads = Runtime.getRuntime().availableProcessors();
         System.out.println("  Using " + numThreads + " threads...");
 
+        // create format for padded threadIDs
+        int num_digits = Integer.toString(numThreads).length();
+        StringBuilder format = new StringBuilder();
+        format.append("%0").append(num_digits).append("d");
+
         System.out.println("  Copying project(s)... ");
         File origProj = new File(projPath);
 
@@ -106,14 +111,16 @@ public class MutantTester {
                                     .replaceFirst("\\$.*\\.java",".java"));
                             File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
 
-                            System.out.println("    Testing mutant " + mutantID + ": " +
+                            System.out.println("    " + String.format(format.toString(), threadID) +
+                                    ": Testing mutant " + mutantID + ": " +
                                     signatures.get(Integer.parseInt(mutantID) - 1) + "... ");
 
                             // Copy original file
                             try {
                                 FileUtils.copyFile(origFile, copyFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID +
+                                System.err.println("    " + String.format(format.toString(), threadID) +
+                                        ": ERROR: " + mutantID +
                                         ": could not copy original file: '" + origFile.getPath() + "'");
                                 e.printStackTrace();
                                 return ERROR_STATUS;
@@ -123,7 +130,8 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(mutantFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID +
+                                System.err.println("    " + String.format(format.toString(), threadID) +
+                                        ": ERROR: " + mutantID +
                                         ": could not copy mutant file: " + mutantFile.getPath() + "'");
                                 e.printStackTrace();
                                 FileUtils.deleteQuietly(copyFile);
@@ -142,7 +150,8 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(copyFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: " + mutantID +
+                                System.err.println("    " + String.format(format.toString(), threadID) +
+                                        ": ERROR: " + mutantID +
                                         ": could not restore original file: " + origFile.getPath() + "'");
                                 e.printStackTrace();
                                 return ERROR_STATUS;
