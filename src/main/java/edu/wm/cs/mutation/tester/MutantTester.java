@@ -111,7 +111,7 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(origFile, copyFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: could not copy original file");
+                                System.err.println("    ERROR: " + mutantID + ": could not copy original file");
                                 return ERROR_STATUS;
                             }
 
@@ -119,7 +119,7 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(mutantFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: could not copy mutant file");
+                                System.err.println("    ERROR: " + mutantID + ": could not copy mutant file");
                                 FileUtils.deleteQuietly(copyFile);
                                 return ERROR_STATUS;
                             }
@@ -136,7 +136,7 @@ public class MutantTester {
                             try {
                                 FileUtils.copyFile(copyFile, origFile);
                             } catch (IOException e) {
-                                System.err.println("    ERROR: could not restore original file");
+                                System.err.println("    ERROR: " + mutantID + ": could not restore original file");
                                 return ERROR_STATUS;
                             } finally {
                                 FileUtils.deleteQuietly(copyFile);

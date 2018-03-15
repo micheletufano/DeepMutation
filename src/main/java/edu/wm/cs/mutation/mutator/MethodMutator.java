@@ -142,4 +142,7 @@ public class MethodMutator {
         return mutantsMap;
     }
 
+    public static void setMutantsMap(Map<String, LinkedHashMap<String, String>> mutantsMap) {
+        MethodMutator.mutantsMap = mutantsMap;
+    }
 }

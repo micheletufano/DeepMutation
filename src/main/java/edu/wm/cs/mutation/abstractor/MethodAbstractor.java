@@ -80,4 +80,12 @@ public class MethodAbstractor {
 	public static List<String> getMappings() {
 		return mappingList;
 	}
+
+	public static void setAbstractedMethods(LinkedHashMap<String, String> absMethodsMap) {
+		MethodAbstractor.absMethodsMap = absMethodsMap;
+	}
+
+	public static void setMappings(List<String> mappingList) {
+		MethodAbstractor.mappingList = mappingList;
+	}
 }

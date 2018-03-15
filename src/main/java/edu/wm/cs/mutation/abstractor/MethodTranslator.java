@@ -157,4 +157,8 @@ public class MethodTranslator {
 	public static Map<String, LinkedHashMap<String, String>> getTranslatedMutantsMap() {
 		return translatedMutantsMap;
 	}
+
+	public static void setTranslatedMutantsMap(Map<String, LinkedHashMap<String, String>> translatedMutantsMap) {
+		MethodTranslator.translatedMutantsMap = translatedMutantsMap;
+	}
 }

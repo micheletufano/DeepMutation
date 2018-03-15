@@ -79,6 +79,24 @@ public class MethodExtractor {
         return inputs;
     }
 
+    public static void buildModel(String projPath, String srcPath, String libPath,
+                                  int complianceLvl, boolean compiled) {
+        System.out.println("Building spoon model... ");
+
+        File project = new File(projPath);
+        if (compiled) {
+            libPath = project.getAbsolutePath() + "/";
+        }
+        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
+
+        methods = spoon.getFactory()
+                .Package()
+                .getRootPackage()
+                .getElements(new TypeFilter<>(CtMethod.class));
+
+        System.out.println("done.");
+    }
+
     private static void sortRevisionDirectories(File[] revisions) {
         Arrays.sort(revisions, new Comparator<File>() {
             public int compare(File f1, File f2) {
@@ -100,4 +118,9 @@ public class MethodExtractor {
     public static List<CtMethod> getMethods() {
         return methods;
     }
+
+    public static void setRawMethodsMap(LinkedHashMap<String, String> rawMethodsMap) {
+        MethodExtractor.rawMethodsMap = rawMethodsMap;
+    }
+
 }
