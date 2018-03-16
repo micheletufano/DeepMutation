@@ -28,12 +28,13 @@ public class RestartTest {
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
 
-//        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
+        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
         MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
 
-//        IOHandler.createMutantFiles(outPath, srcPath, MethodTranslator.getTranslatedMutantsMap(),
+//        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
 
-        MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths);
+        MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(),
+                MethodExtractor.getMethods(), modelPaths);
     }
 }

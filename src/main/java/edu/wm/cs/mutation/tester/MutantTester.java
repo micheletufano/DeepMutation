@@ -1,7 +1,12 @@
 package edu.wm.cs.mutation.tester;
 
+import com.google.googlejavaformat.java.Formatter;
+import com.google.googlejavaformat.java.FormatterException;
 import edu.wm.cs.mutation.io.IOHandler;
 import org.apache.commons.io.FileUtils;
+import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtType;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,14 +22,17 @@ public class MutantTester {
     private static final String COMPILE_LOG_SUFFIX = "_compile.log";
     private static final String TEST_LOG_SUFFIX = "_test.log";
 
-    private static String[] compileCmd = null;
-    private static String[] testCmd = null;
-
     private static final int OK_STATUS = 0;
     private static final int ERROR_STATUS = 1;
 
+    private static String[] compileCmd = null;
+    private static String[] testCmd = null;
+
+    private static boolean parallel = true;
+
     public static void testMutants(String outPath, String projPath,
-                                   Map<String, LinkedHashMap<String, String>> mutantsMap, List<String> modelPaths) {
+                                   Map<String, LinkedHashMap<String, String>> modelsMap,
+                                   List<CtMethod> methods, List<String> modelPaths) {
 
         System.out.println("Testing " + projPath + "... ");
 
@@ -37,14 +45,20 @@ public class MutantTester {
             return;
         }
 
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        System.out.println("  Using " + numThreads + " threads...");
+        int numThreads;
+        if (parallel) {
+            numThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numThreads = 1;
+        }
+        System.out.println("  Using " + numThreads + " thread(s)...");
 
         // create format for padded threadIDs
         int num_digits = Integer.toString(numThreads).length();
-        StringBuilder format = new StringBuilder();
-        format.append("%0").append(num_digits).append("d");
+        StringBuilder threadFormat = new StringBuilder();
+        threadFormat.append("%0").append(num_digits).append("d");
 
+        // Create a copy of the project for each thread
         System.out.println("  Copying project(s)... ");
         File origProj = new File(projPath);
 
@@ -65,22 +79,28 @@ public class MutantTester {
         }
         System.out.println("  done.");
 
+        // Begin testing
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            // Get mutant signatures
-            List<String> signatures = new ArrayList<>(mutantsMap.get(modelName).keySet());
+            LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
 
-            // Get mutant files
-            String mutantsPath = outPath + modelName + "/" + IOHandler.MUTANT_DIR;
-            File[] mutantFiles = new File(mutantsPath).listFiles();
-            if (mutantFiles == null) {
-                System.err.println("    ERROR: could not find any mutants");
-                continue;
+            // create format for padded mutantIDs
+            num_digits = Integer.toString(mutantsMap.keySet().size()).length();
+            StringBuilder mutantFormat = new StringBuilder();
+            mutantFormat.append("%0").append(num_digits).append("d");
+
+            // Get list of methods that were mutated
+            List<CtMethod> mutated = new ArrayList<>();
+            for (CtMethod method : methods) {
+                String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
+                if (!mutantsMap.containsKey(signature)) {
+                    continue;
+                }
+                mutated.add(method);
             }
-            Arrays.sort(mutantFiles);
 
             // Create log directories
             String logPath = outPath + modelName + "/" + IOHandler.LOG_DIR;
@@ -96,48 +116,46 @@ public class MutantTester {
             ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
             List<Callable<Object>> tasks = new ArrayList<>(numThreads);
 
+            // Create task list
             for (int i=0; i<numThreads; i++) {
                 int threadID = i;
                 tasks.add(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        for (int j = threadID; j < mutantFiles.length; j += numThreads) {
-                            // mutantFile.getName() == mutantID_relative-path-to-file[$inner-class].java
-                            File mutantFile = mutantFiles[j];
-                            String mutantID = mutantFile.getName().split("_")[0];
+                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                            String mutantID = String.format(mutantFormat.toString(), j+1);
 
-                            File origFile = new File(mutantFile.getName()
-                                    .split("_")[1]
-                                    .replace("-", "/")
-                                    .replaceFirst(projPath, mutantProjPaths[threadID])
-                                    .replaceFirst("\\$.*\\.java",".java"));
-                            File copyFile = new File(origFile.getPath() + COPY_SUFFIX);
+                            CtMethod method = mutated.get(j);
+                            String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
 
-                            System.out.println("    " + String.format(format.toString(), threadID) +
-                                    ": Testing mutant " + mutantID + ": " +
-                                    signatures.get(Integer.parseInt(mutantID) - 1) + "... ");
+                            System.out.println("    " + String.format(threadFormat.toString(), threadID) +
+                                    ": Testing mutant " + mutantID + ": " + signature + "... ");
 
-                            // Copy original file
-                            try {
-                                FileUtils.copyFile(origFile, copyFile);
-                            } catch (IOException e) {
-                                System.err.println("    " + String.format(format.toString(), threadID) +
-                                        ": ERROR: " + mutantID +
-                                        ": could not copy original file: '" + origFile.getPath() + "'");
-                                e.printStackTrace();
-                                return ERROR_STATUS;
-                            }
+                            // Get original source code and path to file
+                            SourcePosition sp = method.getPosition();
+                            String original = sp.getCompilationUnit().getOriginalSourceCode();
+                            String mutantPath = sp.getCompilationUnit().getFile().getPath()
+                                    .replaceFirst(projPath, mutantProjPaths[threadID]);
+
+                            // Construct and format mutated class
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(original.substring(0, sp.getSourceStart()));
+                            sb.append(mutantsMap.get(signature));
+                            sb.append(original.substring(sp.getSourceEnd() + 1));
 
                             // Replace original file with mutant file
                             try {
-                                FileUtils.copyFile(mutantFile, origFile);
+                                String formattedSrc = new Formatter().formatSource(sb.toString());
+                                Files.write(Paths.get(mutantPath), formattedSrc.getBytes());
                             } catch (IOException e) {
-                                System.err.println("    " + String.format(format.toString(), threadID) +
-                                        ": ERROR: " + mutantID +
-                                        ": could not copy mutant file: " + mutantFile.getPath() + "'");
+                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                        ": Error in writing mutant " + mutantID + ": " + e.getMessage());
                                 e.printStackTrace();
-                                FileUtils.deleteQuietly(copyFile);
                                 return ERROR_STATUS;
+                            } catch (FormatterException e) {
+                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                        ": Error in formatting mutant " + mutantID + ": " + e.getMessage());
+                                continue;
                             }
 
                             // Run test
@@ -150,15 +168,13 @@ public class MutantTester {
 
                             // Replace mutant file with original file
                             try {
-                                FileUtils.copyFile(copyFile, origFile);
+                                Files.write(Paths.get(mutantPath), original.getBytes());
                             } catch (IOException e) {
-                                System.err.println("    " + String.format(format.toString(), threadID) +
+                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
                                         ": ERROR: " + mutantID +
-                                        ": could not restore original file: " + origFile.getPath() + "'");
+                                        ": could not restore original file: " + mutantPath + "'");
                                 e.printStackTrace();
                                 return ERROR_STATUS;
-                            } finally {
-                                FileUtils.deleteQuietly(copyFile);
                             }
                         }
                         return OK_STATUS;
@@ -166,6 +182,7 @@ public class MutantTester {
                 });
             }
 
+            // Run tasks
             try {
                 List<Future<Object>> futures = executorService.invokeAll(tasks);
                 for (Future future : futures) {
@@ -190,6 +207,7 @@ public class MutantTester {
             System.out.println("  done.");
         }
 
+        // Clean up extra projects
         System.out.println("  Deleting mutant project(s)...");
         for (int i = 0; i < numThreads; i++) {
             try {
@@ -278,5 +296,9 @@ public class MutantTester {
 
     public static void setTestCmd(String... testCmd) {
         MutantTester.testCmd = testCmd;
+    }
+
+    public static void setParallel(boolean parallel) {
+        MutantTester.parallel = parallel;
     }
 }

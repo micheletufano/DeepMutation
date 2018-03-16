@@ -39,9 +39,10 @@ public class LoadFromFilesTest {
 
         MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
 
-        IOHandler.createMutantFiles(outPath, srcPath, MethodTranslator.getTranslatedMutantsMap(),
+        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
                 MethodExtractor.getMethods(), modelPaths);
 
-        MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths);
+        MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(),
+                MethodExtractor.getMethods(), modelPaths);
     }
 }
