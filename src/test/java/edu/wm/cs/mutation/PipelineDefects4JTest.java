@@ -40,7 +40,7 @@ public class PipelineDefects4JTest {
             MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
             IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
-            IOHandler.createMutantFiles(input.getOutPath(), input.getSrcPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+            IOHandler.createMutantFiles(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
                     MethodExtractor.getMethods(), modelPaths);
         }
     }

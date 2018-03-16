@@ -149,7 +149,7 @@ public class IOHandler {
         return modelsMap;
     }
 
-    public static void createMutantFiles(String outPath, String srcPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+    public static void createMutantFiles(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
                                          List<CtMethod> methods, List<String> modelPaths) {
         System.out.println("Creating mutant files... ");
 
