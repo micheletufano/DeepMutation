@@ -32,8 +32,13 @@ if [ -z "$s2s_ver" ] || [ ! "$s2s_ver" = "0.1" ]; then
 fi
 
 # Test seq2seq
-echo "
-To test seq2seq, run the following:
+echo "Testing seq2seq... "
+ok_status=`python -m unittest seq2seq.test.pipeline_test 2>&1 | grep OK`
+
+if [ -z "$ok_status" ]; then
+    echo >&2 "
+ERROR:
+Please test seq2seq manually using:
 > python -m unittest seq2seq.test.pipeline_test
 
 An 'OK' indicates a successful test.
@@ -42,3 +47,7 @@ If the seq2seq module is not found, please check that pip and python are
 on the same version.
 
 Please refer to https://github.com/google/seq2seq/issues/285 for ImportErrors."
+    exit 1
+else 
+    echo "Success."
+fi
