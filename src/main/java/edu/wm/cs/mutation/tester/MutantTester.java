@@ -47,7 +47,7 @@ public class MutantTester {
 
         int numThreads;
         if (parallel) {
-            numThreads = Runtime.getRuntime().availableProcessors();
+            numThreads = Runtime.getRuntime().availableProcessors() - 1;
         } else {
             numThreads = 1;
         }
@@ -184,7 +184,9 @@ public class MutantTester {
 
             // Run tasks
             try {
+                long start = System.nanoTime();
                 List<Future<Object>> futures = executorService.invokeAll(tasks);
+                System.out.println("    Took " + (System.nanoTime() - start) / 1000000000.0 + " seconds.");
                 for (Future future : futures) {
                     future.get();
                 }
