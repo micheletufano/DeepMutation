@@ -41,7 +41,7 @@ public class MethodMutator {
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
-            System.out.print("  Running model " + modelName + "... ");
+            System.out.println("  Running model " + modelName + "... ");
 
             // Get absolute paths to input file
             File outFile = new File(outPath);
@@ -56,7 +56,6 @@ public class MethodMutator {
             // Generate mutants
             List<String> mutants = runModel(modelFile, input);
             if (mutants == null) {
-                System.err.println("    ERROR: could not run model " + modelPath + " on " + input);
                 continue;
             }
 
@@ -71,7 +70,7 @@ public class MethodMutator {
             }
             mutantsMap.put(modelName, modelMap);
 
-            System.out.println("done.");
+            System.out.println("  done.");
         }
         System.out.println("done.");
     }
@@ -123,6 +122,8 @@ public class MethodMutator {
             p.waitFor();
 
             if (mutants.size() == 0) {
+                System.err.println("    ERROR: could not run model " + modelFile.getPath() + " on " + input + " using command:");
+                System.err.println(String.join(" ", cmd));
                 return null;
             }
             return mutants;
