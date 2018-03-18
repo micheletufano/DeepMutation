@@ -193,10 +193,17 @@ public class IOHandler {
                         sp.getCompilationUnit().getFile().getPath()
                                 .replaceFirst(System.getProperty("user.dir") + "/", "")
                                 .replace("/","-");
-
+                
                 // construct and format mutated class
+                
+                // find start position of original source code
+				int srcStart = sp.getNameSourceStart();
+				while (original.charAt(srcStart) != '\n')
+					srcStart--;
+				srcStart++;
+				
                 StringBuilder sb = new StringBuilder();
-                sb.append(original.substring(0, sp.getSourceStart()));
+                sb.append(original.substring(0, srcStart));
                 sb.append(mutantsMap.get(signature));
                 sb.append(original.substring(sp.getSourceEnd() + 1));
 
