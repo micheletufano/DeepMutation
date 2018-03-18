@@ -134,7 +134,7 @@ public class MethodLexer {
 
 		if (tokenParts.length > 1) {
 			String lastPart = tokenParts[tokenParts.length - 1];
-			String firstPart = token.substring(0, token.length() - lastPart.length());
+			String firstPart = token.substring(0, token.length() - lastPart.length()-1);
 
 			if (idioms.contains(lastPart)) {
 				if (idioms.contains(firstPart)) {
