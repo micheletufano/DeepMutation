@@ -47,7 +47,7 @@ public class MutantTester {
 
         int numThreads;
         if (parallel) {
-            numThreads = Runtime.getRuntime().availableProcessors() - 1;
+            numThreads = Runtime.getRuntime().availableProcessors();
         } else {
             numThreads = 1;
         }
