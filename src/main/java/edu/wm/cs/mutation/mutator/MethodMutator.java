@@ -13,7 +13,7 @@ public class MethodMutator {
     private static final String VOCAB_TARGET = "vocab.before.txt";
     private static final String TRAIN_OPTIONS = "train_options.json";
 
-    private static String python = "/Users/sw/anaconda/bin/python";
+    private static String python = "python";
 
     private static Map<String, LinkedHashMap<String,String>> mutantsMap;
 
