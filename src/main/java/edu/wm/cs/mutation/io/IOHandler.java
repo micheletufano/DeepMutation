@@ -2,6 +2,10 @@ package edu.wm.cs.mutation.io;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
+
+import edu.wm.cs.mutation.tester.ChangeExtractor;
+import gumtree.spoon.diff.operations.Operation;
+import gumtree.spoon.pair.MethodPair;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
@@ -148,7 +152,11 @@ public class IOHandler {
         System.out.println("done.");
         return modelsMap;
     }
-
+  /**
+   * Create mutants for each mutated method. 
+   * Output the changes from original class to mutant class 
+   * 
+   */
     public static void createMutantFiles(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
                                          List<CtMethod> methods, List<String> modelPaths) {
         System.out.println("Creating mutant files... ");
@@ -193,7 +201,7 @@ public class IOHandler {
                         sp.getCompilationUnit().getFile().getPath()
                                 .replaceFirst(System.getProperty("user.dir") + "/", "")
                                 .replace("/","-");
-                
+
                 // construct and format mutated class
                 
                 // find start position of original source code
@@ -210,12 +218,32 @@ public class IOHandler {
                 try {
                     String formattedSrc = new Formatter().formatSource(sb.toString());
                     Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
+                    
+                    // Extract the changes from original src code to mutanted src code 
+                    ChangeExtractor changeTester = new ChangeExtractor();
+                    Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original, formattedSrc);
+                    
+                    // log the mutated method of each mutant
+                    System.out.println("Mutant " + String.format(format.toString(), counter) + " mutated method: " + method.getSimpleName());
+                    if (changesMap == null || changesMap.size() == 0) {
+                    	    System.err.println("Un-mutated method");          	    
+                    }                  
+                    else if (changesMap.size() > 0) {
+                    	// Output the changes to folder mutantPath/counter_mutatedMethodName/
+                      	String mutatedMethod = String.format(format.toString(), counter) + "_" + method.getSimpleName();
+                    	    String outDir = mutantPath + "/" + mutatedMethod + "/";
+                    	    ChangeExporter exporter = new ChangeExporter(changesMap);
+                    	    exporter.exportChanges(outDir);
+                    }
+
+                    
                 } catch (FormatterException e) {
                     System.err.println("    Error in formatting mutant " + counter + ": " + e.getMessage());
                 } catch (IOException e) {
                     System.err.println("    Error in writing mutant " + counter + ": " + e.getMessage());
                 }
-                counter++;
+
+                 counter++;
             }
         }
         System.out.println("done.");
