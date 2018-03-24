@@ -13,7 +13,7 @@ public class MethodMutator {
     private static final String VOCAB_TARGET = "vocab.before.txt";
     private static final String TRAIN_OPTIONS = "train_options.json";
 
-    private static String python = "python";
+    private static String python = "/Users/sw/anaconda/bin/python";
 
     private static Map<String, LinkedHashMap<String,String>> mutantsMap;
 
@@ -64,7 +64,7 @@ public class MethodMutator {
             int i=0;
             for (String s : absMethodsMap.keySet()) {
                 String mutant = mutants.get(i++);
-                if (!mutant.equals(absMethodsMap.get(s))) {
+                if (!mutant.trim().equals(absMethodsMap.get(s).trim())) {
                     modelMap.put(s, mutant);
                 }
             }
