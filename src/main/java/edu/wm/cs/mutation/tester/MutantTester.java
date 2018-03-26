@@ -44,11 +44,27 @@ public class MutantTester {
 
         System.out.println("Testing " + projPath + "... ");
 
+        // Check for null maps
         if (modelsMap == null) {
             System.err.println("  ERROR: null input map");
             return;
         }
 
+        boolean all_null = true;
+        for (String modelPath : modelPaths) {
+            LinkedHashMap<String, String> mutantsMap = modelsMap.get(new File(modelPath).getName());
+            if (mutantsMap != null) {
+                all_null = false;
+                break;
+            }
+        }
+
+        if (all_null) {
+            System.err.println("  ERROR: maps are null for all models");
+            return;
+        }
+
+        // Check for null commands
         if (compileCmd == null) {
             System.err.println("  ERROR: compile command not set");
             return;
@@ -58,6 +74,7 @@ public class MutantTester {
             return;
         }
 
+        // Get number of threads
         int numThreads;
         if (parallel) {
             numThreads = Runtime.getRuntime().availableProcessors();
@@ -66,7 +83,7 @@ public class MutantTester {
         }
         System.out.println("  Using " + numThreads + " thread(s)...");
 
-        // create format for padded threadIDs
+        // Create format for padded threadIDs
         int numDigits = Integer.toString(numThreads).length();
         StringBuilder threadFormat = new StringBuilder();
         threadFormat.append("%0").append(numDigits).append("d");
