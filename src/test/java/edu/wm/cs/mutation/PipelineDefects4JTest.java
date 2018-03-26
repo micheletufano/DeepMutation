@@ -6,6 +6,7 @@ import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
+import edu.wm.cs.mutation.tester.MutantTester;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,10 @@ public class PipelineDefects4JTest {
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
+        String defects4j = System.getProperty("user.home") + "/defects4j/framework/bin/defects4j";
+        MutantTester.setCompileCmd(defects4j, "compile");
+        MutantTester.setTestCmd(defects4j, "test");
+
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled);
@@ -41,6 +46,9 @@ public class PipelineDefects4JTest {
             IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
             IOHandler.createMutantFiles(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+                    MethodExtractor.getMethods(), modelPaths);
+
+            MutantTester.testMutants(input.getOutPath(), input.getProjPath(), MethodTranslator.getTranslatedMutantsMap(),
                     MethodExtractor.getMethods(), modelPaths);
         }
     }
