@@ -6,6 +6,7 @@ import com.google.googlejavaformat.java.FormatterException;
 import edu.wm.cs.mutation.tester.ChangeExtractor;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.pair.MethodPair;
+import org.apache.commons.io.FileUtils;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -323,6 +325,59 @@ public class IOHandler {
                 System.err.println("    Error in writing results");
             }
         }
+    }
+
+    public static void exportMutants(String projPath, String outPath, String mutantsPath) {
+        System.out.println("Exporting mutants... ");
+
+        File origProj = new File(projPath);
+        File dir = new File(mutantsPath);
+        File[] mutants = dir.listFiles();
+
+        if (mutants == null) {
+            System.err.println("  ERROR: " + mutantsPath + " is not a directory");
+            return;
+        }
+        if (mutants.length == 0) {
+            System.out.println("  Could not find any mutants");
+            return;
+        }
+
+        for (File mutant : mutants) {
+            if (!mutant.isFile() || !mutant.getName().endsWith(".java")) {
+                continue;
+            }
+            String mutantID = mutant.getName().split("_")[0];
+            File mutantProj = new File(outPath + origProj.getName() + mutantID);
+            String mutantPath = mutant.getName().split("_")[1]
+                    .replace("-","/")
+                    .replaceFirst(projPath, mutantProj.getPath() + "/");
+
+            try {
+                FileUtils.copyDirectory(origProj, mutantProj);
+                System.out.println("  Created " + mutantProj.getPath() + ".");
+            } catch (IOException e) {
+                System.err.println("  ERROR: could not copy project for mutant " + mutantID);
+                e.printStackTrace();
+                return;
+            }
+
+
+            try {
+                Files.copy(mutant.toPath(), Paths.get(mutantPath), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.err.println("  ERROR: could not export mutant " + mutantID);
+                try {
+                    FileUtils.deleteDirectory(mutantProj);
+                } catch (IOException ee) {
+                    System.err.println("  ERROR: could not clean up failed project " + mutantProj.getPath());
+                    ee.printStackTrace();
+                }
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("done.");
     }
 
     public static void writeMappings(String outPath, List<String> mappings) {
