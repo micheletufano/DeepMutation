@@ -24,6 +24,9 @@ public class IOHandler {
     public static final String MAP_SUFFIX = ".map";
     public static final String ABS_SUFFIX = ".abs";
 
+    private static final String COMPILE_LOG_SUFFIX = "_compile.log";
+    private static final String TEST_LOG_SUFFIX = "_test.log";
+
     public static final String MUTANT_DIR = "mutants/";
     public static final String LOG_DIR = "logs/";
 
@@ -212,6 +215,35 @@ public class IOHandler {
             }
         }
         System.out.println("done.");
+    }
+
+    public static void writeLogs(String outPath, Map<String, Map<String, String>> modelsMap, List<String> modelPaths, String type) {
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            // Create log directory
+            String logPath = outPath + modelName + "/" + IOHandler.LOG_DIR;
+            try {
+                Files.createDirectories(Paths.get(logPath));
+            } catch (IOException e) {
+                System.err.println("    ERROR: could not create log directory");
+                e.printStackTrace();
+                continue;
+            }
+
+            String suffix = (type.equals("test")) ? TEST_LOG_SUFFIX : COMPILE_LOG_SUFFIX;
+
+            Map<String, String> mutantsMap = modelsMap.get(modelName);
+            for (String mutantID : mutantsMap.keySet()) {
+                try {
+                    Files.write(Paths.get(logPath + mutantID + suffix), mutantsMap.get(mutantID).getBytes());
+                } catch (IOException e) {
+                    System.err.println("    Error in writing mutant " + mutantID + ": " + e.getMessage());
+                }
+            }
+        }
     }
 
     public static void writeMappings(String outPath, List<String> mappings) {
