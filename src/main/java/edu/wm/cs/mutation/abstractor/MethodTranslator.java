@@ -133,10 +133,10 @@ public class MethodTranslator {
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-			System.err.println("    Exception while parsing " + signature + "; ignored method.");
+//			System.err.println("    Exception while parsing " + signature + "; ignored method.");
 			return false;
 		} catch (StackOverflowError e) {
-			System.err.println("    StackOverFlowError while parsing " + signature + "; ignored method.");
+//			System.err.println("    StackOverFlowError while parsing " + signature + "; ignored method.");
 			return false;
 		}
 		// Tokenizer

@@ -64,7 +64,7 @@ public class MethodMutator {
             int i=0;
             for (String s : absMethodsMap.keySet()) {
                 String mutant = mutants.get(i++);
-                if (!mutant.equals(absMethodsMap.get(s))) {
+                if (!mutant.trim().equals(absMethodsMap.get(s).trim())) {
                     modelMap.put(s, mutant);
                 }
             }

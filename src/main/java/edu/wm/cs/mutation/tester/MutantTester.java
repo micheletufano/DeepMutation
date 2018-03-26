@@ -162,8 +162,13 @@ public class MutantTester {
                                     .replaceFirst(projPath, mutantProjPaths[threadID]);
 
                             // Construct and format mutated class
+                            int srcStart = sp.getNameSourceStart();
+            				    while (original.charAt(srcStart) != '\n')
+            					    srcStart--;
+            				    srcStart++;
+            				    
                             StringBuilder sb = new StringBuilder();
-                            sb.append(original.substring(0, sp.getSourceStart()));
+                            sb.append(original.substring(0, srcStart));
                             sb.append(mutantsMap.get(signature));
                             sb.append(original.substring(sp.getSourceEnd() + 1));
 
