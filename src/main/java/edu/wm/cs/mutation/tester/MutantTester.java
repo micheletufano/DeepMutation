@@ -88,12 +88,31 @@ public class MutantTester {
         System.out.println("  done.");
 
         // Establish baseline
-        compileBaseline = compile(origProj.getPath());
-        testBaseline = test(origProj.getPath());
+        System.out.println("  Establishing baseline... ");
+
+        File baselineProj = new File(origProj.getParent() + "/" + origProj.getName() + ".base");
+        try {
+            FileUtils.copyDirectory(origProj, baselineProj);
+        } catch (IOException e) {
+            System.err.println("  ERROR: could not establish baseline");
+            e.printStackTrace();
+            return;
+        }
+
+        compileBaseline = compile(baselineProj.getPath());
+        testBaseline = test(baselineProj.getPath());
         if (compileBaseline == null || testBaseline == null) {
             System.err.println("  ERROR: could not establish baseline");
             return;
         }
+
+        try {
+            FileUtils.deleteDirectory(baselineProj);
+        } catch (IOException e) {
+            System.err.println("  WARNING: could not clean up baseline project");
+            e.printStackTrace();
+        }
+        System.out.println("  done. ");
 
         // Begin testing
         compileLogs = new HashMap<>();
