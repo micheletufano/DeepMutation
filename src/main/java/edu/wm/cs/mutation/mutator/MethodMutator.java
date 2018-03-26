@@ -124,6 +124,12 @@ public class MethodMutator {
             if (mutants.size() == 0) {
                 System.err.println("    ERROR: could not run model " + modelFile.getPath() + " on " + input + " using command:");
                 System.err.println(String.join(" ", cmd));
+
+                br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                while ((line = br.readLine()) != null) {
+                    System.err.println(line);
+                }
+
                 return null;
             }
             return mutants;
