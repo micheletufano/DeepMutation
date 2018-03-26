@@ -39,8 +39,7 @@ public class MutantTester {
     private static boolean parallel = true;
 
 
-    public static void testMutants(String outPath, String projPath,
-                                   Map<String, LinkedHashMap<String, String>> modelsMap,
+    public static void testMutants(String projPath, Map<String, LinkedHashMap<String, String>> modelsMap,
                                    List<CtMethod> methods, List<String> modelPaths) {
 
         System.out.println("Testing " + projPath + "... ");

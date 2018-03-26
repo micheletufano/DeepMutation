@@ -55,7 +55,7 @@ public class MutantTesterTest {
         IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
                 MethodExtractor.getMethods(), modelPaths);
 
-        MutantTester.testMutants(outPath, projPath, MethodTranslator.getTranslatedMutantsMap(),
+        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
                 MethodExtractor.getMethods(), modelPaths);
         IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
         IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
