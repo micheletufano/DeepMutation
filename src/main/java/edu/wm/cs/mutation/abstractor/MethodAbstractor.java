@@ -15,10 +15,15 @@ public class MethodAbstractor {
 
 		System.out.println("Abstracting methods... ");
 
+		if (rawMethods == null) {
+			System.err.println("  ERROR: null input map");
+			return;
+		}
+
 		// Set up Idioms
 		idioms = IOHandler.readIdioms(idiomPath);
 		if (idioms == null) {
-			System.err.println("Could not load idioms");
+			System.err.println("  Could not load idioms");
 			return;
 		}
 

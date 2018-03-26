@@ -42,6 +42,17 @@ public class IOHandler {
     private static final String LOG_DIR = "logs/";
 
     public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
+        if (abstracted) {
+            System.out.println("Writing abstracted methods... ");
+        } else {
+            System.out.println("Writing methods... ");
+        }
+
+        if (map == null) {
+            System.err.println("  ERROR: cannot write null input map");
+            return;
+        }
+
         List<String> signatures = new ArrayList<>(map.keySet());
         List<String> bodies = new ArrayList<>(map.values());
 
@@ -56,6 +67,7 @@ public class IOHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("done.");
     }
 
     public static LinkedHashMap<String,String> readMethods(String outPath, boolean abstracted) {
@@ -81,7 +93,7 @@ public class IOHandler {
         }
 
         if (signatures == null || bodies == null) {
-            System.err.println("ERROR: could not load map from files");
+            System.err.println("  ERROR: could not load map from files");
             return null;
         }
 
@@ -95,10 +107,27 @@ public class IOHandler {
 
     public static void writeMutants(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
                                     List<String> modelPaths, boolean abstracted) {
+        if (abstracted) {
+            System.out.println("Writing abstracted mutants... ");
+        } else {
+            System.out.println("Writing mutants... ");
+        }
+
+        if (modelsMap == null) {
+            System.err.println("ERROR: cannot write null input map");
+            return;
+        }
+
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
 
             List<String> signatures = new ArrayList<>(mutantsMap.keySet());
             List<String> bodies = new ArrayList<>(mutantsMap.values());
@@ -115,7 +144,9 @@ public class IOHandler {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            System.out.println("  done.");
         }
+        System.out.println("done.");
     }
 
     public static Map<String, LinkedHashMap<String,String>> readMutants(String outPath, List<String> modelPaths,
@@ -131,8 +162,9 @@ public class IOHandler {
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
-            String modelOutPath = outPath + modelName + "/";
+            System.out.println("  Processing model " + modelName + "... ");
 
+            String modelOutPath = outPath + modelName + "/";
             List<String> signatures = null;
             List<String> bodies = null;
 
@@ -148,7 +180,7 @@ public class IOHandler {
             }
 
             if (signatures == null || bodies == null) {
-                System.err.println("ERROR: could not load map from files");
+                System.err.println("  ERROR: could not load map from files");
                 return null;
             }
 
@@ -158,6 +190,7 @@ public class IOHandler {
             }
 
             modelsMap.put(modelName, mutantsMap);
+            System.out.println("  done.");
         }
         System.out.println("done.");
         return modelsMap;
@@ -171,6 +204,11 @@ public class IOHandler {
                                          List<CtMethod> methods, List<String> modelPaths) {
         System.out.println("Creating mutant files... ");
 
+        if (modelsMap == null) {
+            System.err.println("  ERROR: cannot write null input map");
+            return;
+        }
+
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
@@ -178,13 +216,18 @@ public class IOHandler {
 
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
 
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
+
             // create directory
             String mutantPath = outPath + modelName + "/" + MUTANT_DIR;
             if (!Files.exists(Paths.get(mutantPath))) {
                 try {
                     Files.createDirectories(Paths.get(mutantPath));
                 } catch (IOException e) {
-                    System.out.println("    Error in creating mutant directory: " + e.getMessage());
+                    System.out.println("    ERROR: could not create mutant directory: " + e.getMessage());
                     e.printStackTrace();
                     continue;
                 }
@@ -248,21 +291,41 @@ public class IOHandler {
 
                     
                 } catch (FormatterException e) {
-                    System.err.println("    Error in formatting mutant " + counter + ": " + e.getMessage());
+                    System.err.println("    ERROR: could not format mutant " + counter + ": " + e.getMessage());
                 } catch (IOException e) {
-                    System.err.println("    Error in writing mutant " + counter + ": " + e.getMessage());
+                    System.err.println("    ERROR: could not write mutant " + counter + ": " + e.getMessage());
                 }
 
                  counter++;
             }
+            System.out.println("  done.");
         }
         System.out.println("done.");
     }
 
     public static void writeLogs(String outPath, Map<String, Map<String, String>> modelsMap, List<String> modelPaths, String type) {
+        if (type.equals("test")) {
+            System.out.println("Writing test logs... ");
+        } else {
+            System.out.println("Writing compile logs... ");
+        }
+
+        if (modelsMap == null) {
+            System.err.println("  ERROR: cannot write null input map");
+            return;
+        }
+
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            Map<String, String> mutantsMap = modelsMap.get(modelName);
+
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
 
             // Create log directory
             String logPath = outPath + modelName + "/" + LOG_DIR;
@@ -276,7 +339,6 @@ public class IOHandler {
 
             String suffix = (type.equals("test")) ? TEST_LOG_SUFFIX : COMPILE_LOG_SUFFIX;
 
-            Map<String, String> mutantsMap = modelsMap.get(modelName);
             for (String mutantID : mutantsMap.keySet()) {
                 try {
                     Files.write(Paths.get(logPath + mutantID + suffix), mutantsMap.get(mutantID).getBytes());
@@ -284,10 +346,17 @@ public class IOHandler {
                     System.err.println("    Error in writing mutant " + mutantID + ": " + e.getMessage());
                 }
             }
+            System.out.println("  done.");
         }
+        System.out.println("done.");
     }
 
     public static void writeBaseline(String outPath, String baseline, String type) {
+        if (baseline == null) {
+            System.err.println("ERROR: cannot write null input string");
+            return;
+        }
+
         String baselineID = "baseline";
         String suffix = (type.equals("test")) ? TEST_LOG_SUFFIX : COMPILE_LOG_SUFFIX;
 
@@ -300,14 +369,27 @@ public class IOHandler {
     }
 
     public static void writeResults(String outPath, Map<String, Map<String, Boolean>> modelsMap, List<String> modelPaths, String type) {
+        System.out.println("Writing results... ");
+        if (modelsMap == null) {
+            System.err.println("ERROR: cannot write null input map");
+            return;
+        }
+
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            Map<String, Boolean> mutantsMap = modelsMap.get(modelName);
+
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
 
             String name = (type.equals("test")) ? RESULTS_TEST : RESULTS_COMP;
             String path = outPath + modelName + "/";
 
-            Map<String, Boolean> mutantsMap = modelsMap.get(modelName);
             StringBuilder sb = new StringBuilder();
 
             for (String mutantID : mutantsMap.keySet()) {
@@ -324,7 +406,9 @@ public class IOHandler {
             } catch (IOException e) {
                 System.err.println("    Error in writing results");
             }
+            System.out.println("  done.");
         }
+        System.out.println("done.");
     }
 
     public static void exportMutants(String projPath, String outPath, String mutantsPath) {
@@ -339,7 +423,7 @@ public class IOHandler {
             return;
         }
         if (mutants.length == 0) {
-            System.out.println("  Could not find any mutants");
+            System.out.println("  ERROR: could not find any mutants");
             return;
         }
 
@@ -376,16 +460,22 @@ public class IOHandler {
                 e.printStackTrace();
             }
         }
-
         System.out.println("done.");
     }
 
     public static void writeMappings(String outPath, List<String> mappings) {
+        System.out.println("Writing mappings... ");
+        if (mappings == null) {
+            System.err.println("ERROR: cannot write null input mappings");
+            return;
+        }
+
         try {
             Files.write(Paths.get(outPath + METHODS + MAP_SUFFIX), mappings);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("done.");
     }
 
     public static List<String> readMappings(String outPath) {
@@ -399,8 +489,9 @@ public class IOHandler {
         }
 
         if (mappings == null) {
-            System.err.println("ERROR: could not load mappings from file");
+            System.err.println("  ERROR: could not load mappings from file");
         }
+
         System.out.println("done.");
         return mappings;
     }

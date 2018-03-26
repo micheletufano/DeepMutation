@@ -44,6 +44,11 @@ public class MutantTester {
 
         System.out.println("Testing " + projPath + "... ");
 
+        if (modelsMap == null) {
+            System.err.println("  ERROR: null input map");
+            return;
+        }
+
         if (compileCmd == null) {
             System.err.println("  ERROR: compile command not set");
             return;
@@ -125,6 +130,12 @@ public class MutantTester {
             System.out.println("  Processing model " + modelName + "... ");
 
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: skipping null map for model " + modelName);
+                continue;
+            }
+
             int numMutants = mutantsMap.keySet().size();
             int maxIter = (numMutants > numThreads) ? numMutants : numThreads;
 

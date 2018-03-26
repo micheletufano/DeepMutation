@@ -35,6 +35,11 @@ public class MethodTranslator {
 
 		System.out.println("Translating abstract mutants...");
 
+		if (mutantsMap == null) {
+			System.err.println("  ERROR: null input map");
+			return;
+		}
+
 		translatedMutantsMap = new HashMap<>();
 		for (String modelPath : modelPaths) {
 			File modelFile = new File(modelPath);
@@ -43,6 +48,11 @@ public class MethodTranslator {
 
 			LinkedHashMap<String, String> mutantMap = mutantsMap.get(modelName);
 			LinkedHashMap<String, String> modelMap = new LinkedHashMap<>();
+
+			if (mutantMap == null) {
+				System.err.println("    WARNING: cannot translate null map for model " + modelName);
+				continue;
+			}
 
 			int index = 0; // entry index of mapping and methods.abstract
 			for (String signature : mutantMap.keySet()) {

@@ -27,6 +27,11 @@ public class MethodMutator {
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
 
+        if (absMethodsMap == null) {
+            System.err.println("  ERROR: null input map");
+            return;
+        }
+
         // Write abstracted methods
         IOHandler.writeMethods(outPath, absMethodsMap, true);
 
