@@ -19,17 +19,22 @@ import java.util.concurrent.*;
 
 public class MutantTester {
 
-    private static final String COPY_SUFFIX = ".bak";
-
     private static final int OK_STATUS = 0;
     private static final int ERROR_STATUS = 1;
 
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
 
+    private static String compileBaseline;
+    private static String testBaseline;
+
     // model -> (mutantID -> log)
     private static Map<String, Map<String,String>> compileLogs;
     private static Map<String, Map<String,String>> testLogs;
+
+    // model -> (mutantID -> pass/fail)
+    private static Map<String, Map<String,Boolean>> compilable;
+    private static Map<String, Map<String,Boolean>> successful;
 
     private static boolean parallel = true;
 
@@ -83,9 +88,19 @@ public class MutantTester {
         }
         System.out.println("  done.");
 
+        // Establish baseline
+        compileBaseline = compile(origProj.getPath());
+        testBaseline = test(origProj.getPath());
+        if (compileBaseline == null || testBaseline == null) {
+            System.err.println("  ERROR: could not establish baseline");
+            return;
+        }
+
         // Begin testing
         compileLogs = new HashMap<>();
         testLogs = new HashMap<>();
+        compilable = new HashMap<>();
+        successful = new HashMap<>();
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
@@ -108,16 +123,6 @@ public class MutantTester {
                     continue;
                 }
                 mutated.add(method);
-            }
-
-            // Create log directories
-            String logPath = outPath + modelName + "/" + IOHandler.LOG_DIR;
-            try {
-                Files.createDirectories(Paths.get(logPath));
-            } catch (IOException e) {
-                System.err.println("    ERROR: could not create log directory");
-                e.printStackTrace();
-                continue;
             }
 
             // Test each mutant in parallel
@@ -244,6 +249,29 @@ public class MutantTester {
             compileLogs.put(modelName, modelCompileLogs);
             testLogs.put(modelName, modelTestLogs);
 
+            // Generate results
+            Map<String,Boolean> modelCanCompile = new HashMap<>();
+            Map<String,Boolean> modelPassesTest = new HashMap<>();
+
+            for (String mutantID : modelCompileLogs.keySet()) {
+                if (!modelCompileLogs.get(mutantID).equals(compileBaseline)) {
+                    modelCanCompile.put(mutantID, true);
+                } else {
+                    modelCanCompile.put(mutantID, false);
+                }
+            }
+
+            for (String mutantID : modelTestLogs.keySet()) {
+                if (modelTestLogs.get(mutantID).equals(testBaseline)) {
+                    modelPassesTest.put(mutantID, true);
+                } else {
+                    modelPassesTest.put(mutantID, false);
+                }
+            }
+
+            compilable.put(modelName, modelCanCompile);
+            successful.put(modelName, modelPassesTest);
+
             System.out.println("  done.");
         }
 
@@ -333,11 +361,27 @@ public class MutantTester {
         MutantTester.parallel = parallel;
     }
 
+    public static String getCompileBaseline() {
+        return compileBaseline;
+    }
+
+    public static String getTestBaseline() {
+        return testBaseline;
+    }
+
     public static Map<String, Map<String, String>> getCompileLogs() {
         return compileLogs;
     }
 
     public static Map<String, Map<String, String>> getTestLogs() {
         return testLogs;
+    }
+
+    public static Map<String, Map<String, Boolean>> getCompilable() {
+        return compilable;
+    }
+
+    public static Map<String, Map<String, Boolean>> getSuccessful() {
+        return successful;
     }
 }

@@ -17,18 +17,23 @@ import java.util.stream.Stream;
 public class IOHandler {
 
     public static final String METHODS = "methods";
-    public static final String MUTANTS = "mutants";
+    private static final String MUTANTS = "mutants";
 
-    public static final String KEY_SUFFIX = ".key";
-    public static final String SRC_SUFFIX = ".src";
-    public static final String MAP_SUFFIX = ".map";
+    private static final String KEY_SUFFIX = ".key";
+    private static final String SRC_SUFFIX = ".src";
+    private static final String MAP_SUFFIX = ".map";
     public static final String ABS_SUFFIX = ".abs";
+
+    private static final String RESULTS_COMP = "results.comp";
+    private static final String RESULTS_TEST = "results.test";
+    private static final String PASSED = "PASSED";
+    private static final String FAILED = "FAILED";
 
     private static final String COMPILE_LOG_SUFFIX = "_compile.log";
     private static final String TEST_LOG_SUFFIX = "_test.log";
 
-    public static final String MUTANT_DIR = "mutants/";
-    public static final String LOG_DIR = "logs/";
+    private static final String MUTANT_DIR = "mutants/";
+    private static final String LOG_DIR = "logs/";
 
     public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
         List<String> signatures = new ArrayList<>(map.keySet());
@@ -221,10 +226,9 @@ public class IOHandler {
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
-            System.out.println("  Processing model " + modelName + "... ");
 
             // Create log directory
-            String logPath = outPath + modelName + "/" + IOHandler.LOG_DIR;
+            String logPath = outPath + modelName + "/" + LOG_DIR;
             try {
                 Files.createDirectories(Paths.get(logPath));
             } catch (IOException e) {
@@ -242,6 +246,46 @@ public class IOHandler {
                 } catch (IOException e) {
                     System.err.println("    Error in writing mutant " + mutantID + ": " + e.getMessage());
                 }
+            }
+        }
+    }
+
+    public static void writeBaseline(String outPath, String baseline, String type) {
+        String baselineID = "baseline";
+        String suffix = (type.equals("test")) ? TEST_LOG_SUFFIX : COMPILE_LOG_SUFFIX;
+
+        try {
+            Files.write(Paths.get(outPath + baselineID + suffix), baseline.getBytes());
+        } catch (IOException e) {
+            System.err.println("    Error in writing baseline: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeResults(String outPath, Map<String, Map<String, Boolean>> modelsMap, List<String> modelPaths, String type) {
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+
+            String name = (type.equals("test")) ? RESULTS_TEST : RESULTS_COMP;
+            String path = outPath + modelName + "/";
+
+            Map<String, Boolean> mutantsMap = modelsMap.get(modelName);
+            StringBuilder sb = new StringBuilder();
+
+            for (String mutantID : mutantsMap.keySet()) {
+                sb.append(mutantID).append(" ");
+                if (mutantsMap.get(mutantID)) {
+                    sb.append(PASSED);
+                } else {
+                    sb.append(FAILED);
+                }
+                sb.append(System.lineSeparator());
+            }
+            try {
+                Files.write(Paths.get(path + name), sb.toString().getBytes());
+            } catch (IOException e) {
+                System.err.println("    Error in writing results");
             }
         }
     }
