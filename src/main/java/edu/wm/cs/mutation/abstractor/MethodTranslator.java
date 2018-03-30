@@ -31,7 +31,7 @@ public class MethodTranslator {
 	private static Map<String, LinkedHashMap<String,String>> translatedMutantsMap;
 
 	public static void translateMethods(Map<String, LinkedHashMap<String, String>> mutantsMap,
-                                        List<String> mappings, List<String> modelPaths) {
+			LinkedHashMap<String, String> dictMap, List<String> modelPaths) {
 
 		System.out.println("Translating abstract mutants...");
 
@@ -54,16 +54,18 @@ public class MethodTranslator {
 				continue;
 			}
 
-			int index = 0; // entry index of mapping and methods.abstract
 			for (String signature : mutantMap.keySet()) {
 				String srcCode = mutantMap.get(signature);
 
-				String[] dicts = mappings.get(index++).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
+				String[] dicts = dictMap.get(signature).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
 				// 5:INT, 6:FLOAT
 				String transCode = translateCode(dicts, srcCode);
 				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
 					modelMap.put(signature, transCode);
 				}
+//				System.out.println("Abs Code: " + srcCode);
+//				System.out.println("Trans Code: " + transCode);
+//				System.out.println("Mapping: " + dictMap.get(signature));
 			}
 
 			translatedMutantsMap.put(modelName, modelMap);

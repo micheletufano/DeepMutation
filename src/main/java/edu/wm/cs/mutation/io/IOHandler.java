@@ -463,13 +463,13 @@ public class IOHandler {
         System.out.println("done.");
     }
 
-    public static void writeMappings(String outPath, List<String> mappings) {
+    public static void writeMappings(String outPath, Map<String, String> dictMap) {
         System.out.println("Writing mappings... ");
-        if (mappings == null) {
+        if (dictMap == null) {
             System.err.println("ERROR: cannot write null input mappings");
             return;
         }
-
+        List<String> mappings = new ArrayList<>(dictMap.values());
         try {
             Files.write(Paths.get(outPath + METHODS + MAP_SUFFIX), mappings);
         } catch (IOException e) {
@@ -478,22 +478,31 @@ public class IOHandler {
         System.out.println("done.");
     }
 
-    public static List<String> readMappings(String outPath) {
+    public static LinkedHashMap<String, String> readMappings(String outPath) {
         System.out.println("Reading mappings from file... ");
-        List<String> mappings = null;
+        LinkedHashMap<String,String> map = new LinkedHashMap<>();
 
+        List<String> signatures = null;
+        List<String> mappings = null;
         try {
+            signatures = Files.readAllLines(Paths.get(outPath + METHODS + KEY_SUFFIX));       
             mappings = Files.readAllLines(Paths.get(outPath + METHODS + MAP_SUFFIX));
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        if (mappings == null) {
-            System.err.println("  ERROR: could not load mappings from file");
+        if (signatures == null || mappings == null) {
+            System.err.println("  ERROR: could not load map from files");
+            return null;
+        }
+
+        for (int i=0; i<signatures.size(); i++) {
+            map.put(signatures.get(i), mappings.get(i));
         }
 
         System.out.println("done.");
-        return mappings;
+        return map;
     }
 
     public static Set<String> readIdioms(String filePath) {
