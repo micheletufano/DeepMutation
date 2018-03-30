@@ -250,7 +250,8 @@ public class IOHandler {
                 String original = sp.getCompilationUnit().getOriginalSourceCode();
 
                 // XXXX_relative-path-to-file.java
-                String fileName = String.format(format.toString(), counter) + "_" +
+                String mutantID = String.format(format.toString(), counter);
+                String fileName = mutantID + "_" +
                         sp.getCompilationUnit().getFile().getPath()
                                 .replaceFirst(System.getProperty("user.dir") + "/", "")
                                 .replace("/","-");
@@ -276,15 +277,14 @@ public class IOHandler {
                     ChangeExtractor changeTester = new ChangeExtractor();
                     Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original, formattedSrc);
                     
-                    // log the mutated method of each mutant
-                    System.out.println("Mutant " + String.format(format.toString(), counter) + " mutated method: " + method.getSimpleName());
                     if (changesMap == null || changesMap.size() == 0) {
                     	    System.err.println("Un-mutated method");          	    
                     }                  
                     else if (changesMap.size() > 0) {
                     	// Output the changes to folder mutantPath/counter_mutatedMethodName/
                       	String mutatedMethod = String.format(format.toString(), counter) + "_" + method.getSimpleName();
-                    	    String outDir = mutantPath + "/" + mutatedMethod + "/";
+                     // Output the changes to folder mutantPath/mutantID_change_ID
+                    	    String outDir = mutantPath + "/" + mutantID ;
                     	    ChangeExporter exporter = new ChangeExporter(changesMap);
                     	    exporter.exportChanges(outDir);
                     }

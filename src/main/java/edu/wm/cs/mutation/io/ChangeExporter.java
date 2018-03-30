@@ -23,8 +23,8 @@ import spoon.reflect.declaration.CtType;
 
 public class ChangeExporter {
 
-	private static final String METHOD_BEFORE = "before.java";
-	private static final String METHOD_AFTER = "after.java";
+	private static final String METHOD_BEFORE = "original.java";
+	private static final String METHOD_AFTER = "changed.java";
 	private static final String OPERATIONS = "operations.txt";
 
 	private Map<MethodPair, List<Operation>> changedMethods;
@@ -38,7 +38,7 @@ public class ChangeExporter {
 		int id = 0;
 		for (Entry<MethodPair, List<Operation>> e : changedMethods.entrySet()) {
 			// Create directory
-			String out = outDir + "/" + id + "/";
+			String out = outDir + "_change_" + id + "/";
 			createDir(out);
 			id++;
 
