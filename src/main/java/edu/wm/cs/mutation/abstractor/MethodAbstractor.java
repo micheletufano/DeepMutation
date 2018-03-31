@@ -37,7 +37,7 @@ public class MethodAbstractor {
 			if (absCode == null) {
 				continue;
 			}
-			if (absCode.split(" ").length > 100) {
+			if (absCode.split(" ").length > 50) {
 				continue;
 			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
@@ -72,7 +72,7 @@ public class MethodAbstractor {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		String mappings = tokenizer.getMapping();
-		if (afterTokenized.split(" ").length <= 100)
+		if (afterTokenized.split(" ").length <= 50)
 		    dictMap.put(signature, mappings);
 
 		return afterTokenized;

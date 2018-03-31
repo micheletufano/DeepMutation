@@ -35,6 +35,7 @@ public class IOHandler {
     private static final String PASSED = "PASSED";
     private static final String FAILED = "FAILED";
 
+    private static final String MUTANT_LOG_SUFFIX = ".log";
     private static final String COMPILE_LOG_SUFFIX = "_compile.log";
     private static final String TEST_LOG_SUFFIX = "_test.log";
 
@@ -215,6 +216,7 @@ public class IOHandler {
             System.out.println("  Processing model " + modelName + "... ");
 
             LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+            List<String> logs = new ArrayList<>();
 
             if (mutantsMap == null) {
                 System.err.println("    WARNING: cannot write null map for model " + modelName);
@@ -272,23 +274,33 @@ public class IOHandler {
                 try {
                     String formattedSrc = new Formatter().formatSource(sb.toString());
                     Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
-                    
+
                     // Extract the changes from original src code to mutanted src code 
                     ChangeExtractor changeTester = new ChangeExtractor();
                     Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original, formattedSrc);
                     
                     if (changesMap == null || changesMap.size() == 0) {
-                    	    System.err.println("Un-mutated method");          	    
+                        logs.add(fileName + "_" + method.getSignature() + "_un-mutated");        	    
                     }                  
-                    else if (changesMap.size() > 0) {
+                    else {
                     	// Output the changes to folder mutantPath/counter_mutatedMethodName/
                       	String mutatedMethod = String.format(format.toString(), counter) + "_" + method.getSimpleName();
+                      	
                      // Output the changes to folder mutantPath/mutantID_change_ID
                     	    String outDir = mutantPath + "/" + mutantID ;
                     	    ChangeExporter exporter = new ChangeExporter(changesMap);
                     	    exporter.exportChanges(outDir);
+                    	    
+                     // Create log for mutated method
+                         logs.add(fileName + "_" + method.getSignature());           	    
                     }
+                    
 
+                    
+                    // Write mutant log to /modelpath/mutants.log
+                    String logPath = outPath + modelName + "/";
+                    Files.write(Paths.get(logPath + MUTANTS + MUTANT_LOG_SUFFIX), logs);
+                    
                     
                 } catch (FormatterException e) {
                     System.err.println("    ERROR: could not format mutant " + counter + ": " + e.getMessage());
