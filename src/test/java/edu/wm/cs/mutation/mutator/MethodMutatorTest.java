@@ -26,7 +26,7 @@ public class MethodMutatorTest {
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
-        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled);
+        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, null);
         IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);

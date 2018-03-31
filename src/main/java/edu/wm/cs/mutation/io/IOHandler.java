@@ -42,6 +42,22 @@ public class IOHandler {
     private static final String MUTANT_DIR = "mutants/";
     private static final String LOG_DIR = "logs/";
 
+    public static HashSet<String> readInputMethods(String methodPath) {
+    	    System.out.println("Reading specified methods from input file... ");
+    	    
+    	    List<String> methods = null;
+    	    try {
+            methods = Files.readAllLines(Paths.get(methodPath));
+        }catch (IOException e) {
+        	    System.err.println("  ERROR: could not load specified methods from files: " + e.getMessage());
+        }
+    	    
+    	    if (methods == null) {
+    	    	    System.err.println("  ERROR: could not load specified methods from files");
+    	    	    return null;
+    	    }
+    	    return new HashSet<String>(methods);
+    }
     public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
         if (abstracted) {
             System.out.println("Writing abstracted methods... ");
