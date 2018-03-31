@@ -5,8 +5,10 @@ import java.util.*;
 
 import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.declaration.CtInterface;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.declaration.CtTypeInformation;
 import spoon.reflect.visitor.filter.TypeFilter;
 
 public class MethodExtractor {
@@ -42,6 +44,12 @@ public class MethodExtractor {
             if (methodName.startsWith("set") || methodName.startsWith("get")) {
                 continue;
             }
+            
+            // filter out methods in java interfaces
+            if (((CtTypeInformation) method.getParent()).isInterface()) {
+            	    continue;
+            }
+
 
             SourcePosition sp = method.getPosition();
             String body = sp.getCompilationUnit()
