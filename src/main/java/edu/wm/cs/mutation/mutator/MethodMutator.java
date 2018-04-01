@@ -14,8 +14,11 @@ public class MethodMutator {
     private static final String TRAIN_OPTIONS = "train_options.json";
 
     private static String python = "python";
+    private static boolean dumpBeams = false;
+    private static Integer numBeams = 2;
+    private static String interpretBeams = "./interpretBeams.py";
 
-    private static Map<String, LinkedHashMap<String,String>> mutantsMap;
+    private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap;
 
     /**
      * Mutates methods given abstracted methods and model directories.
@@ -30,6 +33,16 @@ public class MethodMutator {
         if (absMethodsMap == null) {
             System.err.println("  ERROR: null input map");
             return;
+        }
+
+        if (dumpBeams) {
+            if (numBeams < 2) {
+                System.err.println("  ERROR: to dump beams, the number of beams must be >= 2");
+                return;
+            } else if (!new File(interpretBeams).exists()) {
+                System.err.println("  ERROR: cannot find " + interpretBeams);
+                return;
+            }
         }
 
         // Write abstracted methods
@@ -59,18 +72,24 @@ public class MethodMutator {
             }
 
             // Generate mutants
-            List<String> mutants = runModel(modelFile, input);
+            List<List<String>> mutants = runModel(modelFile, input);
             if (mutants == null) {
                 continue;
             }
 
             // Save mutants
-            LinkedHashMap<String,String> modelMap = new LinkedHashMap<>();
+            LinkedHashMap<String,List<String>> modelMap = new LinkedHashMap<>();
             int i=0;
             for (String s : absMethodsMap.keySet()) {
-                String mutant = mutants.get(i++);
-                if (!mutant.trim().equals(absMethodsMap.get(s).trim())) {
-                    modelMap.put(s, mutant);
+                if (dumpBeams) {
+                    // just put them all in -- may not have changed some
+                    modelMap.put(s, mutants.get(i++));
+                } else {
+                    // put it in only if it was mutated
+                    String mutant = mutants.get(i).get(0);
+                    if (!mutant.trim().equals(absMethodsMap.get(s).trim())) {
+                        modelMap.put(s, mutants.get(i++));
+                    }
                 }
             }
             mutantsMap.put(modelName, modelMap);
@@ -109,7 +128,7 @@ public class MethodMutator {
         return true;
     }
 
-    private static List<String> runModel(File modelFile, String input) {
+    private static List<List<String>> runModel(File modelFile, String input) {
         try {
             List<String> cmd = buildCommand(input);
             ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -118,11 +137,16 @@ public class MethodMutator {
 
             // Write output
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            List<String> mutants = new ArrayList<>();
+            List<List<String>> mutants = new ArrayList<>();
             String line;
 
-            while ((line = br.readLine()) != null) {
-                mutants.add(line);
+            if (dumpBeams) {
+                interpretBeams(modelFile, mutants);
+            } else {
+                int i=0;
+                while ((line = br.readLine()) != null) {
+                    mutants.get(i++).add(line);
+                }
             }
             p.waitFor();
 
@@ -148,22 +172,60 @@ public class MethodMutator {
         List<String> cmd = new ArrayList<>();
         cmd.add(python); cmd.add("-m"); cmd.add("bin.infer");
         cmd.add("--tasks");
-        cmd.add("- class: DecodeText");
+        if (dumpBeams) {
+            cmd.add("- class: DecodeText\n- class: DumpBeams\n  params:\n    file: beams.npz");
+            cmd.add("--model_params"); cmd.add("inference.beam_search.beam_width: " + numBeams);
+        } else {
+            cmd.add("- class: DecodeText");
+        }
         cmd.add("--model_dir"); cmd.add(".");
         cmd.add("--input_pipeline");
         cmd.add("class: ParallelTextInputPipeline\nparams:\n  source_files:\n  - " + input);
         return cmd;
     }
 
-    public static Map<String, LinkedHashMap<String, String>> getMutantsMap() {
+    private static void interpretBeams(File modelFile, List<List<String>> mutants) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(interpretBeams);
+            pb.directory(modelFile);
+            Process p = pb.start();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String mutant;
+            int i=0;
+            int beam=0;
+
+            List<String> mutatedMethod = mutants.get(i++);
+            while ((mutant = br.readLine()) != null) {
+                mutatedMethod.add(mutant);
+                beam++;
+                if (beam >= numBeams) {
+                    mutatedMethod = mutants.get(i++);
+                    beam = 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Map<String, LinkedHashMap<String, List<String>>> getMutantsMap() {
         return mutantsMap;
     }
 
-    public static void setMutantsMap(Map<String, LinkedHashMap<String, String>> mutantsMap) {
+    public static void setMutantsMap(Map<String, LinkedHashMap<String, List<String>>> mutantsMap) {
         MethodMutator.mutantsMap = mutantsMap;
     }
 
     public static void setPython(String python) {
         MethodMutator.python = python;
+    }
+
+    public static void dumpBeams(boolean dumpBeams) {
+        MethodMutator.dumpBeams = dumpBeams;
+    }
+
+    public static void setNumBeams(Integer numBeams) {
+        MethodMutator.numBeams = numBeams;
     }
 }
