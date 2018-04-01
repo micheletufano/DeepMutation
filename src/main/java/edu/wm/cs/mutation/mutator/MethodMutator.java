@@ -61,6 +61,8 @@ public class MethodMutator {
             String modelName = modelFile.getName();
             System.out.println("  Running model " + modelName + "... ");
 
+            long start = System.nanoTime();
+
             // Get absolute paths to input file
             File outFile = new File(outPath);
             String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
@@ -94,6 +96,7 @@ public class MethodMutator {
             }
             mutantsMap.put(modelName, modelMap);
 
+            System.out.println("    Took " + (System.nanoTime() - start) / 1000000000.0 + " seconds.");
             System.out.println("  done.");
         }
         System.out.println("done.");
