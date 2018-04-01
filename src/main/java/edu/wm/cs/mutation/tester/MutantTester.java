@@ -2,7 +2,6 @@ package edu.wm.cs.mutation.tester;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
-import edu.wm.cs.mutation.io.IOHandler;
 import org.apache.commons.io.FileUtils;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
@@ -31,6 +30,9 @@ public class MutantTester {
     // model -> (mutantID -> log)
     private static Map<String, Map<String,String>> compileLogs;
     private static Map<String, Map<String,String>> testLogs;
+
+    // model -> (mutantIDs)
+    private static Map<String, List<String>> failedMutants;
 
     // model -> (mutantID -> pass/fail)
     private static Map<String, Map<String,Boolean>> compilable;
@@ -141,6 +143,7 @@ public class MutantTester {
         testLogs = new HashMap<>();
         compilable = new HashMap<>();
         successful = new HashMap<>();
+        failedMutants = new HashMap<>();
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
@@ -178,9 +181,11 @@ public class MutantTester {
             // One map per thread: String mutantID -> String log
             List<Map<String, String>> threadCompileLogs = new ArrayList<>(maxIter);
             List<Map<String, String>> threadTestLogs = new ArrayList<>(maxIter);
+            List<List<String>> threadFailedMutants = new ArrayList<>(maxIter);
             for (int i=0; i<maxIter; i++) {
                 threadCompileLogs.add(new HashMap<>());
                 threadTestLogs.add(new HashMap<>());
+                threadFailedMutants.add(new ArrayList<>());
             }
 
             // Create task list
@@ -253,6 +258,13 @@ public class MutantTester {
                                 System.err.println("    " + String.format(threadFormat.toString(), threadID) +
                                         ": ERROR: " + mutantID +
                                         ": could not restore original file: " + mutantPath + "'");
+
+                                List<String> failedIDs = new ArrayList<>();
+                                for (int k = j; k < mutated.size(); k += numThreads) {
+                                    String failedID = String.format(mutantFormat.toString(), k+1);
+                                    failedIDs.add(failedID);
+                                }
+                                threadFailedMutants.add(threadID, failedIDs);
                                 e.printStackTrace();
                                 return ERROR_STATUS;
                             }
@@ -293,12 +305,15 @@ public class MutantTester {
             // Reduce and save
             Map<String,String> modelCompileLogs = new HashMap<>();
             Map<String,String> modelTestLogs = new HashMap<>();
+            List<String> modelFailedMutants = new ArrayList<>();
             for (int i=0; i<maxIter; i++) {
                 modelCompileLogs.putAll(threadCompileLogs.get(i));
                 modelTestLogs.putAll(threadTestLogs.get(i));
+                modelFailedMutants.addAll(threadFailedMutants.get(i));
             }
             compileLogs.put(modelName, modelCompileLogs);
             testLogs.put(modelName, modelTestLogs);
+            failedMutants.put(modelName, modelFailedMutants);
 
             // Generate results
             Map<String,Boolean> modelCanCompile = new HashMap<>();
@@ -434,5 +449,9 @@ public class MutantTester {
 
     public static Map<String, Map<String, Boolean>> getSuccessful() {
         return successful;
+    }
+
+    public static Map<String, List<String>> getFailedMutants() {
+        return failedMutants;
     }
 }

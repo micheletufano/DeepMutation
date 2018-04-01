@@ -32,6 +32,7 @@ public class IOHandler {
 
     private static final String RESULTS_COMP = "results.comp";
     private static final String RESULTS_TEST = "results.test";
+    private static final String FAILED_OUT = "failed.out";
     private static final String PASSED = "PASSED";
     private static final String FAILED = "FAILED";
 
@@ -366,6 +367,35 @@ public class IOHandler {
             System.err.println("    Error in writing baseline: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public static void writeFailedMutants(String outPath, Map<String, List<String>> modelsMap, List<String> modelPaths) {
+        System.out.println("Writing failed mutants... ");
+        if (modelsMap == null) {
+            System.err.println("ERROR: cannot write null input map");
+            return;
+        }
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            List<String> failedMutants = modelsMap.get(modelName);
+            if (failedMutants == null) {
+                System.err.println("    WARNING: cannot write null list for model " + modelName);
+                continue;
+            }
+
+            String path = outPath + modelName + "/";
+            try {
+                Files.write(Paths.get(path + FAILED_OUT), failedMutants);
+            } catch (IOException e) {
+                System.err.println("    ERROR: could not write failed mutants list for model " + modelName);
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public static void writeResults(String outPath, Map<String, Map<String, Boolean>> modelsMap, List<String> modelPaths, String type) {
