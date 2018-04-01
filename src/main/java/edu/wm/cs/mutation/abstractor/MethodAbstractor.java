@@ -7,7 +7,7 @@ import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodAbstractor {
 	private static LinkedHashMap<String, String> absMethodsMap;
-	private static List<String> mappingList;
+	private static LinkedHashMap<String, String> dictMap;
 
 	private static Set<String> idioms;
 
@@ -29,15 +29,15 @@ public class MethodAbstractor {
 
 		absMethodsMap = new LinkedHashMap<>();
 
-		mappingList = new ArrayList<>();
+		dictMap = new LinkedHashMap<>();
         for (String signature : rawMethods.keySet()) {
             String srcCode = rawMethods.get(signature);
 
-            String absCode = abstractCode(signature, srcCode, mappingList);
+            String absCode = abstractCode(signature, srcCode, dictMap);
 			if (absCode == null) {
 				continue;
 			}
-			if (absCode.split(" ").length > 100) {
+			if (absCode.split(" ").length > 50) {
 				continue;
 			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
@@ -46,7 +46,7 @@ public class MethodAbstractor {
 		System.out.println("done.");
 	}
 
-	private static String abstractCode(String signature, String srcCode, List<String> mappingList) {
+	private static String abstractCode(String signature, String srcCode, Map<String, String> dictMap) {
 		// Parser
 		MethodParser parser = new MethodParser();
 
@@ -72,8 +72,8 @@ public class MethodAbstractor {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		String mappings = tokenizer.getMapping();
-		if (afterTokenized.split(" ").length <= 100)
-			mappingList.add(mappings);
+		if (afterTokenized.split(" ").length <= 50)
+		    dictMap.put(signature, mappings);
 
 		return afterTokenized;
 	}
@@ -82,15 +82,15 @@ public class MethodAbstractor {
 		return absMethodsMap;
 	}
 
-	public static List<String> getMappings() {
-		return mappingList;
+	public static LinkedHashMap<String, String> getMappings() {
+		return dictMap;
 	}
 
 	public static void setAbstractedMethods(LinkedHashMap<String, String> absMethodsMap) {
 		MethodAbstractor.absMethodsMap = absMethodsMap;
 	}
 
-	public static void setMappings(List<String> mappingList) {
-		MethodAbstractor.mappingList = mappingList;
+	public static void setMappings(LinkedHashMap<String, String> dictMap) {
+		MethodAbstractor.dictMap = dictMap;
 	}
 }

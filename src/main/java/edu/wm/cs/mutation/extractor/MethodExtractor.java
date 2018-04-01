@@ -5,8 +5,10 @@ import java.util.*;
 
 import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.declaration.CtInterface;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.declaration.CtTypeInformation;
 import spoon.reflect.visitor.filter.TypeFilter;
 
 public class MethodExtractor {
@@ -16,16 +18,17 @@ public class MethodExtractor {
     private static List<CtMethod> methods;
 
     public static void extractMethods(String projPath, String srcPath, String libPath,
-                                      int complianceLvl, boolean compiled) {
+                                      int complianceLvl, boolean compiled, Set<String> inputMethods) {
         System.out.println("\nExtracting methods from " + projPath + "... ");
 
         File project = new File(projPath);
         rawMethodsMap = new LinkedHashMap<>();
-
+        
         // Build Spoon model
         if (compiled) {
             libPath = project.getAbsolutePath() + "/";
         }
+        
         SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
         // Generate methods
@@ -36,11 +39,20 @@ public class MethodExtractor {
 
         for (CtMethod method : methods) {
             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
-
+            
+            // keep methods matching the specified signatures   
+            if (inputMethods != null && !inputMethods.contains(signature)) {
+            	    continue;
+            }
             // filter out getters/setters
             String methodName = method.getSignature().split(" ")[1];
             if (methodName.startsWith("set") || methodName.startsWith("get")) {
                 continue;
+            }
+            
+            // filter out methods in java interfaces
+            if (((CtTypeInformation) method.getParent()).isInterface()) {
+            	    continue;
             }
 
             SourcePosition sp = method.getPosition();
@@ -53,8 +65,8 @@ public class MethodExtractor {
         System.out.println("done.");
     }
 
-    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled) {
-        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled);
+    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled, Set<String> inputMethods) {
+        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled, inputMethods);
     }
 
     public static List<Defects4JInput> generateDefect4JInputs(String projBasePath, String outBasePath, String modelConfigPath) {

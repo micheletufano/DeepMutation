@@ -25,7 +25,7 @@ public class MutateDefects4JTest {
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
-            MethodExtractor.extractMethods(input, libPath, compiled);
+            MethodExtractor.extractMethods(input, libPath, compiled, null);
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
 
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
