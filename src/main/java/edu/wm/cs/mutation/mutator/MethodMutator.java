@@ -14,9 +14,9 @@ public class MethodMutator {
     private static final String TRAIN_OPTIONS = "train_options.json";
 
     private static String python = "python";
-    private static boolean dumpBeams = false;
+    private static boolean dumpingBeams = false;
     private static Integer numBeams = 2;
-    private static String interpretBeams = "./interpretBeams.py";
+    private static String interpretBeams = "interpretBeams.py";
 
     private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap;
 
@@ -35,7 +35,7 @@ public class MethodMutator {
             return;
         }
 
-        if (dumpBeams) {
+        if (dumpingBeams) {
             if (numBeams < 2) {
                 System.err.println("  ERROR: to dump beams, the number of beams must be >= 2");
                 return;
@@ -81,7 +81,7 @@ public class MethodMutator {
             LinkedHashMap<String,List<String>> modelMap = new LinkedHashMap<>();
             int i=0;
             for (String s : absMethodsMap.keySet()) {
-                if (dumpBeams) {
+                if (dumpingBeams) {
                     // just put them all in -- may not have changed some
                     modelMap.put(s, mutants.get(i++));
                 } else {
@@ -140,7 +140,7 @@ public class MethodMutator {
             List<List<String>> mutants = new ArrayList<>();
             String line;
 
-            if (dumpBeams) {
+            if (dumpingBeams) {
                 interpretBeams(modelFile, mutants);
             } else {
                 int i=0;
@@ -172,7 +172,7 @@ public class MethodMutator {
         List<String> cmd = new ArrayList<>();
         cmd.add(python); cmd.add("-m"); cmd.add("bin.infer");
         cmd.add("--tasks");
-        if (dumpBeams) {
+        if (dumpingBeams) {
             cmd.add("- class: DecodeText\n- class: DumpBeams\n  params:\n    file: beams.npz");
             cmd.add("--model_params"); cmd.add("inference.beam_search.beam_width: " + numBeams);
         } else {
@@ -186,7 +186,10 @@ public class MethodMutator {
 
     private static void interpretBeams(File modelFile, List<List<String>> mutants) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(interpretBeams);
+            List<String> cmd = new ArrayList<>();
+            cmd.add(python); cmd.add(new File(interpretBeams).getAbsolutePath());
+
+            ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(modelFile);
             Process p = pb.start();
 
@@ -195,12 +198,13 @@ public class MethodMutator {
             int i=0;
             int beam=0;
 
-            List<String> mutatedMethod = mutants.get(i++);
+            List<String> mutatedMethod = new ArrayList<>();
             while ((mutant = br.readLine()) != null) {
                 mutatedMethod.add(mutant);
                 beam++;
                 if (beam >= numBeams) {
-                    mutatedMethod = mutants.get(i++);
+                    mutants.add(mutatedMethod);
+                    mutatedMethod = new ArrayList<>();
                     beam = 0;
                 }
             }
@@ -221,8 +225,12 @@ public class MethodMutator {
         MethodMutator.python = python;
     }
 
-    public static void dumpBeams(boolean dumpBeams) {
-        MethodMutator.dumpBeams = dumpBeams;
+    public static void setDumpingBeams(boolean dumpBeams) {
+        MethodMutator.dumpingBeams = dumpBeams;
+    }
+
+    public static boolean isDumpingBeams() {
+        return MethodMutator.dumpingBeams;
     }
 
     public static void setNumBeams(Integer numBeams) {
