@@ -151,9 +151,9 @@ public class IOHandler {
             List<String> signatures = new ArrayList<>(mutantsMap.keySet());
             List<String> bodies = new ArrayList<>();
             // join multiple predictions for each method
-            for (String singature : signatures) {
+            for (String signature : signatures) {
                 StringBuilder sb = new StringBuilder();
-                List<String> predictions = new ArrayList<>(mutantsMap.get(singature));
+                List<String> predictions = new ArrayList<>(mutantsMap.get(signature));
 
                 for (String pred : predictions) {
                     sb.append(pred).append("<SEP>");
