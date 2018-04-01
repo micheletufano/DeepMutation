@@ -141,6 +141,7 @@ public class MethodMutator {
             String line;
 
             if (dumpingBeams) {
+                System.out.println("    Dumping beams is set.");
                 interpretBeams(modelFile, mutants);
             } else {
                 int i=0;
