@@ -197,11 +197,12 @@ public class IOHandler {
 			List<String> signatures = null;
 			List<String> bodies = null;
 
-			try {
-				signatures = Files.readAllLines(Paths.get(outPath + METHODS + KEY_SUFFIX));
+			try {			
 				if (abstracted) {
+					signatures = Files.readAllLines(Paths.get(outPath + METHODS + KEY_SUFFIX));
 					bodies = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + ABS_SUFFIX));
 				} else {
+					signatures = Files.readAllLines(Paths.get(outPath + MUTANTS + KEY_SUFFIX));
 					bodies = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + SRC_SUFFIX));
 				}
 			} catch (IOException e) {
