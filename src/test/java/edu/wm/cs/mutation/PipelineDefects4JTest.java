@@ -5,12 +5,11 @@ import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.Defects4JInput;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
-import edu.wm.cs.mutation.mutator.MethodMutator;
 import edu.wm.cs.mutation.tester.MutantTester;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 
 public class PipelineDefects4JTest {
 
@@ -49,17 +48,19 @@ public class PipelineDefects4JTest {
             IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
 
-            MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+//            MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
+//            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
 
-            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+//            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+	       
+        	    MethodTranslator.translateMethods(IOHandler.readMutants(input.getOutPath(), modelPaths, true), MethodAbstractor.getMappings(), modelPaths);
             IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
             IOHandler.createMutantFiles(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files
                     MethodExtractor.getMethods(), modelPaths);
 
-            MutantTester.testMutants(input.getProjPath(), MethodTranslator.getTranslatedMutantsMap(),
-                    MethodExtractor.getMethods(), modelPaths);
+//            MutantTester.testMutants(input.getProjPath(), MethodTranslator.getTranslatedMutantsMap(),
+//                    MethodExtractor.getMethods(), modelPaths);
         }
     }
 }

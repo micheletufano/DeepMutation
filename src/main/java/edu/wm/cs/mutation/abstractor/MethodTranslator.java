@@ -28,9 +28,9 @@ public class MethodTranslator {
 
 	private static final String ERROR = "error";
 
-	private static Map<String, LinkedHashMap<String,String>> translatedMutantsMap;
+	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap;
 
-	public static void translateMethods(Map<String, LinkedHashMap<String, String>> mutantsMap,
+	public static void translateMethods(Map<String, LinkedHashMap<String, List<String>>> mutantsMap,
 			LinkedHashMap<String, String> dictMap, List<String> modelPaths) {
 
 		System.out.println("Translating abstract mutants...");
@@ -46,8 +46,8 @@ public class MethodTranslator {
 			String modelName = modelFile.getName();
 			System.out.println("  Translating results from model " + modelName + "... ");
 
-			LinkedHashMap<String, String> mutantMap = mutantsMap.get(modelName);
-			LinkedHashMap<String, String> modelMap = new LinkedHashMap<>();
+			LinkedHashMap<String, List<String>> mutantMap = mutantsMap.get(modelName);
+			LinkedHashMap<String, List<String>> modelMap = new LinkedHashMap<>();
 
 			if (mutantMap == null) {
 				System.err.println("    WARNING: cannot translate null map for model " + modelName);
@@ -55,17 +55,21 @@ public class MethodTranslator {
 			}
 
 			for (String signature : mutantMap.keySet()) {
-				String srcCode = mutantMap.get(signature);
-
-				String[] dicts = dictMap.get(signature).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
+				
+				List<String> predictions = mutantMap.get(signature);
+                String[] dicts = dictMap.get(signature).split(";", -1); // 0: VAR,1: TYPE, 2: METHOD, 3: STR, 4: CHAR,
 				// 5:INT, 6:FLOAT
-				String transCode = translateCode(dicts, srcCode);
-				if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
-					modelMap.put(signature, transCode);
+				for (String srcCode : predictions) {
+					String transCode = translateCode(dicts, srcCode);
+					if (!transCode.equals(ERROR) && checkCode(signature, transCode)) {
+						if (!modelMap.containsKey(signature))
+							modelMap.put(signature, new ArrayList<String>());
+						modelMap.get(signature).add(transCode);
+//						System.out.println("Abs Code: " + srcCode);
+//						System.out.println("Trans Code: " + transCode);
+//						System.out.println("Mapping: " + dictMap.get(signature));
+					}
 				}
-//				System.out.println("Abs Code: " + srcCode);
-//				System.out.println("Trans Code: " + transCode);
-//				System.out.println("Mapping: " + dictMap.get(signature));
 			}
 
 			translatedMutantsMap.put(modelName, modelMap);
@@ -145,10 +149,12 @@ public class MethodTranslator {
 		try {
 			parser.parse(srcCode);
 		} catch (Exception e) {
-//			System.err.println("    Exception while parsing " + signature + "; ignored method.");
+			// System.err.println(" Exception while parsing " + signature + "; ignored
+			// method.");
 			return false;
 		} catch (StackOverflowError e) {
-//			System.err.println("    StackOverFlowError while parsing " + signature + "; ignored method.");
+			// System.err.println(" StackOverFlowError while parsing " + signature + ";
+			// ignored method.");
 			return false;
 		}
 		// Tokenizer
@@ -166,11 +172,11 @@ public class MethodTranslator {
 		return true;
 	}
 
-	public static Map<String, LinkedHashMap<String, String>> getTranslatedMutantsMap() {
+	public static Map<String, LinkedHashMap<String, List<String>>> getTranslatedMutantsMap() {
 		return translatedMutantsMap;
 	}
 
-	public static void setTranslatedMutantsMap(Map<String, LinkedHashMap<String, String>> translatedMutantsMap) {
+	public static void setTranslatedMutantsMap(Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap) {
 		MethodTranslator.translatedMutantsMap = translatedMutantsMap;
 	}
 }

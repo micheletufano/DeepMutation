@@ -123,7 +123,7 @@ public class IOHandler {
 		return map;
 	}
 
-	public static void writeMutants(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+	public static void writeMutants(String outPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
 			List<String> modelPaths, boolean abstracted) {
 		if (abstracted) {
 			System.out.println("Writing abstracted mutants... ");
@@ -141,14 +141,25 @@ public class IOHandler {
 			String modelName = modelFile.getName();
 			System.out.println("  Processing model " + modelName + "... ");
 
-			LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+			LinkedHashMap<String, List<String>> mutantsMap = modelsMap.get(modelName);
 			if (mutantsMap == null) {
 				System.err.println("    WARNING: cannot write null map for model " + modelName);
 				continue;
 			}
 
 			List<String> signatures = new ArrayList<>(mutantsMap.keySet());
-			List<String> bodies = new ArrayList<>(mutantsMap.values());
+			List<String> bodies = new ArrayList<>();
+			// join multiple predictions for each method
+			for (String singature : signatures) {
+				StringBuilder sb = new StringBuilder();
+				List<String> predictions = new ArrayList<>(mutantsMap.get(singature));
+
+				for (String pred : predictions) {
+					sb.append(pred).append("<SEP>");
+				}
+				sb.setLength(sb.length() - 5);
+				bodies.add(sb.toString());
+			}
 
 			try {
 				String modelOutPath = outPath + modelName + "/";
@@ -167,7 +178,7 @@ public class IOHandler {
 		System.out.println("done.");
 	}
 
-	public static Map<String, LinkedHashMap<String, String>> readMutants(String outPath, List<String> modelPaths,
+	public static Map<String, LinkedHashMap<String, List<String>>> readMutants(String outPath, List<String> modelPaths,
 			boolean abstracted) {
 		if (abstracted) {
 			System.out.println("Reading abstracted mutants from files... ");
@@ -175,7 +186,7 @@ public class IOHandler {
 			System.out.println("Reading mutants from files... ");
 		}
 
-		Map<String, LinkedHashMap<String, String>> modelsMap = new HashMap<>();
+		Map<String, LinkedHashMap<String, List<String>>> modelsMap = new HashMap<>();
 
 		for (String modelPath : modelPaths) {
 			File modelFile = new File(modelPath);
@@ -187,7 +198,7 @@ public class IOHandler {
 			List<String> bodies = null;
 
 			try {
-				signatures = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + KEY_SUFFIX));
+				signatures = Files.readAllLines(Paths.get(outPath + METHODS + KEY_SUFFIX));
 				if (abstracted) {
 					bodies = Files.readAllLines(Paths.get(modelOutPath + MUTANTS + ABS_SUFFIX));
 				} else {
@@ -202,12 +213,16 @@ public class IOHandler {
 				return null;
 			}
 
-			LinkedHashMap<String, String> mutantsMap = new LinkedHashMap<>();
-			for (int i = 0; i < signatures.size(); i++) {
-				mutantsMap.put(signatures.get(i), bodies.get(i));
+			int index = 0;
+			LinkedHashMap<String, List<String>> mutantMap = new LinkedHashMap<>();
+			for (String sign : signatures) {
+				mutantMap.put(sign, new ArrayList<String>());
+				String[] predictions = bodies.get(index++).split("<SEP>");
+				for (String pred : predictions) {
+					mutantMap.get(sign).add(pred);
+				}
 			}
-
-			modelsMap.put(modelName, mutantsMap);
+			modelsMap.put(modelName, mutantMap);
 			System.out.println("  done.");
 		}
 		System.out.println("done.");
@@ -219,7 +234,7 @@ public class IOHandler {
 	 * class to mutant class
 	 * 
 	 */
-	public static void createMutantFiles(String outPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+	public static void createMutantFiles(String outPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
 			List<CtMethod> methods, List<String> modelPaths) {
 		System.out.println("Creating mutant files... ");
 
@@ -233,7 +248,7 @@ public class IOHandler {
 			String modelName = modelFile.getName();
 			System.out.println("  Processing model " + modelName + "... ");
 
-			LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+			LinkedHashMap<String, List<String>> mutantsMap = modelsMap.get(modelName);
 			List<String> logs = new ArrayList<>();
 
 			if (mutantsMap == null) {
@@ -269,58 +284,61 @@ public class IOHandler {
 				SourcePosition sp = method.getPosition();
 				String original = sp.getCompilationUnit().getOriginalSourceCode();
 
-				// XXXX_relative-path-to-file.java
-				String mutantID = String.format(format.toString(), counter);
-				String fileName = mutantID + "_" + sp.getCompilationUnit().getFile().getPath()
-						.replaceFirst(System.getProperty("user.dir") + "/", "").replace("/", "-");
-
-				// construct and format mutated class
-
 				// find start position of original source code
 				int srcStart = sp.getNameSourceStart();
 				while (original.charAt(srcStart) != '\n')
 					srcStart--;
 				srcStart++;
 
-				StringBuilder sb = new StringBuilder();
-				sb.append(original.substring(0, srcStart));
-				sb.append(mutantsMap.get(signature));
-				sb.append(original.substring(sp.getSourceEnd() + 1));
+				// construct mutant for each prediction result of a method
+				for (String pred : mutantsMap.get(signature)) {					
+					// XXXX_relative-path-to-file.java
+					String mutantID = String.format(format.toString(), counter);
+					String fileName = mutantID + "_" + sp.getCompilationUnit().getFile().getPath()
+							.replaceFirst(System.getProperty("user.dir") + "/", "").replace("/", "-");
 
-				try {
-					String formattedSrc = new Formatter().formatSource(sb.toString());
-					Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
+					StringBuilder sb = new StringBuilder();
+					sb.append(original.substring(0, srcStart));
+					sb.append(pred);
+					sb.append(original.substring(sp.getSourceEnd() + 1));
 
-					// Extract the changes from original src code to mutanted src code
-					ChangeExtractor changeTester = new ChangeExtractor();
-					Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original, formattedSrc);
+					try {
+						String formattedSrc = new Formatter().formatSource(sb.toString());
+						Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
 
-					if (changesMap == null || changesMap.size() == 0) {
-						logs.add(fileName + "_" + method.getSignature() + "_un-mutated");
-					} else {
-						// Output the changes to folder mutantPath/counter_mutatedMethodName/
-						String mutatedMethod = String.format(format.toString(), counter) + "_" + method.getSimpleName();
+						// Extract the changes from original src code to mutanted src code
+						ChangeExtractor changeTester = new ChangeExtractor();
+						Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original,
+								formattedSrc);
 
-						// Output the changes to folder mutantPath/mutantID_change_ID
-						String outDir = mutantPath + "/" + mutantID;
-						ChangeExporter exporter = new ChangeExporter(changesMap);
-						exporter.exportChanges(outDir);
+						if (changesMap == null || changesMap.size() == 0) {
+							logs.add(fileName + "_" + method.getSignature() + "_un-mutated");
+						} else {
+							// Output the changes to folder mutantPath/counter_mutatedMethodName/
+							String mutatedMethod = String.format(format.toString(), counter) + "_"
+									+ method.getSimpleName();
 
-						// Create log for mutated method
-						logs.add(fileName + "_" + method.getSignature());
+							// Output the changes to folder mutantPath/mutantID_change_ID
+							String outDir = mutantPath + "/" + mutantID;
+							ChangeExporter exporter = new ChangeExporter(changesMap);
+							exporter.exportChanges(outDir);
+
+							// Create log for mutated method
+							logs.add(fileName + "_" + method.getSignature());
+						}
+
+						// Write mutant log to /modelpath/mutants.log
+						String logPath = outPath + modelName + "/";
+						Files.write(Paths.get(logPath + MUTANTS + MUTANT_LOG_SUFFIX), logs);
+
+					} catch (FormatterException e) {
+						System.err.println("    ERROR: could not format mutant " + counter + ": " + e.getMessage());
+					} catch (IOException e) {
+						System.err.println("    ERROR: could not write mutant " + counter + ": " + e.getMessage());
 					}
 
-					// Write mutant log to /modelpath/mutants.log
-					String logPath = outPath + modelName + "/";
-					Files.write(Paths.get(logPath + MUTANTS + MUTANT_LOG_SUFFIX), logs);
-
-				} catch (FormatterException e) {
-					System.err.println("    ERROR: could not format mutant " + counter + ": " + e.getMessage());
-				} catch (IOException e) {
-					System.err.println("    ERROR: could not write mutant " + counter + ": " + e.getMessage());
+					counter++;
 				}
-
-				counter++;
 			}
 			System.out.println("  done.");
 		}
