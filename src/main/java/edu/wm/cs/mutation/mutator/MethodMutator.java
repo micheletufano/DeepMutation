@@ -85,13 +85,13 @@ public class MethodMutator {
             int i=0;
             int numUnchangedMethods=0;
             int numUnchangedMutants=0;
-            for (String s : absMethodsMap.keySet()) {
-                List<String> mutatedMethod = mutants.get(i);
+            for (String signature : absMethodsMap.keySet()) {
+                List<String> mutatedMethod = mutants.get(i++);
 
                 // get list of unchanged mutants
                 List<String> unchanged = new ArrayList<>();
                 for (String mutant : mutatedMethod) {
-                    if (mutant.trim().equals(absMethodsMap.get(s).trim())) {
+                    if (mutant.trim().equals(absMethodsMap.get(signature).trim())) {
                         unchanged.add(mutant);
                         numUnchangedMutants++;
                     }
@@ -104,7 +104,7 @@ public class MethodMutator {
 
                 // if there are still non-trivial mutants, add them
                 if (mutatedMethod.size() > 0) {
-                    modelMap.put(s, mutatedMethod);
+                    modelMap.put(signature, mutatedMethod);
                 } else {
                     numUnchangedMethods++;
                 }
@@ -112,6 +112,7 @@ public class MethodMutator {
             mutantsMap.put(modelName, modelMap);
             System.out.println("    Removed " + numUnchangedMutants + " unchanged mutants.");
             System.out.println("    Resulted in " + numUnchangedMethods + " removed methods.");
+            System.out.println("    There are " + modelMap.size() + " methods remaining.");
 
             System.out.println("    Took " + (System.nanoTime() - start) / 1000000000.0 + " seconds.");
             System.out.println("  done.");
