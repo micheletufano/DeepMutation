@@ -292,9 +292,17 @@ public class IOHandler {
                 srcStart++;
 
                 // construct mutant for each prediction result of a method
-                for (String pred : mutantsMap.get(signature)) {
+                List<String> mutants = mutantsMap.get(signature);
+                for (int i=0; i<mutants.size(); i++) {
+                    String pred = mutants.get(i);
+
                     // XXXX_relative-path-to-file.java
-                    String mutantID = String.format(format.toString(), counter);
+                    String mutantID;
+                    if (mutants.size() == 1) {
+                        mutantID = String.format(format.toString(), counter);
+                    } else {
+                        mutantID = String.format(format.toString(), counter) + "-" + (i + 1);
+                    }
                     String fileName = mutantID + "_" + sp.getCompilationUnit().getFile().getPath()
                             .replaceFirst(System.getProperty("user.dir") + "/", "").replace("/", "-");
 
@@ -337,9 +345,8 @@ public class IOHandler {
                     } catch (IOException e) {
                         System.err.println("    ERROR: could not write mutant " + counter + ": " + e.getMessage());
                     }
-
-                    counter++;
                 }
+                counter++;
             }
             System.out.println("  done.");
         }
@@ -387,7 +394,11 @@ public class IOHandler {
                 List<String> logs = mutantsMap.get(methodID);
                 for (int i=0; i<logs.size(); i++) {
                     try {
-                        Files.write(Paths.get(logPath + methodID + "-" + (i+1) + suffix), logs.get(i).getBytes());
+                        if (logs.size() == 1) {
+                            Files.write(Paths.get(logPath + methodID + suffix), logs.get(i).getBytes());
+                        } else {
+                            Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + suffix), logs.get(i).getBytes());
+                        }
                     } catch (IOException e) {
                         System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
                     }
@@ -429,19 +440,20 @@ public class IOHandler {
             System.out.println("  Processing model " + modelName + "... ");
 
             Map<String, List<Boolean>> mutantsMap = modelsMap.get(modelName);
-
             if (mutantsMap == null) {
                 System.err.println("    WARNING: cannot write null map for model " + modelName);
                 continue;
             }
+
+            SortedMap<String, List<Boolean>> sortedMutantsMap = new TreeMap<>(mutantsMap);
 
             String name = (type.equals("test")) ? RESULTS_TEST : RESULTS_COMP;
             String path = outPath + modelName + "/";
 
             StringBuilder sb = new StringBuilder();
 
-            for (String methodID : mutantsMap.keySet()) {
-                List<Boolean> results = mutantsMap.get(methodID);
+            for (String methodID : sortedMutantsMap.keySet()) {
+                List<Boolean> results = sortedMutantsMap.get(methodID);
                 sb.append(methodID);
                 for (Boolean b : results) {
                     sb.append(" ");
