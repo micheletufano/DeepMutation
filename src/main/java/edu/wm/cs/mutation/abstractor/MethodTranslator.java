@@ -77,7 +77,7 @@ public class MethodTranslator {
 				}
 			}
 			System.out.println("    Removed " + untranslatable + " untranslatable mutants.");
-			System.out.println("    There are " + numMutants + " mutants remaining.");
+			System.out.println("    There are " + modelMap.size() + " methods and " + numMutants + " mutants remaining.");
 
 			translatedMutantsMap.put(modelName, modelMap);
 			System.out.println("  done.");
