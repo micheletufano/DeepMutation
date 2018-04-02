@@ -158,7 +158,7 @@ public class MutantTester {
 
             String firstKey = mutantsMap.keySet().iterator().next();
             int numMutants = mutantsMap.keySet().size() * mutantsMap.get(firstKey).size();
-            int maxIter = (numMutants > numThreads) ? numMutants : numThreads;
+            int maxIter = (numMutants < numThreads) ? numMutants : numThreads;
 
             // create format for padded mutantIDs
             numDigits = Integer.toString(numMutants).length();
