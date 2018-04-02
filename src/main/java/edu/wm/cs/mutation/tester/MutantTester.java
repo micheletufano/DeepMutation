@@ -349,10 +349,10 @@ public class MutantTester {
             }
 
             for (String methodID : modelTestLogs.keySet()) {
-                List<String> testLogs = modelCompileLogs.get(methodID);
+                List<String> testLogs = modelTestLogs.get(methodID);
                 List<Boolean> passesTest = new ArrayList<>();
                 for (String log : testLogs) {
-                    passesTest.add(log.equals(compileBaseline));
+                    passesTest.add(log.equals(testBaseline));
                 }
                 modelPassesTest.put(methodID, passesTest);
             }
