@@ -143,17 +143,27 @@ public class MethodMutator {
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             List<List<String>> mutants = new ArrayList<>();
             String line;
+            int i=0;
 
             if (usingBeams) {
+                while (br.readLine() != null) {
+                    if (i++ % 100 == 99) {
+                        System.out.println("    Generated " + i + " mutants.");
+                    }
+                }
+                System.out.println("    Generated " + i + " mutants.");
                 p.waitFor();
                 interpretBeams(modelFile, mutants);
             } else {
-                int i=0;
                 while ((line = br.readLine()) != null) {
+                    if (i++ % 100 == 99) {
+                        System.out.println("    Generated " + i + " mutants.");
+                    }
                     List<String> mutant = new ArrayList<>(1);
                     mutant.add(line);
                     mutants.add(mutant);
                 }
+                System.out.println("    Generated " + i + " mutants.");
                 p.waitFor();
             }
 
