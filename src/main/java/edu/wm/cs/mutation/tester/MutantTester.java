@@ -27,21 +27,21 @@ public class MutantTester {
     private static String compileBaseline;
     private static String testBaseline;
 
-    // model -> (mutantID -> log)
-    private static Map<String, Map<String,String>> compileLogs;
-    private static Map<String, Map<String,String>> testLogs;
+    // model -> (mutantID -> logs)
+    private static Map<String, Map<String,List<String>>> compileLogs;
+    private static Map<String, Map<String,List<String>>> testLogs;
 
     // model -> (mutantIDs)
     private static Map<String, List<String>> failedMutants;
 
     // model -> (mutantID -> pass/fail)
-    private static Map<String, Map<String,Boolean>> compilable;
-    private static Map<String, Map<String,Boolean>> successful;
+    private static Map<String, Map<String,List<Boolean>>> compilable;
+    private static Map<String, Map<String,List<Boolean>>> successful;
 
     private static boolean parallel = true;
 
 
-    public static void testMutants(String projPath, Map<String, LinkedHashMap<String, String>> modelsMap,
+    public static void testMutants(String projPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
                                    List<CtMethod> methods, List<String> modelPaths) {
 
         System.out.println("Testing " + projPath + "... ");
@@ -54,7 +54,7 @@ public class MutantTester {
 
         boolean all_null = true;
         for (String modelPath : modelPaths) {
-            LinkedHashMap<String, String> mutantsMap = modelsMap.get(new File(modelPath).getName());
+            LinkedHashMap<String, List<String>> mutantsMap = modelsMap.get(new File(modelPath).getName());
             if (mutantsMap != null) {
                 all_null = false;
                 break;
@@ -149,14 +149,15 @@ public class MutantTester {
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            LinkedHashMap<String, String> mutantsMap = modelsMap.get(modelName);
+            LinkedHashMap<String, List<String>> mutantsMap = modelsMap.get(modelName);
 
             if (mutantsMap == null) {
                 System.err.println("    WARNING: skipping null map for model " + modelName);
                 continue;
             }
 
-            int numMutants = mutantsMap.keySet().size();
+            String firstKey = mutantsMap.keySet().iterator().next();
+            int numMutants = mutantsMap.keySet().size() * mutantsMap.get(firstKey).size();
             int maxIter = (numMutants > numThreads) ? numMutants : numThreads;
 
             // create format for padded mutantIDs
@@ -179,8 +180,8 @@ public class MutantTester {
             List<Callable<Object>> tasks = new ArrayList<>(maxIter);
 
             // One map per thread: String mutantID -> String log
-            List<Map<String, String>> threadCompileLogs = new ArrayList<>(maxIter);
-            List<Map<String, String>> threadTestLogs = new ArrayList<>(maxIter);
+            List<Map<String, List<String>>> threadCompileLogs = new ArrayList<>(maxIter);
+            List<Map<String, List<String>>> threadTestLogs = new ArrayList<>(maxIter);
             List<List<String>> threadFailedMutants = new ArrayList<>(maxIter);
             for (int i=0; i<maxIter; i++) {
                 threadCompileLogs.add(new HashMap<>());
@@ -194,17 +195,17 @@ public class MutantTester {
                 tasks.add(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        Map<String, String> compileMap = threadCompileLogs.get(threadID);
-                        Map<String, String> testMap = threadTestLogs.get(threadID);
+                        Map<String, List<String>> compileMap = threadCompileLogs.get(threadID);
+                        Map<String, List<String>> testMap = threadTestLogs.get(threadID);
 
                         for (int j = threadID; j < mutated.size(); j += numThreads) {
-                            String mutantID = String.format(mutantFormat.toString(), j+1);
+                            String methodID = String.format(mutantFormat.toString(), j+1);
 
                             CtMethod method = mutated.get(j);
                             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
 
                             System.out.println("    " + String.format(threadFormat.toString(), threadID) +
-                                    ": Testing mutant " + mutantID + ": " + signature + "... ");
+                                    ": Testing method " + methodID + ": " + signature + "... ");
 
                             // Get original source code and path to file
                             SourcePosition sp = method.getPosition();
@@ -214,60 +215,70 @@ public class MutantTester {
 
                             // Construct and format mutated class
                             int srcStart = sp.getNameSourceStart();
-            				    while (original.charAt(srcStart) != '\n')
-            					    srcStart--;
-            				    srcStart++;
-            				    
-                            StringBuilder sb = new StringBuilder();
-                            sb.append(original.substring(0, srcStart));
-                            sb.append(mutantsMap.get(signature));
-                            sb.append(original.substring(sp.getSourceEnd() + 1));
+                            while (original.charAt(srcStart) != '\n')
+                                srcStart--;
+                            srcStart++;
 
-                            // Replace original file with mutant file
-                            try {
-                                String formattedSrc = new Formatter().formatSource(sb.toString());
-                                Files.write(Paths.get(mutantPath), formattedSrc.getBytes());
-                            } catch (IOException e) {
-                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                        ": Error in writing mutant " + mutantID + ": " + e.getMessage());
+                            List<String> mutants = mutantsMap.get(signature);
+                            List<String> compileLogs = new ArrayList<>();
+                            List<String> testLogs = new ArrayList<>();
+                            for (int k=0; k<mutants.size(); k++) {
+                                String mutant = mutants.get(k);
+                                String mutantID = Integer.toString(k+1);
+
+                                StringBuilder sb = new StringBuilder();
+                                sb.append(original.substring(0, srcStart));
+                                sb.append(mutant);
+                                sb.append(original.substring(sp.getSourceEnd() + 1));
+
+                                // Replace original file with mutant file
+                                try {
+                                    String formattedSrc = new Formatter().formatSource(sb.toString());
+                                    Files.write(Paths.get(mutantPath), formattedSrc.getBytes());
+                                } catch (IOException e) {
+                                    System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                            ": Error in writing mutant " + methodID + "." + mutantID +": " + e.getMessage());
+                                    try {
+                                        Files.write(Paths.get(mutantPath), original.getBytes());
+                                    } catch (IOException ee) {
+                                        System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                                ": Failed to recover from mutant " + methodID + "." + mutantID + ": " + ee.getMessage());
+                                        return ERROR_STATUS;
+                                    }
+                                    System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                            ": Successfully recovered from mutant " + methodID + "." + mutantID);
+                                    e.printStackTrace();
+                                    continue;
+                                } catch (FormatterException e) {
+                                    System.err.println("    " + String.format(threadFormat.toString(), threadID) +
+                                            ": Error in formatting mutant " + methodID + "." + mutantID + ": " + e.getMessage());
+                                    continue;
+                                }
+
+                                // Run tests and save output
+                                compileLogs.add(compile(mutantProj[threadID].getPath()));
+                                testLogs.add(test(mutantProj[threadID].getPath()));
+
+                                // Replace mutant file with original file
                                 try {
                                     Files.write(Paths.get(mutantPath), original.getBytes());
-                                } catch (IOException ee) {
+                                } catch (IOException e) {
                                     System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                            ": Failed to recover from mutant " + mutantID + ": " + ee.getMessage());
+                                            ": ERROR: " + methodID + "." + mutantID +
+                                            ": could not restore original file: " + mutantPath + "'");
+
+                                    List<String> failedIDs = new ArrayList<>();
+                                    for (int l = j; l < mutated.size(); l += numThreads) {
+                                        String failedID = String.format(mutantFormat.toString(), l + 1);
+                                        failedIDs.add(failedID);
+                                    }
+                                    threadFailedMutants.add(threadID, failedIDs);
+                                    e.printStackTrace();
                                     return ERROR_STATUS;
                                 }
-                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                        ": Successfully recovered from mutant " + mutantID);
-                                e.printStackTrace();
-                                continue;
-                            } catch (FormatterException e) {
-                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                        ": Error in formatting mutant " + mutantID + ": " + e.getMessage());
-                                continue;
                             }
-
-                            // Run tests and save output
-                            compileMap.put(mutantID, compile(mutantProj[threadID].getPath()));
-                            testMap.put(mutantID, test(mutantProj[threadID].getPath()));
-
-                            // Replace mutant file with original file
-                            try {
-                                Files.write(Paths.get(mutantPath), original.getBytes());
-                            } catch (IOException e) {
-                                System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                        ": ERROR: " + mutantID +
-                                        ": could not restore original file: " + mutantPath + "'");
-
-                                List<String> failedIDs = new ArrayList<>();
-                                for (int k = j; k < mutated.size(); k += numThreads) {
-                                    String failedID = String.format(mutantFormat.toString(), k+1);
-                                    failedIDs.add(failedID);
-                                }
-                                threadFailedMutants.add(threadID, failedIDs);
-                                e.printStackTrace();
-                                return ERROR_STATUS;
-                            }
+                            compileMap.put(methodID, compileLogs);
+                            testMap.put(methodID, testLogs);
                         }
 
                         threadCompileLogs.add(threadID, compileMap);
@@ -303,8 +314,8 @@ public class MutantTester {
             }
 
             // Reduce and save
-            Map<String,String> modelCompileLogs = new HashMap<>();
-            Map<String,String> modelTestLogs = new HashMap<>();
+            Map<String,List<String>> modelCompileLogs = new HashMap<>();
+            Map<String,List<String>> modelTestLogs = new HashMap<>();
             List<String> modelFailedMutants = new ArrayList<>();
             for (int i=0; i<maxIter; i++) {
                 modelCompileLogs.putAll(threadCompileLogs.get(i));
@@ -316,23 +327,25 @@ public class MutantTester {
             failedMutants.put(modelName, modelFailedMutants);
 
             // Generate results
-            Map<String,Boolean> modelCanCompile = new HashMap<>();
-            Map<String,Boolean> modelPassesTest = new HashMap<>();
+            Map<String,List<Boolean>> modelCanCompile = new HashMap<>();
+            Map<String,List<Boolean>> modelPassesTest = new HashMap<>();
 
-            for (String mutantID : modelCompileLogs.keySet()) {
-                if (!modelCompileLogs.get(mutantID).equals(compileBaseline)) {
-                    modelCanCompile.put(mutantID, true);
-                } else {
-                    modelCanCompile.put(mutantID, false);
+            for (String methodID : modelCompileLogs.keySet()) {
+                List<String> compileLogs = modelCompileLogs.get(methodID);
+                List<Boolean> canCompile = new ArrayList<>();
+                for (String log : compileLogs) {
+                    canCompile.add(log.equals(compileBaseline));
                 }
+                modelCanCompile.put(methodID, canCompile);
             }
 
-            for (String mutantID : modelTestLogs.keySet()) {
-                if (modelTestLogs.get(mutantID).equals(testBaseline)) {
-                    modelPassesTest.put(mutantID, true);
-                } else {
-                    modelPassesTest.put(mutantID, false);
+            for (String methodID : modelTestLogs.keySet()) {
+                List<String> testLogs = modelCompileLogs.get(methodID);
+                List<Boolean> passesTest = new ArrayList<>();
+                for (String log : testLogs) {
+                    passesTest.add(log.equals(compileBaseline));
                 }
+                modelPassesTest.put(methodID, passesTest);
             }
 
             compilable.put(modelName, modelCanCompile);
@@ -435,19 +448,19 @@ public class MutantTester {
         return testBaseline;
     }
 
-    public static Map<String, Map<String, String>> getCompileLogs() {
+    public static Map<String, Map<String, List<String>>> getCompileLogs() {
         return compileLogs;
     }
 
-    public static Map<String, Map<String, String>> getTestLogs() {
+    public static Map<String, Map<String, List<String>>> getTestLogs() {
         return testLogs;
     }
 
-    public static Map<String, Map<String, Boolean>> getCompilable() {
+    public static Map<String, Map<String, List<Boolean>>> getCompilable() {
         return compilable;
     }
 
-    public static Map<String, Map<String, Boolean>> getSuccessful() {
+    public static Map<String, Map<String, List<Boolean>>> getSuccessful() {
         return successful;
     }
 

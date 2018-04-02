@@ -346,7 +346,7 @@ public class IOHandler {
         System.out.println("done.");
     }
 
-    public static void writeLogs(String outPath, Map<String, Map<String, String>> modelsMap, List<String> modelPaths,
+    public static void writeLogs(String outPath, Map<String, Map<String, List<String>>> modelsMap, List<String> modelPaths,
                                  String type) {
         if (type.equals("test")) {
             System.out.println("Writing test logs... ");
@@ -364,7 +364,7 @@ public class IOHandler {
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            Map<String, String> mutantsMap = modelsMap.get(modelName);
+            Map<String, List<String>> mutantsMap = modelsMap.get(modelName);
 
             if (mutantsMap == null) {
                 System.err.println("    WARNING: cannot write null map for model " + modelName);
@@ -383,11 +383,14 @@ public class IOHandler {
 
             String suffix = (type.equals("test")) ? TEST_LOG_SUFFIX : COMPILE_LOG_SUFFIX;
 
-            for (String mutantID : mutantsMap.keySet()) {
-                try {
-                    Files.write(Paths.get(logPath + mutantID + suffix), mutantsMap.get(mutantID).getBytes());
-                } catch (IOException e) {
-                    System.err.println("    Error in writing mutant " + mutantID + ": " + e.getMessage());
+            for (String methodID : mutantsMap.keySet()) {
+                List<String> logs = mutantsMap.get(methodID);
+                for (int i=0; i<logs.size(); i++) {
+                    try {
+                        Files.write(Paths.get(logPath + methodID + "-" + i + suffix), logs.get(i).getBytes());
+                    } catch (IOException e) {
+                        System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
+                    }
                 }
             }
             System.out.println("  done.");
@@ -412,7 +415,7 @@ public class IOHandler {
         }
     }
 
-    public static void writeResults(String outPath, Map<String, Map<String, Boolean>> modelsMap,
+    public static void writeResults(String outPath, Map<String, Map<String, List<Boolean>>> modelsMap,
                                     List<String> modelPaths, String type) {
         System.out.println("Writing results... ");
         if (modelsMap == null) {
@@ -425,7 +428,7 @@ public class IOHandler {
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            Map<String, Boolean> mutantsMap = modelsMap.get(modelName);
+            Map<String, List<Boolean>> mutantsMap = modelsMap.get(modelName);
 
             if (mutantsMap == null) {
                 System.err.println("    WARNING: cannot write null map for model " + modelName);
@@ -437,12 +440,16 @@ public class IOHandler {
 
             StringBuilder sb = new StringBuilder();
 
-            for (String mutantID : mutantsMap.keySet()) {
-                sb.append(mutantID).append(" ");
-                if (mutantsMap.get(mutantID)) {
-                    sb.append(PASSED);
-                } else {
-                    sb.append(FAILED);
+            for (String methodID : mutantsMap.keySet()) {
+                List<Boolean> results = mutantsMap.get(methodID);
+                sb.append(methodID);
+                for (Boolean b : results) {
+                    sb.append(methodID).append(" ");
+                    if (b) {
+                        sb.append(PASSED);
+                    } else {
+                        sb.append(FAILED);
+                    }
                 }
                 sb.append(System.lineSeparator());
             }
