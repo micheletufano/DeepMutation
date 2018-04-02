@@ -444,7 +444,7 @@ public class IOHandler {
                 List<Boolean> results = mutantsMap.get(methodID);
                 sb.append(methodID);
                 for (Boolean b : results) {
-                    sb.append(methodID).append(" ");
+                    sb.append(" ");
                     if (b) {
                         sb.append(PASSED);
                     } else {
