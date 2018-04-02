@@ -214,6 +214,12 @@ public class MethodMutator {
                 }
             }
             p.waitFor();
+
+            // clean up beams.npz
+            File beams = new File(modelFile.getAbsolutePath() + "/beams.npz");
+            if (!beams.delete()) {
+                System.err.println("    WARNING: could not clean up " + beams.getPath());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
