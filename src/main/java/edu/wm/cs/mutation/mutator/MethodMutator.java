@@ -14,7 +14,7 @@ public class MethodMutator {
     private static final String TRAIN_OPTIONS = "train_options.json";
 
     private static String python = "python";
-    private static boolean dumpingBeams = false;
+    private static boolean usingBeams = false;
     private static Integer numBeams = 2;
     private static String interpretBeams = "interpretBeams.py";
 
@@ -35,7 +35,7 @@ public class MethodMutator {
             return;
         }
 
-        if (dumpingBeams) {
+        if (usingBeams) {
             System.out.println("    Dumping beams is set.");
             if (numBeams < 2) {
                 System.err.println("  ERROR: to dump beams, the number of beams must be >= 2");
@@ -84,7 +84,7 @@ public class MethodMutator {
             LinkedHashMap<String,List<String>> modelMap = new LinkedHashMap<>();
             int i=0;
             for (String s : absMethodsMap.keySet()) {
-                if (dumpingBeams) {
+                if (usingBeams) {
                     // just put them all in -- may not have changed some
                     modelMap.put(s, mutants.get(i++));
                 } else {
@@ -144,7 +144,7 @@ public class MethodMutator {
             List<List<String>> mutants = new ArrayList<>();
             String line;
 
-            if (dumpingBeams) {
+            if (usingBeams) {
                 p.waitFor();
                 interpretBeams(modelFile, mutants);
             } else {
@@ -179,7 +179,7 @@ public class MethodMutator {
         List<String> cmd = new ArrayList<>();
         cmd.add(python); cmd.add("-m"); cmd.add("bin.infer");
         cmd.add("--tasks");
-        if (dumpingBeams) {
+        if (usingBeams) {
             cmd.add("- class: DecodeText\n- class: DumpBeams\n  params:\n    file: beams.npz");
             cmd.add("--model_params"); cmd.add("inference.beam_search.beam_width: " + numBeams);
         } else {
@@ -239,12 +239,12 @@ public class MethodMutator {
         MethodMutator.python = python;
     }
 
-    public static void setDumpingBeams(boolean dumpBeams) {
-        MethodMutator.dumpingBeams = dumpBeams;
+    public static void useBeams(boolean useBeams) {
+        MethodMutator.usingBeams = useBeams;
     }
 
-    public static boolean isDumpingBeams() {
-        return MethodMutator.dumpingBeams;
+    public static boolean isUsingBeams() {
+        return MethodMutator.usingBeams;
     }
 
     public static void setNumBeams(Integer numBeams) {
