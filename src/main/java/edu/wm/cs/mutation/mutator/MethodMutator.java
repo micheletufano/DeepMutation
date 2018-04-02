@@ -36,7 +36,7 @@ public class MethodMutator {
         }
 
         if (usingBeams) {
-            System.out.println("    Using " + numBeams + " beams.");
+            System.out.println("  Using " + numBeams + " beams.");
             if (numBeams < 2) {
                 System.err.println("  ERROR: the number of beams must be >= 2");
                 return;
@@ -45,9 +45,6 @@ public class MethodMutator {
                 return;
             }
         }
-
-        // Write abstracted methods
-        IOHandler.writeMethods(outPath, absMethodsMap, true);
 
         // Check for train_options.json and vocab files
         if (!foundFileDeps(modelPaths)) {
