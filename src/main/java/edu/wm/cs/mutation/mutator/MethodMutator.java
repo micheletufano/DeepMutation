@@ -36,6 +36,7 @@ public class MethodMutator {
         }
 
         if (dumpingBeams) {
+            System.out.println("    Dumping beams is set.");
             if (numBeams < 2) {
                 System.err.println("  ERROR: to dump beams, the number of beams must be >= 2");
                 return;
@@ -144,7 +145,6 @@ public class MethodMutator {
             String line;
 
             if (dumpingBeams) {
-                System.out.println("    Dumping beams is set.");
                 p.waitFor();
                 interpretBeams(modelFile, mutants);
             } else {
