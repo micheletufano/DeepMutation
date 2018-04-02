@@ -145,14 +145,15 @@ public class MethodMutator {
 
             if (dumpingBeams) {
                 System.out.println("    Dumping beams is set.");
+                p.waitFor();
                 interpretBeams(modelFile, mutants);
             } else {
                 int i=0;
                 while ((line = br.readLine()) != null) {
                     mutants.get(i++).add(line);
                 }
+                p.waitFor();
             }
-            p.waitFor();
 
             if (mutants.size() == 0) {
                 System.err.println("    ERROR: could not run model " + modelFile.getPath() + " on " + input + " using command:");
@@ -212,6 +213,7 @@ public class MethodMutator {
                     beam = 0;
                 }
             }
+            p.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
