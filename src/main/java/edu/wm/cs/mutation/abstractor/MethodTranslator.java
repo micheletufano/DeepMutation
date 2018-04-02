@@ -54,6 +54,7 @@ public class MethodTranslator {
 				continue;
 			}
 
+			int untranslatable=0;
 			for (String signature : mutantMap.keySet()) {
 				
 				List<String> predictions = mutantMap.get(signature);
@@ -68,9 +69,12 @@ public class MethodTranslator {
 //						System.out.println("Abs Code: " + srcCode);
 //						System.out.println("Trans Code: " + transCode);
 //						System.out.println("Mapping: " + dictMap.get(signature));
+					} else {
+						untranslatable++;
 					}
 				}
 			}
+			System.out.println("    Removed " + untranslatable + " untranslatable mutants.");
 
 			translatedMutantsMap.put(modelName, modelMap);
 			System.out.println("  done.");

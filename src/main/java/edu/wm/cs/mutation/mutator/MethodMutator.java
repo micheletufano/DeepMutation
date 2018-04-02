@@ -83,19 +83,35 @@ public class MethodMutator {
             // Save mutants
             LinkedHashMap<String,List<String>> modelMap = new LinkedHashMap<>();
             int i=0;
+            int numUnchangedMethods=0;
+            int numUnchangedMutants=0;
             for (String s : absMethodsMap.keySet()) {
-                if (usingBeams) {
-                    // just put them all in -- may not have changed some
-                    modelMap.put(s, mutants.get(i++));
-                } else {
-                    // put it in only if it was mutated
-                    String mutant = mutants.get(i).get(0);
-                    if (!mutant.trim().equals(absMethodsMap.get(s).trim())) {
-                        modelMap.put(s, mutants.get(i++));
+                List<String> mutatedMethod = mutants.get(i);
+
+                // get list of unchanged mutants
+                List<String> unchanged = new ArrayList<>();
+                for (String mutant : mutatedMethod) {
+                    if (mutant.trim().equals(absMethodsMap.get(s).trim())) {
+                        unchanged.add(mutant);
+                        numUnchangedMutants++;
                     }
+                }
+
+                // remove them
+                for (String mutant : unchanged) {
+                    mutatedMethod.remove(mutant);
+                }
+
+                // if there are still non-trivial mutants, add them
+                if (mutatedMethod.size() > 0) {
+                    modelMap.put(s, mutatedMethod);
+                } else {
+                    numUnchangedMethods++;
                 }
             }
             mutantsMap.put(modelName, modelMap);
+            System.out.println("    Removed " + numUnchangedMutants + " unchanged mutants.");
+            System.out.println("    Resulted in " + numUnchangedMethods + " removed methods.");
 
             System.out.println("    Took " + (System.nanoTime() - start) / 1000000000.0 + " seconds.");
             System.out.println("  done.");
@@ -148,22 +164,22 @@ public class MethodMutator {
             if (usingBeams) {
                 while (br.readLine() != null) {
                     if (i++ % 100 == 99) {
-                        System.out.println("    Generated " + i + " mutants.");
+                        System.out.println("    Generated " + i + " mutated methods.");
                     }
                 }
-                System.out.println("    Generated " + i + " mutants.");
+                System.out.println("    Generated " + i + " mutated methods.");
                 p.waitFor();
                 interpretBeams(modelFile, mutants);
             } else {
                 while ((line = br.readLine()) != null) {
                     if (i++ % 100 == 99) {
-                        System.out.println("    Generated " + i + " mutants.");
+                        System.out.println("    Generated " + i + " mutated methods.");
                     }
                     List<String> mutant = new ArrayList<>(1);
                     mutant.add(line);
                     mutants.add(mutant);
                 }
-                System.out.println("    Generated " + i + " mutants.");
+                System.out.println("    Generated " + i + " mutated methods.");
                 p.waitFor();
             }
 

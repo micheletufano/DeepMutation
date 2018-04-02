@@ -156,10 +156,14 @@ public class MutantTester {
                 continue;
             }
 
-            String firstKey = mutantsMap.keySet().iterator().next();
             int numMethods = mutantsMap.keySet().size();
-            int numBeams = mutantsMap.get(firstKey).size();
-            int numMutants = numMethods * numBeams;
+            int numBeams = 0;
+            int numMutants = 0;
+            for (String method : mutantsMap.keySet()) {
+                int size = mutantsMap.get(method).size();
+                numMutants += size;
+                numBeams = (numBeams < size) ? size : numBeams;
+            }
             int maxIter = (numMutants < numThreads) ? numMutants : numThreads;
             System.out.println("    Number of mutants: " + numMutants);
             System.out.println("    Number of methods: " + numMethods);
