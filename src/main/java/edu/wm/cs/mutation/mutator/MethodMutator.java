@@ -150,7 +150,9 @@ public class MethodMutator {
             } else {
                 int i=0;
                 while ((line = br.readLine()) != null) {
-                    mutants.get(i++).add(line);
+                    List<String> mutant = new ArrayList<>(1);
+                    mutant.add(line);
+                    mutants.add(mutant);
                 }
                 p.waitFor();
             }
