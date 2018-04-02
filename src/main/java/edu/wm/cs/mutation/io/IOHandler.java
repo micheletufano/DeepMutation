@@ -387,7 +387,7 @@ public class IOHandler {
                 List<String> logs = mutantsMap.get(methodID);
                 for (int i=0; i<logs.size(); i++) {
                     try {
-                        Files.write(Paths.get(logPath + methodID + "-" + i + suffix), logs.get(i).getBytes());
+                        Files.write(Paths.get(logPath + methodID + "-" + (i+1) + suffix), logs.get(i).getBytes());
                     } catch (IOException e) {
                         System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
                     }
