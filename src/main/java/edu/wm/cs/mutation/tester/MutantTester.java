@@ -157,11 +157,16 @@ public class MutantTester {
             }
 
             String firstKey = mutantsMap.keySet().iterator().next();
-            int numMutants = mutantsMap.keySet().size() * mutantsMap.get(firstKey).size();
+            int numMethods = mutantsMap.keySet().size();
+            int numBeams = mutantsMap.get(firstKey).size();
+            int numMutants = numMethods * numBeams;
             int maxIter = (numMutants < numThreads) ? numMutants : numThreads;
+            System.out.println("    Number of mutants: " + numMutants);
+            System.out.println("    Number of methods: " + numMethods);
+            System.out.println("    Number of beams:   " + numBeams);
 
-            // create format for padded mutantIDs
-            numDigits = Integer.toString(numMutants).length();
+            // create format for padded methodIDs
+            numDigits = Integer.toString(numMethods).length();
             StringBuilder mutantFormat = new StringBuilder();
             mutantFormat.append("%0").append(numDigits).append("d");
 
