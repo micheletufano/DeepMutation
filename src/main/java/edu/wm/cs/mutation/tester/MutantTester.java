@@ -24,8 +24,11 @@ public class MutantTester {
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
 
+    private static boolean usingBaseline = true;
     private static String compileBaseline;
     private static String testBaseline;
+    private static String compileFailString;
+    private static String testFailString;
 
     // model -> (mutantID -> logs)
     private static Map<String, Map<String,List<String>>> compileLogs;
@@ -76,6 +79,18 @@ public class MutantTester {
             return;
         }
 
+        // Check for null fail string
+        if (!usingBaseline) {
+            if (compileFailString == null) {
+                System.err.println("  ERROR: compile regex not set");
+                return;
+            }
+            if (testFailString == null) {
+                System.err.println("  ERROR: test regex not set");
+                return;
+            }
+        }
+
         // Get number of threads
         int numThreads;
         if (parallel) {
@@ -112,31 +127,33 @@ public class MutantTester {
         System.out.println("  done.");
 
         // Establish baseline
-        System.out.println("  Establishing baseline... ");
+        if (usingBaseline) {
+            System.out.println("  Establishing baseline... ");
 
-        File baselineProj = new File(origProj.getParent() + "/" + origProj.getName() + ".base");
-        try {
-            FileUtils.copyDirectory(origProj, baselineProj);
-        } catch (IOException e) {
-            System.err.println("  ERROR: could not establish baseline");
-            e.printStackTrace();
-            return;
-        }
+            File baselineProj = new File(origProj.getParent() + "/" + origProj.getName() + ".base");
+            try {
+                FileUtils.copyDirectory(origProj, baselineProj);
+            } catch (IOException e) {
+                System.err.println("  ERROR: could not establish baseline");
+                e.printStackTrace();
+                return;
+            }
 
-        compileBaseline = compile(baselineProj.getPath());
-        testBaseline = test(baselineProj.getPath());
-        if (compileBaseline == null || testBaseline == null) {
-            System.err.println("  ERROR: could not establish baseline");
-            return;
-        }
+            compileBaseline = compile(baselineProj.getPath());
+            testBaseline = test(baselineProj.getPath());
+            if (compileBaseline == null || testBaseline == null) {
+                System.err.println("  ERROR: could not establish baseline");
+                return;
+            }
 
-        try {
-            FileUtils.deleteDirectory(baselineProj);
-        } catch (IOException e) {
-            System.err.println("  WARNING: could not clean up baseline project");
-            e.printStackTrace();
+            try {
+                FileUtils.deleteDirectory(baselineProj);
+            } catch (IOException e) {
+                System.err.println("  WARNING: could not clean up baseline project");
+                e.printStackTrace();
+            }
+            System.out.println("  done. ");
         }
-        System.out.println("  done. ");
 
         // Begin testing
         compileLogs = new HashMap<>();
@@ -343,7 +360,11 @@ public class MutantTester {
                 List<String> compileLogs = modelCompileLogs.get(methodID);
                 List<Boolean> canCompile = new ArrayList<>();
                 for (String log : compileLogs) {
-                    canCompile.add(log.equals(compileBaseline));
+                    if (usingBaseline) {
+                        canCompile.add(log.equals(compileBaseline));
+                    } else {
+                        canCompile.add(!log.contains(compileFailString));
+                    }
                 }
                 modelCanCompile.put(methodID, canCompile);
             }
@@ -352,7 +373,11 @@ public class MutantTester {
                 List<String> testLogs = modelTestLogs.get(methodID);
                 List<Boolean> passesTest = new ArrayList<>();
                 for (String log : testLogs) {
-                    passesTest.add(log.equals(testBaseline));
+                    if (usingBaseline) {
+                        passesTest.add(log.equals(testBaseline));
+                    } else {
+                        passesTest.add(!log.contains(testFailString));
+                    }
                 }
                 modelPassesTest.put(methodID, passesTest);
             }
@@ -475,5 +500,21 @@ public class MutantTester {
 
     public static Map<String, List<String>> getFailedMutants() {
         return failedMutants;
+    }
+
+    public static void useBaseline(boolean usingBaseline) {
+        MutantTester.usingBaseline = usingBaseline;
+    }
+
+    public static void setCompileFailString(String compileFailString) {
+        MutantTester.compileFailString = compileFailString;
+    }
+
+    public static void setTestFailString(String testFailString) {
+        MutantTester.testFailString = testFailString;
+    }
+
+    public static boolean usingBaseline() {
+        return usingBaseline;
     }
 }
