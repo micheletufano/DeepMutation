@@ -26,15 +26,17 @@ import spoon.reflect.declaration.CtMethod;
 public class ChangeExtractor {
 
 	private DiffImpl diff;
+	private CtMethod mutatedMethod; 
 	private MappingStore mapping;
 	private Map<MethodPair, List<Operation>> changedMethods;
 	private boolean debug = false;
 
-	public Map<MethodPair, List<Operation>> extractChanges(String srcBefore, String srcAfter) {
+	public Map<MethodPair, List<Operation>> extractChanges(String srcBefore, String srcAfter ,CtMethod curMethod) {
 
 		// Compare two code snippts
 		AstComparator comp = new AstComparator();
 		try {
+			mutatedMethod = curMethod;
 			diff = (DiffImpl) comp.compare(srcBefore, srcAfter);
 		} catch (Exception e) {
 			System.out.println("ERROR while computing the DIFF" + e.getMessage());
@@ -64,7 +66,9 @@ public class ChangeExtractor {
 			MethodPair methodPair = extractMethodPair(op);
 
 			if (methodPair == null) {
-				System.out.println("Null MethodPair. Skipping operation.");
+				if (debug) {
+					System.out.println("Null MethodPair. Skipping operation.");
+				}
 				continue;
 			}
 
@@ -97,7 +101,16 @@ public class ChangeExtractor {
 		CtMethod methodAfter = extractMethodAfter(operation);
 
 		if (methodBefore == null || methodAfter == null) {
-			System.out.println("Null Method: " + (methodBefore == null) + "-" + (methodAfter == null));
+			if (debug) {
+				System.out.println("Null Method: " + (methodBefore == null) + "-" + (methodAfter == null));
+			}
+			return null;
+		}
+		String curSignature = mutatedMethod.getSignature();
+		if (!methodBefore.getSignature().equals(curSignature) && !methodAfter.getSignature().equals(curSignature)) {
+			if (debug) {
+			    System.out.println("Irrelevant Change");
+			}
 			return null;
 		}
 

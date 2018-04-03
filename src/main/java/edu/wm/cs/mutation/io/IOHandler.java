@@ -318,7 +318,7 @@ public class IOHandler {
                         // Extract the changes from original src code to mutanted src code
                         ChangeExtractor changeTester = new ChangeExtractor();
                         Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original,
-                                formattedSrc);
+                                formattedSrc, method);
 
                         if (changesMap == null || changesMap.size() == 0) {
                             logs.add(fileName + "_" + method.getSignature() + "_un-mutated");
