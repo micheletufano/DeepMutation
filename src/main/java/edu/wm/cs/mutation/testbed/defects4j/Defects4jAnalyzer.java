@@ -18,6 +18,7 @@ public class Defects4jAnalyzer {
 
 	public static void analyze(String systemsRoot, String projectName, String libRoot, String mutationModelRoot, String spoonModelRoot, String revisionsRoot, String out, boolean compiled, String defects4j, int beamWidth) {
 
+		//Project settings
 		String projPath = systemsRoot + projectName + "/";
 		String libPath = libRoot + projectName + "/";
 		String outProject = out + projectName + "/";
@@ -26,27 +27,41 @@ public class Defects4jAnalyzer {
 		String revisionFile = revisionsRoot + projectName + "/revs.list";
 		String idiomPath = mutationModelRoot + "/idioms.csv";
 		IOHandler.createDirectories(outProjectLog);
-		
-		//Set up mutation models
+
+		//Mutation models settings
 		List<String> modelPaths = IOHandler.listDirectoriesPaths(mutationModelRoot);
 
-		//Reading Spoon model info
+		//Spoon Model settings
 		ModelConfig modelInfo = new ModelConfig();	
 		modelInfo.init(modelBuildingInfo);
 
-		String[] revs = IOHandler.readRevsCSV(revisionFile);
+		//MutantTester settings
+		MutantTester.setCompileCmd(defects4j, "compile");
+		MutantTester.setTestCmd(defects4j, "test");
+		MutantTester.setCompileFailString("FAIL");
+		MutantTester.setTestFailString("Failing");
+		MutantTester.useBaseline(false);
+
+		//MethodMutator settings
+		MethodMutator.useBeams(true);
+		MethodMutator.setNumBeams(beamWidth);
+		MethodMutator.setPython("python");
+
+		//MethodAbstractor settings
+		MethodAbstractor.setInputMode(true);
 
 		PrintStream console = System.out;
-
+		String[] revs = IOHandler.readRevsCSV(revisionFile);
 		for(String rev : revs) {
 
 			console.println(projectName + " - " + rev);
-			
+
 			//Extract Model Building Info
 			int confID = Integer.parseInt(rev);
 			String srcDir = modelInfo.getSrcPath(confID);
 			int complianceLvl = modelInfo.getComplianceLevel(confID);
-			String srcPath = projPath + "/" + rev + BUGGY_DIR + srcDir;
+			String revPath = projPath + "/" + rev + BUGGY_DIR;
+			String srcPath = revPath + srcDir;
 			String outPath = outProject + rev + BUGGY_DIR;
 			String logFile = outProjectLog + "/" + rev + ".log";
 			IOHandler.setOutputStream(logFile);
@@ -55,16 +70,7 @@ public class Defects4jAnalyzer {
 			String inputMethodPath = revisionsRoot + projectName + "/" + rev + ".key";
 			HashSet<String> inputMethods = IOHandler.readInputMethods(inputMethodPath);
 
-
-			MutantTester.setCompileCmd(defects4j, "compile");
-			MutantTester.setTestCmd(defects4j, "test");
-
-			MethodMutator.useBeams(true);
-			MethodMutator.setNumBeams(beamWidth);
-			MethodMutator.setPython("python");
-			MethodAbstractor.setInputMode(true);
-			
-			MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethods);
+			MethodExtractor.extractMethods(revPath, srcPath, libPath, complianceLvl, compiled, inputMethods);
 			IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
 			MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
@@ -80,7 +86,7 @@ public class Defects4jAnalyzer {
 			IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
 					MethodExtractor.getMethods(), modelPaths);
 
-			MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
+			MutantTester.testMutants(revPath, MethodTranslator.getTranslatedMutantsMap(),
 					MethodExtractor.getMethods(), modelPaths);
 			IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
 			IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
@@ -91,9 +97,9 @@ public class Defects4jAnalyzer {
 
 
 		}
-		
-		
-		
+
+
+
 		System.setOut(console);
 
 	}
