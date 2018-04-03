@@ -62,6 +62,9 @@ public class MethodExtractor {
 
             rawMethodsMap.put(signature, body);
         }
+        if (rawMethodsMap.size() == 0) {
+            System.err.println("  ERROR: Could not extract any methods.");
+        }
         System.out.println("done.");
     }
 

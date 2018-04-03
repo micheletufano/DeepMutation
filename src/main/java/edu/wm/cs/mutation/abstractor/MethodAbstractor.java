@@ -15,8 +15,8 @@ public class MethodAbstractor {
 
 		System.out.println("Abstracting methods... ");
 
-		if (rawMethods == null) {
-			System.err.println("  ERROR: null input map");
+		if (rawMethods == null || rawMethods.size() == 0) {
+			System.err.println("  ERROR: null/empty input map");
 			return;
 		}
 

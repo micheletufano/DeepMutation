@@ -168,8 +168,8 @@ public class MutantTester {
 
             LinkedHashMap<String, List<String>> mutantsMap = modelsMap.get(modelName);
 
-            if (mutantsMap == null) {
-                System.err.println("    WARNING: skipping null map for model " + modelName);
+            if (mutantsMap == null || mutantsMap.size() == 0) {
+                System.err.println("    WARNING: skipping null/empty map for model " + modelName);
                 continue;
             }
 

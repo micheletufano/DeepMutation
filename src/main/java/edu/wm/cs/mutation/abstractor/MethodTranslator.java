@@ -35,8 +35,8 @@ public class MethodTranslator {
 
 		System.out.println("Translating abstract mutants...");
 
-		if (mutantsMap == null) {
-			System.err.println("  ERROR: null input map");
+		if (mutantsMap == null || mutantsMap.size() == 0) {
+			System.err.println("  ERROR: null/empty input map");
 			return;
 		}
 
@@ -49,8 +49,8 @@ public class MethodTranslator {
 			LinkedHashMap<String, List<String>> mutantMap = mutantsMap.get(modelName);
 			LinkedHashMap<String, List<String>> modelMap = new LinkedHashMap<>();
 
-			if (mutantMap == null) {
-				System.err.println("    WARNING: cannot translate null map for model " + modelName);
+			if (mutantMap == null || mutantMap.size() == 0) {
+				System.err.println("    WARNING: cannot translate null/empty map for model " + modelName);
 				continue;
 			}
 

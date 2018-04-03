@@ -17,6 +17,7 @@ public class MethodMutator {
     private static boolean usingBeams = false;
     private static Integer numBeams = 2;
     private static String interpretBeams = "interpretBeams.py";
+    private static boolean printModelOutput = false;
 
     private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap;
 
@@ -30,8 +31,8 @@ public class MethodMutator {
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
 
-        if (absMethodsMap == null) {
-            System.err.println("  ERROR: null input map");
+        if (absMethodsMap == null || absMethodsMap.size() == 0) {
+            System.err.println("  ERROR: null/empty input map");
             return;
         }
 
@@ -184,17 +185,21 @@ public class MethodMutator {
                 p.waitFor();
             }
 
-            if (mutants.size() == 0) {
-                System.err.println("    ERROR: could not run model " + modelFile.getPath() + " on " + input + " using command:");
-                System.err.println(String.join(" ", cmd));
+            if (printModelOutput) {
+                System.err.println("    Using command:\n" + String.join(" ", cmd));
 
                 br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                 while ((line = br.readLine()) != null) {
                     System.err.println(line);
                 }
+            }
 
+            if (mutants.size() == 0) {
+                System.err.println("    WARNING: could not generate mutated methods. " +
+                        "Set MethodMutator.printModelOutput(true) for more details.");
                 return null;
             }
+
             return mutants;
         } catch (Exception e) {
             e.printStackTrace();
@@ -276,5 +281,9 @@ public class MethodMutator {
 
     public static void setNumBeams(Integer numBeams) {
         MethodMutator.numBeams = numBeams;
+    }
+
+    public static void printModelOutput(boolean printModelOutput) {
+        MethodMutator.printModelOutput = printModelOutput;
     }
 }
