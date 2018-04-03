@@ -1,24 +1,35 @@
 package edu.wm.cs.mutation.io;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
+
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 
 import edu.wm.cs.mutation.tester.ChangeExtractor;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.pair.MethodPair;
-import org.apache.commons.io.FileUtils;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class IOHandler {
 
@@ -603,6 +614,62 @@ public class IOHandler {
             e.printStackTrace();
             return null;
         }
+    }
+    
+    public static String[] readRevsCSV(String filePath) {
+    	
+    	List<String> lines = readLines(filePath);
+
+    	return lines.get(0).split(",");
+    }
+    
+    public static List<String> listDirectoriesPaths(String dirPath){
+    	
+    	File[] directories = new File(dirPath).listFiles(File::isDirectory);	
+    	List<String> paths = new ArrayList<>();
+    	
+    	for(File dir : directories) {
+    		paths.add(dir.getAbsolutePath()+"/");
+    	}
+    	
+    	return paths;
+    }
+    
+    
+    
+    
+    public static List<String> readLines(String filePath){
+    	List<String> lines = null;
+    	
+    	try {
+			lines = Files.readAllLines(Paths.get(filePath));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return lines;
+    }
+    
+    
+    public static void setOutputStream(String logFilePath) {
+		try {
+			FileOutputStream log = new FileOutputStream(logFilePath);
+			PrintStream out = new PrintStream(log);
+			PrintStream err = new PrintStream(log);
+			System.setOut(out);
+			System.setErr(err);  
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public static void createDirectories(String dirPath) {
+    	try {
+			Files.createDirectories(Paths.get(dirPath));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
     }
 
 }
