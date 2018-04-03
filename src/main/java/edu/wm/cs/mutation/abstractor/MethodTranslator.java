@@ -39,6 +39,11 @@ public class MethodTranslator {
 			System.err.println("  ERROR: null input map");
 			return;
 		}
+		
+		if (dictMap.size() == 0) {
+			System.err.println("  ERROR: null dictionary map");
+			return;
+		}
 
 		translatedMutantsMap = new HashMap<>();
 		for (String modelPath : modelPaths) {
