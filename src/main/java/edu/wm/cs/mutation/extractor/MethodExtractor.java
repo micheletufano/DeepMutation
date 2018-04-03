@@ -13,126 +13,123 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 public class MethodExtractor {
 
-    public static final String BUGGY_DIR = "/b/";
-    private static LinkedHashMap<String,String> rawMethodsMap;
-    private static List<CtMethod> methods;
+	public static final String BUGGY_DIR = "/b/";
+	private static LinkedHashMap<String, String> rawMethodsMap;
+	private static List<CtMethod> methods;
 
-    public static void extractMethods(String projPath, String srcPath, String libPath,
-                                      int complianceLvl, boolean compiled, Set<String> inputMethods) {
-        System.out.println("\nExtracting methods from " + projPath + "... ");
+	public static void extractMethods(String projPath, String srcPath, String libPath, int complianceLvl,
+			boolean compiled, Set<String> inputMethods) {
+		System.out.println("\nExtracting methods from " + projPath + "... ");
 
-        File project = new File(projPath);
-        rawMethodsMap = new LinkedHashMap<>();
-        
-        // Build Spoon model
-        if (compiled) {
-            libPath = project.getAbsolutePath() + "/";
-        }
-        
-        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
+		File project = new File(projPath);
+		rawMethodsMap = new LinkedHashMap<>();
 
-        // Generate methods
-        methods = spoon.getFactory()
-                .Package()
-                .getRootPackage()
-                .getElements(new TypeFilter<>(CtMethod.class));
+		// Build Spoon model
+		if (compiled) {
+			libPath = project.getAbsolutePath() + "/";
+		}
 
-        for (CtMethod method : methods) {
-            String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
-            
-            // keep methods matching the specified signatures   
-            if (inputMethods != null && !inputMethods.contains(signature)) {
-            	    continue;
-            }
-            // filter out getters/setters
-            String methodName = method.getSignature().split(" ")[1];
-            if (methodName.startsWith("set") || methodName.startsWith("get")) {
-                continue;
-            }
-            
-            // filter out methods in java interfaces
-            if (((CtTypeInformation) method.getParent()).isInterface()) {
-            	    continue;
-            }
+		SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
-            SourcePosition sp = method.getPosition();
-            String body = sp.getCompilationUnit()
-                    .getOriginalSourceCode()
-                    .substring(sp.getSourceStart(), sp.getSourceEnd() + 1);
+		// Generate methods
+		methods = spoon.getFactory().Package().getRootPackage().getElements(new TypeFilter<>(CtMethod.class));
 
-            rawMethodsMap.put(signature, body);
-        }
-        System.out.println("done.");
-    }
+		for (CtMethod method : methods) {
+			String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
 
-    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled, Set<String> inputMethods) {
-        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled, inputMethods);
-    }
+			// keep methods matching the specified signatures
+			if (inputMethods != null && !inputMethods.contains(signature)) {
+				continue;
+			}
+			// filter out getters/setters when methods are not specified
+			if (inputMethods == null) {
+				String methodName = method.getSignature().split(" ")[1];
+				if (methodName.startsWith("set") || methodName.startsWith("get")) {
+					continue;
+				}
+			}
+			// filter out methods in java interfaces
+			if (((CtTypeInformation) method.getParent()).isInterface()) {
+				continue;
+			}
 
-    public static List<Defects4JInput> generateDefect4JInputs(String projBasePath, String outBasePath, String modelConfigPath) {
+			SourcePosition sp = method.getPosition();
+			String body = sp.getCompilationUnit().getOriginalSourceCode().substring(sp.getSourceStart(),
+					sp.getSourceEnd() + 1);
 
-        ModelConfig modelConfig = new ModelConfig();
-        modelConfig.init(modelConfigPath);
-        File[] revisions = new File(projBasePath).listFiles(File::isDirectory);
-        sortRevisionDirectories(revisions);
+			rawMethodsMap.put(signature, body);
+		}
+		System.out.println("done.");
+	}
 
-        List<Defects4JInput> inputs = new ArrayList<>();
-        for (File rev : revisions) {
-            int confID = Integer.parseInt(rev.getName());
+	public static void extractMethods(Defects4JInput input, String libPath, boolean compiled,
+			Set<String> inputMethods) {
+		extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled,
+				inputMethods);
+	}
 
-            String projPath = projBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
-            String srcPath = projPath + modelConfig.getSrcPath(confID);
-            String outPath = outBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
-            int complianceLvl = modelConfig.getComplianceLevel(confID);
+	public static List<Defects4JInput> generateDefect4JInputs(String projBasePath, String outBasePath,
+			String modelConfigPath) {
 
-            inputs.add(new Defects4JInput(projPath, srcPath, outPath, complianceLvl));
-        }
+		ModelConfig modelConfig = new ModelConfig();
+		modelConfig.init(modelConfigPath);
+		File[] revisions = new File(projBasePath).listFiles(File::isDirectory);
+		sortRevisionDirectories(revisions);
 
-        return inputs;
-    }
+		List<Defects4JInput> inputs = new ArrayList<>();
+		for (File rev : revisions) {
+			int confID = Integer.parseInt(rev.getName());
 
-    public static void buildModel(String projPath, String srcPath, String libPath,
-                                  int complianceLvl, boolean compiled) {
-        System.out.println("Building spoon model... ");
+			String projPath = projBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
+			String srcPath = projPath + modelConfig.getSrcPath(confID);
+			String outPath = outBasePath + rev.getName() + MethodExtractor.BUGGY_DIR;
+			int complianceLvl = modelConfig.getComplianceLevel(confID);
 
-        File project = new File(projPath);
-        if (compiled) {
-            libPath = project.getAbsolutePath() + "/";
-        }
-        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
+			inputs.add(new Defects4JInput(projPath, srcPath, outPath, complianceLvl));
+		}
 
-        methods = spoon.getFactory()
-                .Package()
-                .getRootPackage()
-                .getElements(new TypeFilter<>(CtMethod.class));
+		return inputs;
+	}
 
-        System.out.println("done.");
-    }
+	public static void buildModel(String projPath, String srcPath, String libPath, int complianceLvl,
+			boolean compiled) {
+		System.out.println("Building spoon model... ");
 
-    private static void sortRevisionDirectories(File[] revisions) {
-        Arrays.sort(revisions, new Comparator<File>() {
-            public int compare(File f1, File f2) {
-                try {
-                    int i1 = Integer.parseInt(f1.getName());
-                    int i2 = Integer.parseInt(f2.getName());
-                    return i1 - i2;
-                } catch (NumberFormatException e) {
-                    throw new AssertionError(e);
-                }
-            }
-        });
-    }
+		File project = new File(projPath);
+		if (compiled) {
+			libPath = project.getAbsolutePath() + "/";
+		}
+		SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
-    public static LinkedHashMap<String, String> getRawMethodsMap() {
-        return rawMethodsMap;
-    }
+		methods = spoon.getFactory().Package().getRootPackage().getElements(new TypeFilter<>(CtMethod.class));
 
-    public static List<CtMethod> getMethods() {
-        return methods;
-    }
+		System.out.println("done.");
+	}
 
-    public static void setRawMethodsMap(LinkedHashMap<String, String> rawMethodsMap) {
-        MethodExtractor.rawMethodsMap = rawMethodsMap;
-    }
+	private static void sortRevisionDirectories(File[] revisions) {
+		Arrays.sort(revisions, new Comparator<File>() {
+			public int compare(File f1, File f2) {
+				try {
+					int i1 = Integer.parseInt(f1.getName());
+					int i2 = Integer.parseInt(f2.getName());
+					return i1 - i2;
+				} catch (NumberFormatException e) {
+					throw new AssertionError(e);
+				}
+			}
+		});
+	}
+
+	public static LinkedHashMap<String, String> getRawMethodsMap() {
+		return rawMethodsMap;
+	}
+
+	public static List<CtMethod> getMethods() {
+		return methods;
+	}
+
+	public static void setRawMethodsMap(LinkedHashMap<String, String> rawMethodsMap) {
+		MethodExtractor.rawMethodsMap = rawMethodsMap;
+	}
 
 }
