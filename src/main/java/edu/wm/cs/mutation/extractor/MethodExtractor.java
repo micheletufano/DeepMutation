@@ -44,11 +44,14 @@ public class MethodExtractor {
             if (inputMethods != null && !inputMethods.contains(signature)) {
             	    continue;
             }
-            // filter out getters/setters
-            String methodName = method.getSignature().split(" ")[1];
-            if (methodName.startsWith("set") || methodName.startsWith("get")) {
-                continue;
-            }
+            
+            // filter out getters/setters when methods are not specified
+         	if (inputMethods == null) {
+         		String methodName = method.getSignature().split(" ")[1];
+         		if (methodName.startsWith("set") || methodName.startsWith("get")) {
+         			continue;
+         		}
+         	}
             
             // filter out methods in java interfaces
             if (((CtTypeInformation) method.getParent()).isInterface()) {
