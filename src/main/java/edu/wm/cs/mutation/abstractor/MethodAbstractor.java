@@ -8,6 +8,7 @@ import edu.wm.cs.mutation.io.IOHandler;
 public class MethodAbstractor {
 	private static LinkedHashMap<String, String> absMethodsMap;
 	private static LinkedHashMap<String, String> dictMap;
+	private static int tokenThr = 50; // default maximum number of tokens in a method
 	private static boolean specified = false;
 
 	private static Set<String> idioms;
@@ -38,7 +39,7 @@ public class MethodAbstractor {
 			if (absCode == null) {
 				continue;
 			}
-			if (!specified && absCode.split(" ").length > 50) {
+			if (!specified && absCode.split(" ").length > tokenThr) {
 				continue;
 			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
@@ -73,7 +74,7 @@ public class MethodAbstractor {
 
 		String afterTokenized = tokenizer.tokenize(srcCode);
 		String mappings = tokenizer.getMapping();
-		if (specified || afterTokenized.split(" ").length <= 50)
+		if (specified || afterTokenized.split(" ").length <= tokenThr)
 		    dictMap.put(signature, mappings);
 
 		return afterTokenized;
@@ -97,5 +98,9 @@ public class MethodAbstractor {
 	
 	public static void setInputMode(boolean specified) {
 		MethodAbstractor.specified = specified;
+	}
+	
+	public static void setTokenThreshold(int tokenThr) {
+		MethodAbstractor.tokenThr = tokenThr;
 	}
 }

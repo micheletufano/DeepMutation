@@ -23,7 +23,8 @@ public class PipelineDefects4JTest {
         String inputMethodPath = dataPath + "methods.input";
         
         boolean compiled = true;
-        boolean specified = true;
+        boolean specified = false;
+        int tokenThreshold = 100;
         HashSet<String> inputMethods = null;
         
 
@@ -46,6 +47,7 @@ public class PipelineDefects4JTest {
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
              
             MethodAbstractor.setInputMode(specified);
+            MethodAbstractor.setTokenThreshold(tokenThreshold);
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
             IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
             IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
