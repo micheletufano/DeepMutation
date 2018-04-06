@@ -136,6 +136,10 @@ public class MethodExtractor {
     public static List<CtMethod> getMethods() {
         return methods;
     }
+    
+    public static void setMethods(List<CtMethod> methods) {
+    	MethodExtractor.methods = methods;
+    }
 
     public static void setRawMethodsMap(LinkedHashMap<String, String> rawMethodsMap) {
         MethodExtractor.rawMethodsMap = rawMethodsMap;
