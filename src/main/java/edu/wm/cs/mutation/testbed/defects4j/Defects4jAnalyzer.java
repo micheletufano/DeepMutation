@@ -41,6 +41,7 @@ public class Defects4jAnalyzer {
 		MutantTester.setCompileFailString("FAIL");
 		MutantTester.setTestFailString("Failing");
 		MutantTester.useBaseline(false);
+		MutantTester.setParallel(false);
 
 		//MethodMutator settings
 		MethodMutator.useBeams(true);
@@ -88,8 +89,8 @@ public class Defects4jAnalyzer {
 
 			MutantTester.testMutants(revPath, MethodTranslator.getTranslatedMutantsMap(),
 					MethodExtractor.getMethods(), modelPaths);
-			IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
-			IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
+//			IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
+//			IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
 			IOHandler.writeLogs(outPath, MutantTester.getCompileLogs(), modelPaths, "compile");
 			IOHandler.writeLogs(outPath, MutantTester.getTestLogs(), modelPaths, "test");
 			IOHandler.writeResults(outPath, MutantTester.getCompilable(), modelPaths, "compile");
