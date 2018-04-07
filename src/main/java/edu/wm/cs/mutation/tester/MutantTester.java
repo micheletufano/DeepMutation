@@ -42,7 +42,7 @@ public class MutantTester {
     private static Map<String, Map<String,List<Boolean>>> successful;
 
     private static boolean parallel = true;
-
+    private static boolean cleanUp = true;
 
     public static void testMutants(String projPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
                                    List<CtMethod> methods, List<String> modelPaths) {
@@ -372,16 +372,18 @@ public class MutantTester {
         }
 
         // Clean up extra projects
-        System.out.println("  Deleting mutant project(s)...");
-        for (int i = 0; i < numThreads; i++) {
-            try {
-                FileUtils.deleteDirectory(mutantProj[i]);
-            } catch (IOException e) {
-                System.err.println("  WARNING: could not clean up mutant project(s)");
-                e.printStackTrace();
+        if (cleanUp) {
+            System.out.println("  Deleting mutant project(s)...");
+            for (int i = 0; i < numThreads; i++) {
+                try {
+                    FileUtils.deleteDirectory(mutantProj[i]);
+                } catch (IOException e) {
+                    System.err.println("  WARNING: could not clean up mutant project(s)");
+                    e.printStackTrace();
+                }
             }
+            System.out.println("  done.");
         }
-        System.out.println("  done.");
 
         System.out.println("done.");
     }
@@ -499,5 +501,9 @@ public class MutantTester {
 
     public static boolean usingBaseline() {
         return usingBaseline;
+    }
+
+    public static void setCleanUp(boolean cleanUp) {
+        MutantTester.cleanUp = cleanUp;
     }
 }
