@@ -31,19 +31,26 @@ public class MethodAbstractor {
 
 		absMethodsMap = new LinkedHashMap<>();
 
+		int unparseable = 0;
+		int tooLong = 0;
 		dictMap = new LinkedHashMap<>();
         for (String signature : rawMethods.keySet()) {
             String srcCode = rawMethods.get(signature);
 
             String absCode = abstractCode(signature, srcCode, dictMap);
 			if (absCode == null) {
+				unparseable++;
 				continue;
 			}
 			if (!specified && absCode.split(" ").length > tokenThr) {
+				tooLong++;
 				continue;
 			}
             absMethodsMap.put(signature, absCode); // replace srcCode with absCode
         }
+		System.out.println("  There were " + unparseable + " unparseable methods.");
+		System.out.println("  There were " + tooLong + " methods longer than " + tokenThr + " tokens.");
+		System.out.println("  There are " + absMethodsMap.size() + " remaining methods.");
 
 		System.out.println("done.");
 	}
