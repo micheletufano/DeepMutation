@@ -47,7 +47,20 @@ public class MutantTester {
     public static void testMutants(String projPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
                                    List<CtMethod> methods, List<String> modelPaths) {
 
-        System.out.println("Testing " + projPath + "... ");
+        // get real and absolute path to projPath
+        final File projFile;
+        try {
+            projFile = new File(Paths.get(projPath).toRealPath().toString());
+        } catch (IOException e) {
+            System.err.println("  ERROR: toRealPath()");
+            e.printStackTrace();
+            return;
+        }
+        if (!projFile.exists() || !projFile.isDirectory()) {
+            System.err.println("  ERROR: " + projFile.getAbsolutePath() + " is not a directory");
+        }
+
+        System.out.println("Testing " + projFile.getAbsolutePath() + "... ");
 
         // Check for null maps
         if (modelsMap == null) {
@@ -107,17 +120,16 @@ public class MutantTester {
 
         // Create a copy of the project for each thread
         System.out.println("  Copying project(s)... ");
-        File origProj = new File(projPath);
 
         File[] mutantProj = new File[numThreads];
         String[] mutantProjPaths = new String[numThreads];
         for (int i = 0; i < numThreads; i++) {
             try {
-                mutantProj[i] = new File(origProj.getParent() + "/" + origProj.getName() + i);
-                FileUtils.copyDirectory(origProj, mutantProj[i]);
+                mutantProj[i] = new File(projFile.getParent() + "/" + projFile.getName() + i);
+                FileUtils.copyDirectory(projFile, mutantProj[i]);
                 System.out.println("    Created " + mutantProj[i].getPath() + ".");
 
-                mutantProjPaths[i] = mutantProj[i].getPath() + "/";
+                mutantProjPaths[i] = mutantProj[i].getAbsolutePath();
             } catch (IOException e) {
                 System.err.println("    ERROR: could not copy project(s)");
                 e.printStackTrace();
@@ -130,9 +142,9 @@ public class MutantTester {
         if (usingBaseline) {
             System.out.println("  Establishing baseline... ");
 
-            File baselineProj = new File(origProj.getParent() + "/" + origProj.getName() + ".base");
+            File baselineProj = new File(projFile.getParent() + "/" + projFile.getName() + ".base");
             try {
-                FileUtils.copyDirectory(origProj, baselineProj);
+                FileUtils.copyDirectory(projFile, baselineProj);
             } catch (IOException e) {
                 System.err.println("  ERROR: could not establish baseline");
                 e.printStackTrace();
@@ -226,8 +238,11 @@ public class MutantTester {
                             // Get original source code and path to file
                             SourcePosition sp = method.getPosition();
                             String original = sp.getCompilationUnit().getOriginalSourceCode();
-                            String mutantPath = sp.getCompilationUnit().getFile().getPath()
-                                    .replaceFirst(projPath, mutantProjPaths[threadID]);
+                            String origPath = sp.getCompilationUnit().getFile().getAbsolutePath();
+                            String mutantPath = origPath.replaceFirst(projFile.getAbsolutePath(), mutantProjPaths[threadID]);
+                            if (mutantPath.equals(origPath)) {
+                                System.err.println("      ERROR: could not locate path to mutant project");
+                            }
 
                             // Construct and format mutated class
                             int srcStart = sp.getNameSourceStart();
