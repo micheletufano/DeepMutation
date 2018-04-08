@@ -31,8 +31,8 @@ public class IntroClassJavaAnalyzer {
 		//MutantTester settings
 		MutantTester.setCompileCmd(mvnBin, "compile");
 		MutantTester.setTestCmd(mvnBin, "test");
-		MutantTester.setCompileFailString("FAIL");
-		MutantTester.setTestFailString("ailure");
+		MutantTester.setCompileFailStrings("FAIL");
+		MutantTester.setTestFailStrings("ailure");
 		MutantTester.useBaseline(false);
 		MutantTester.setParallel(false);
 

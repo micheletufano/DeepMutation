@@ -27,8 +27,8 @@ public class MutantTester {
     private static boolean usingBaseline = true;
     private static String compileBaseline;
     private static String testBaseline;
-    private static String compileFailString;
-    private static String testFailString;
+    private static String[] compileFailStrings;
+    private static String[] testFailStrings;
 
     // model -> (mutantID -> logs)
     private static Map<String, Map<String,List<String>>> compileLogs;
@@ -94,11 +94,11 @@ public class MutantTester {
 
         // Check for null fail string
         if (!usingBaseline) {
-            if (compileFailString == null) {
+            if (compileFailStrings == null) {
                 System.err.println("  ERROR: compile regex not set");
                 return;
             }
-            if (testFailString == null) {
+            if (testFailStrings == null) {
                 System.err.println("  ERROR: test regex not set");
                 return;
             }
@@ -361,7 +361,14 @@ public class MutantTester {
                     if (usingBaseline) {
                         canCompile.add(log.equals(compileBaseline));
                     } else {
-                        canCompile.add(!log.contains(compileFailString));
+                        boolean res = true;
+                        for (String failStr : compileFailStrings) {
+                            if (log.contains(failStr)) {
+                                res = false;
+                                break;
+                            }
+                        }
+                        canCompile.add(res);
                     }
                 }
                 modelCanCompile.put(methodID, canCompile);
@@ -374,7 +381,14 @@ public class MutantTester {
                     if (usingBaseline) {
                         passesTest.add(log.equals(testBaseline));
                     } else {
-                        passesTest.add(!log.contains(testFailString));
+                        boolean res = true;
+                        for (String failStr : testFailStrings) {
+                            if (log.contains(failStr)) {
+                                res = false;
+                                break;
+                            }
+                        }
+                        passesTest.add(res);
                     }
                 }
                 modelPassesTest.put(methodID, passesTest);
@@ -506,12 +520,12 @@ public class MutantTester {
         MutantTester.usingBaseline = usingBaseline;
     }
 
-    public static void setCompileFailString(String compileFailString) {
-        MutantTester.compileFailString = compileFailString;
+    public static void setCompileFailStrings(String... compileFailStrings) {
+        MutantTester.compileFailStrings = compileFailStrings;
     }
 
-    public static void setTestFailString(String testFailString) {
-        MutantTester.testFailString = testFailString;
+    public static void setTestFailStrings(String... testFailStrings) {
+        MutantTester.testFailStrings = testFailStrings;
     }
 
     public static boolean usingBaseline() {
