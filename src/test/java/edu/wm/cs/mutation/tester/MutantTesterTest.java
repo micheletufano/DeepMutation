@@ -35,8 +35,8 @@ public class MutantTesterTest {
         String defects4j = System.getProperty("user.home") + "/defects4j/framework/bin/defects4j";
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
-        MutantTester.setCompileFailString("FAIL");
-        MutantTester.setTestFailString("Failing");
+        MutantTester.setCompileFailStrings("FAIL");
+        MutantTester.setTestFailStrings("Failing");
         MutantTester.useBaseline(false);
 
         String idiomPath = dataPath + "idioms.csv";
