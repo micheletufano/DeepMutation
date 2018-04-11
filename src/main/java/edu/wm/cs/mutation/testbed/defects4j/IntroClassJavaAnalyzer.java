@@ -32,7 +32,7 @@ public class IntroClassJavaAnalyzer {
 		MutantTester.setCompileCmd(mvnBin, "compile");
 		MutantTester.setTestCmd(mvnBin, "test");
 		MutantTester.setCompileFailStrings("FAIL");
-		MutantTester.setTestFailStrings("ailure");
+		MutantTester.setTestFailStrings("ailure", "Failing", "FAIL");
 		MutantTester.useBaseline(false);
 		MutantTester.setParallel(false);
 
@@ -48,7 +48,7 @@ public class IntroClassJavaAnalyzer {
 		List<String> programs = IOHandler.listDirectoriesPaths(programsRoot);
 	
 		for(String program : programs) {
-
+			
 			List<String> versions = IOHandler.listDirectoriesPaths(program);
 
 			for(String programVersion : versions) {
@@ -100,11 +100,9 @@ public class IntroClassJavaAnalyzer {
 				IOHandler.writeResults(outPath, MutantTester.getCompilable(), modelPaths, "compile");
 				IOHandler.writeResults(outPath, MutantTester.getSuccessful(), modelPaths, "test");
 
-
+				System.setOut(console);
 			}
 			
-			System.setOut(console);
-
 		}
 		
 		

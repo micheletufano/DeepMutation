@@ -39,7 +39,7 @@ public class Defects4jAnalyzer {
 		MutantTester.setCompileCmd(defects4j, "compile");
 		MutantTester.setTestCmd(defects4j, "test");
 		MutantTester.setCompileFailStrings("FAIL");
-		MutantTester.setTestFailStrings("Failing");
+		MutantTester.setTestFailStrings("Failing", "FAIL");
 		MutantTester.useBaseline(false);
 		MutantTester.setParallel(false);
 

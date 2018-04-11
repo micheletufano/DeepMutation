@@ -18,11 +18,9 @@ public class IntroClassJavaAnalyzerTest {
 		String mvnBin = args[4];
 		int beamWidth = Integer.parseInt(args[5]);		
 		
-		
-		
+
 		IntroClassJavaAnalyzer.analyze(programsRoot, mutationModelRoot, out, idiomPath, mvnBin, beamWidth);
-		
-		
+				
 	}
 
 }
