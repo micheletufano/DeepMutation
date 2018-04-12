@@ -5,7 +5,6 @@ import java.util.*;
 
 import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
-import spoon.reflect.declaration.CtInterface;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.CtTypeInformation;
@@ -19,7 +18,7 @@ public class MethodExtractor {
 
     public static void extractMethods(String projPath, String srcPath, String libPath,
                                       int complianceLvl, boolean compiled, Set<String> inputMethods) {
-        System.out.println("\nExtracting methods from " + projPath + "... ");
+        System.out.println("Extracting methods from " + projPath + "... ");
 
         File project = new File(projPath);
         rawMethodsMap.clear();
@@ -36,12 +35,17 @@ public class MethodExtractor {
                 .getRootPackage()
                 .getElements(new TypeFilter<>(CtMethod.class));
 
+        int userMethods = 0;
+        int interfaceMethods = 0;
         for (CtMethod method : methods) {
             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
             
             // keep methods matching the specified signatures   
             if (inputMethods != null && !inputMethods.contains(signature)) {
             	    continue;
+            }
+            if (inputMethods != null && inputMethods.contains(signature)) {
+                userMethods++;
             }
             
             // filter out getters/setters when methods are not specified
@@ -54,6 +58,7 @@ public class MethodExtractor {
             
             // filter out methods in java interfaces
             if (((CtTypeInformation) method.getParent()).isInterface()) {
+                interfaceMethods++;
             	    continue;
             }
 
@@ -66,6 +71,12 @@ public class MethodExtractor {
         }
         if (rawMethodsMap.size() == 0) {
             System.err.println("  ERROR: Could not extract any methods.");
+        } else {
+            if (inputMethods != null) {
+                System.out.println("  Found " + userMethods + "/" + inputMethods.size() + " user-specified methods.");
+                System.out.println("  Ignored " + interfaceMethods + " interface methods.");
+            }
+            System.out.println("  Extracted " + rawMethodsMap.size() + " methods.");
         }
         System.out.println("done.");
     }

@@ -27,8 +27,8 @@ public class MutantTester {
     private static boolean usingBaseline = true;
     private static String compileBaseline;
     private static String testBaseline;
-    private static String compileFailString;
-    private static String testFailString;
+    private static String[] compileFailStrings;
+    private static String[] testFailStrings;
 
     // model -> (mutantID -> logs)
     private static Map<String, Map<String,List<String>>> compileLogs;
@@ -42,12 +42,25 @@ public class MutantTester {
     private static Map<String, Map<String,List<Boolean>>> successful;
 
     private static boolean parallel = true;
-
+    private static boolean cleanUp = true;
 
     public static void testMutants(String projPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
                                    List<CtMethod> methods, List<String> modelPaths) {
 
-        System.out.println("Testing " + projPath + "... ");
+        // get real and absolute path to projPath
+        final File projFile;
+        try {
+            projFile = new File(Paths.get(projPath).toRealPath().toString());
+        } catch (IOException e) {
+            System.err.println("  ERROR: toRealPath()");
+            e.printStackTrace();
+            return;
+        }
+        if (!projFile.exists() || !projFile.isDirectory()) {
+            System.err.println("  ERROR: " + projFile.getAbsolutePath() + " is not a directory");
+        }
+
+        System.out.println("Testing " + projFile.getAbsolutePath() + "... ");
 
         // Check for null maps
         if (modelsMap == null) {
@@ -81,11 +94,11 @@ public class MutantTester {
 
         // Check for null fail string
         if (!usingBaseline) {
-            if (compileFailString == null) {
+            if (compileFailStrings == null) {
                 System.err.println("  ERROR: compile regex not set");
                 return;
             }
-            if (testFailString == null) {
+            if (testFailStrings == null) {
                 System.err.println("  ERROR: test regex not set");
                 return;
             }
@@ -107,17 +120,16 @@ public class MutantTester {
 
         // Create a copy of the project for each thread
         System.out.println("  Copying project(s)... ");
-        File origProj = new File(projPath);
 
         File[] mutantProj = new File[numThreads];
         String[] mutantProjPaths = new String[numThreads];
         for (int i = 0; i < numThreads; i++) {
             try {
-                mutantProj[i] = new File(origProj.getParent() + "/" + origProj.getName() + i);
-                FileUtils.copyDirectory(origProj, mutantProj[i]);
+                mutantProj[i] = new File(projFile.getParent() + "/" + projFile.getName() + i);
+                FileUtils.copyDirectory(projFile, mutantProj[i]);
                 System.out.println("    Created " + mutantProj[i].getPath() + ".");
 
-                mutantProjPaths[i] = mutantProj[i].getPath() + "/";
+                mutantProjPaths[i] = mutantProj[i].getAbsolutePath();
             } catch (IOException e) {
                 System.err.println("    ERROR: could not copy project(s)");
                 e.printStackTrace();
@@ -130,9 +142,9 @@ public class MutantTester {
         if (usingBaseline) {
             System.out.println("  Establishing baseline... ");
 
-            File baselineProj = new File(origProj.getParent() + "/" + origProj.getName() + ".base");
+            File baselineProj = new File(projFile.getParent() + "/" + projFile.getName() + ".base");
             try {
-                FileUtils.copyDirectory(origProj, baselineProj);
+                FileUtils.copyDirectory(projFile, baselineProj);
             } catch (IOException e) {
                 System.err.println("  ERROR: could not establish baseline");
                 e.printStackTrace();
@@ -226,8 +238,11 @@ public class MutantTester {
                             // Get original source code and path to file
                             SourcePosition sp = method.getPosition();
                             String original = sp.getCompilationUnit().getOriginalSourceCode();
-                            String mutantPath = sp.getCompilationUnit().getFile().getPath()
-                                    .replaceFirst(projPath, mutantProjPaths[threadID]);
+                            String origPath = sp.getCompilationUnit().getFile().getAbsolutePath();
+                            String mutantPath = origPath.replaceFirst(projFile.getAbsolutePath(), mutantProjPaths[threadID]);
+                            if (mutantPath.equals(origPath)) {
+                                System.err.println("      ERROR: could not locate path to mutant project");
+                            }
 
                             // Construct and format mutated class
                             int srcStart = sp.getNameSourceStart();
@@ -346,7 +361,14 @@ public class MutantTester {
                     if (usingBaseline) {
                         canCompile.add(log.equals(compileBaseline));
                     } else {
-                        canCompile.add(!log.contains(compileFailString));
+                        boolean res = true;
+                        for (String failStr : compileFailStrings) {
+                            if (log.contains(failStr)) {
+                                res = false;
+                                break;
+                            }
+                        }
+                        canCompile.add(res);
                     }
                 }
                 modelCanCompile.put(methodID, canCompile);
@@ -359,7 +381,14 @@ public class MutantTester {
                     if (usingBaseline) {
                         passesTest.add(log.equals(testBaseline));
                     } else {
-                        passesTest.add(!log.contains(testFailString));
+                        boolean res = true;
+                        for (String failStr : testFailStrings) {
+                            if (log.contains(failStr)) {
+                                res = false;
+                                break;
+                            }
+                        }
+                        passesTest.add(res);
                     }
                 }
                 modelPassesTest.put(methodID, passesTest);
@@ -372,16 +401,18 @@ public class MutantTester {
         }
 
         // Clean up extra projects
-        System.out.println("  Deleting mutant project(s)...");
-        for (int i = 0; i < numThreads; i++) {
-            try {
-                FileUtils.deleteDirectory(mutantProj[i]);
-            } catch (IOException e) {
-                System.err.println("  WARNING: could not clean up mutant project(s)");
-                e.printStackTrace();
+        if (cleanUp) {
+            System.out.println("  Deleting mutant project(s)...");
+            for (int i = 0; i < numThreads; i++) {
+                try {
+                    FileUtils.deleteDirectory(mutantProj[i]);
+                } catch (IOException e) {
+                    System.err.println("  WARNING: could not clean up mutant project(s)");
+                    e.printStackTrace();
+                }
             }
+            System.out.println("  done.");
         }
-        System.out.println("  done.");
 
         System.out.println("done.");
     }
@@ -489,15 +520,19 @@ public class MutantTester {
         MutantTester.usingBaseline = usingBaseline;
     }
 
-    public static void setCompileFailString(String compileFailString) {
-        MutantTester.compileFailString = compileFailString;
+    public static void setCompileFailStrings(String... compileFailStrings) {
+        MutantTester.compileFailStrings = compileFailStrings;
     }
 
-    public static void setTestFailString(String testFailString) {
-        MutantTester.testFailString = testFailString;
+    public static void setTestFailStrings(String... testFailStrings) {
+        MutantTester.testFailStrings = testFailStrings;
     }
 
     public static boolean usingBaseline() {
         return usingBaseline;
+    }
+
+    public static void setCleanUp(boolean cleanUp) {
+        MutantTester.cleanUp = cleanUp;
     }
 }
