@@ -8,7 +8,6 @@ import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 import edu.wm.cs.mutation.tester.MutantTester;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 
@@ -48,9 +47,9 @@ public class PipelineDefects4JTest {
 
             MethodMutator.useBeams(true);
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantMaps(), modelPaths, true);
 
-            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+            MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
             IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
             IOHandler.createMutantFiles(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(),    // mutant files

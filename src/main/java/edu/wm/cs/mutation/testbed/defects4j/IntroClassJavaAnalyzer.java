@@ -83,9 +83,9 @@ public class IntroClassJavaAnalyzer {
 				MethodAbstractor.writeMappings(outPath);
 
 				MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-				IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);
+				IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);
 
-				MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+				MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
 				IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
 				IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),

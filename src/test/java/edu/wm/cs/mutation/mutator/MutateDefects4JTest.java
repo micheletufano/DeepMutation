@@ -33,7 +33,7 @@ public class MutateDefects4JTest {
             MethodAbstractor.writeMappings(input.getOutPath());
 
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantMaps(), modelPaths, true);
         }
     }
 

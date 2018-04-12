@@ -1,7 +1,6 @@
 package edu.wm.cs.mutation.testbed.defects4j;
 
 import java.io.PrintStream;
-import java.util.HashSet;
 import java.util.List;
 
 import edu.wm.cs.mutation.abstractor.MethodAbstractor;
@@ -78,9 +77,9 @@ public class Defects4jAnalyzer {
 			MethodAbstractor.writeMappings(outPath);
 
 			MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-			IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);
+			IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);
 
-			MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+			MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
 			IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
 
 			IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),

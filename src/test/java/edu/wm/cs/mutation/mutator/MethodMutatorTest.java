@@ -34,7 +34,7 @@ public class MethodMutatorTest {
         MethodAbstractor.writeMappings(outPath);
 
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);
+        IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);
     }
 
 }

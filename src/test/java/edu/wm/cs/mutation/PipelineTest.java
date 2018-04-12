@@ -33,9 +33,9 @@ public class PipelineTest {
         MethodAbstractor.writeMappings(outPath);
 
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);                // abstract mutants
+        IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);                // abstract mutants
 
-        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
+        MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
         IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);  // mutants
 
         IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
