@@ -32,9 +32,12 @@ public class LoadFromFilesTest {
         String inputMethodsPath = dataPath + "methods.input";
 
         MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
+        MethodExtractor.writeMethods(outPath);
 
-//        MethodAbstractor.setAbstractedMethods(IOHandler.readMethods(outPath, true));
-//        MethodAbstractor.setMappings(IOHandler.readMappings(outPath));
+        MethodAbstractor.readMethods(outPath);
+        MethodAbstractor.readMappings(outPath);
+        MethodAbstractor.writeMethods(System.getProperty("user.home"));
+        MethodAbstractor.writeMappings(System.getProperty("user.home"));
 //
 //        MethodMutator.setMutantsMap(IOHandler.readMutants(outPath, modelPaths, true));
 //
