@@ -68,10 +68,9 @@ public class Defects4jAnalyzer {
 			IOHandler.setOutputStream(logFile);
 
 			//Read input methods
-			String inputMethodPath = revisionsRoot + projectName + "/" + rev + ".key";
-			HashSet<String> inputMethods = IOHandler.readInputMethods(inputMethodPath);
+			String inputMethodsPath = revisionsRoot + projectName + "/" + rev + ".key";
 
-			MethodExtractor.extractMethods(revPath, srcPath, libPath, complianceLvl, compiled, inputMethods);
+			MethodExtractor.extractMethods(revPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
 			IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
 			MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);

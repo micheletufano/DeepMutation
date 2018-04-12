@@ -17,9 +17,8 @@ public class AbstractDefects4JTest {
 		String outBasePath = dataPath + "out/Chart/";
 		String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
 		String libPath = dataPath + "spoonModel/lib/Chart";
-		String inputMethodPath = dataPath + "methods.input";
+		String inputMethodsPath = dataPath + "methods.input";
 		boolean compiled = true;
-		boolean specified = false;
 		HashSet<String> inputMethods = null;
 
 		// Idiom path
@@ -27,11 +26,8 @@ public class AbstractDefects4JTest {
 
 		List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath,
 				modelConfigPath);
-		if (specified) {
-			inputMethods = IOHandler.readInputMethods(inputMethodPath);
-		}
 		for (Defects4JInput input : inputs) {
-			MethodExtractor.extractMethods(input, libPath, compiled, inputMethods);
+			MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
 			IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
 
 			MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);

@@ -20,20 +20,14 @@ public class PipelineDefects4JTest {
         String outBasePath = dataPath + "out/Chart/";
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
-        String inputMethodPath = dataPath + "methods.input";
+        String inputMethodsPath = dataPath + "methods.input";
         
         boolean compiled = true;
         boolean specified = false;
         int tokenThreshold = 100;
-        HashSet<String> inputMethods = null;
-        
 
         String idiomPath = dataPath + "idioms.csv";
         
-        if (specified) {
-			inputMethods = IOHandler.readInputMethods(inputMethodPath);
-		}
-
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
@@ -43,7 +37,7 @@ public class PipelineDefects4JTest {
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
-            MethodExtractor.extractMethods(input, libPath, compiled, inputMethods);
+            MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
             IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
              
             MethodAbstractor.setInputMode(specified);
