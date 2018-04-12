@@ -14,7 +14,7 @@ import spoon.reflect.visitor.filter.TypeFilter;
 public class MethodExtractor {
 
     public static final String BUGGY_DIR = "/b/";
-    private static LinkedHashMap<String,String> rawMethodsMap;
+    private static LinkedHashMap<String,String> rawMethodsMap = new LinkedHashMap();
     private static List<CtMethod> methods;
 
     public static void extractMethods(String projPath, String srcPath, String libPath,
@@ -22,8 +22,7 @@ public class MethodExtractor {
         System.out.println("\nExtracting methods from " + projPath + "... ");
 
         File project = new File(projPath);
-        rawMethodsMap = new LinkedHashMap<>();
-        
+        rawMethodsMap.clear();
         // Build Spoon model
         if (compiled) {
             libPath = project.getAbsolutePath() + "/";

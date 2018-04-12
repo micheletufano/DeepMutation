@@ -6,8 +6,8 @@ import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 import edu.wm.cs.mutation.io.IOHandler;
 
 public class MethodAbstractor {
-	private static LinkedHashMap<String, String> absMethodsMap;
-	private static LinkedHashMap<String, String> dictMap;
+	private static LinkedHashMap<String, String> absMethodsMap = new LinkedHashMap<>();
+	private static LinkedHashMap<String, String> dictMap =  new LinkedHashMap<>();
 	private static int tokenThr = 50; // default maximum number of tokens in a method
 	private static boolean specified = false;
 
@@ -29,9 +29,9 @@ public class MethodAbstractor {
 			return;
 		}
 
-		absMethodsMap = new LinkedHashMap<>();
+		absMethodsMap.clear();
 
-		dictMap = new LinkedHashMap<>();
+		dictMap.clear();
         for (String signature : rawMethods.keySet()) {
             String srcCode = rawMethods.get(signature);
 

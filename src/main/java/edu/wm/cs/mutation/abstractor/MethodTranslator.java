@@ -28,7 +28,7 @@ public class MethodTranslator {
 
 	private static final String ERROR = "error";
 
-	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap;
+	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap = new HashMap<>();;
 
 	public static void translateMethods(Map<String, LinkedHashMap<String, List<String>>> mutantsMap,
 			LinkedHashMap<String, String> dictMap, List<String> modelPaths) {
@@ -45,7 +45,7 @@ public class MethodTranslator {
 			return;
 		}
 
-		translatedMutantsMap = new HashMap<>();
+		translatedMutantsMap.clear();;
 		for (String modelPath : modelPaths) {
 			File modelFile = new File(modelPath);
 			String modelName = modelFile.getName();

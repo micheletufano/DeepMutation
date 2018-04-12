@@ -19,7 +19,7 @@ public class MethodMutator {
     private static String interpretBeams = "interpretBeams.py";
     private static boolean printModelOutput = false;
 
-    private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap;
+    private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap = new HashMap<>();
 
     /**
      * Mutates methods given abstracted methods and model directories.
@@ -54,7 +54,7 @@ public class MethodMutator {
         }
 
         // Run all models on all revisions
-        mutantsMap = new HashMap<>();
+        mutantsMap.clear();
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
