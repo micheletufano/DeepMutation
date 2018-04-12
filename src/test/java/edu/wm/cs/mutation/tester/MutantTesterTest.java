@@ -6,6 +6,7 @@ import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,10 +47,9 @@ public class MutantTesterTest {
 
         MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
         MethodTranslator.writeMutants(outPath, modelPaths);
-//
-//        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
-//                MethodExtractor.getMethods(), modelPaths);
-//
+
+        MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
+
 //        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
 //

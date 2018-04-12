@@ -45,8 +45,8 @@ public class LoadFromFilesTest {
         MethodTranslator.readMutants(outPath, modelPaths);
         MethodTranslator.writeMutants(System.getProperty("user.home"), modelPaths);
 
-//        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
-//                MethodExtractor.getMethods(), modelPaths);
+        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
+        MethodTranslator.createMutantFiles(System.getProperty("user.home"), modelPaths, MethodExtractor.getMethods());
 //
 //        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
