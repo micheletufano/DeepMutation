@@ -1,10 +1,8 @@
 package edu.wm.cs.mutation;
 
-import edu.wm.cs.mutation.abstractor.MethodAbstractor;
 import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
-import edu.wm.cs.mutation.mutator.MethodMutator;
 import edu.wm.cs.mutation.tester.MutantTester;
 
 import java.util.ArrayList;
@@ -29,12 +27,12 @@ public class RestartTest {
         MutantTester.setTestCmd(defects4j, "test");
 
         MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
-        MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
+        MethodTranslator.setTranslatedMutantMaps(IOHandler.readMutants(outPath, modelPaths, false));
 
 //        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
 
-        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
+        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
                 MethodExtractor.getMethods(), modelPaths);
     }
 }

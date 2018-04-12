@@ -37,9 +37,9 @@ public class FastPipelineTest {
         IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);               // abstract mutants
 
         MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false); // mutants
+        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantMaps(), modelPaths, false); // mutants
 
-        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
+        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantMaps(),    // mutant files
                 MethodExtractor.getMethods(), modelPaths);
     }
 
