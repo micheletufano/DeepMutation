@@ -28,11 +28,11 @@ public class AbstractDefects4JTest {
 				modelConfigPath);
 		for (Defects4JInput input : inputs) {
 			MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
-			IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+			MethodExtractor.writeMethods(input.getOutPath());
 
 			MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-			IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
-			IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
+			MethodAbstractor.writeMethods(input.getOutPath());
+			MethodAbstractor.writeMappings(input.getOutPath());
 		}
 	}
 

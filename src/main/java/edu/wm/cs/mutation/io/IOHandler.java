@@ -54,52 +54,6 @@ public class IOHandler {
     private static final String MUTANT_DIR = "mutants/";
     private static final String LOG_DIR = "logs/";
 
-    public static HashSet<String> readInputMethods(String methodPath) {
-        System.out.println("Reading specified methods from input file... ");
-
-        List<String> methods = null;
-        try {
-            methods = Files.readAllLines(Paths.get(methodPath));
-        } catch (IOException e) {
-            System.err.println("  ERROR: could not load specified methods from files: " + e.getMessage());
-        }
-
-        if (methods == null) {
-            System.err.println("  ERROR: could not load specified methods from files");
-            return null;
-        }
-        return new HashSet<String>(methods);
-    }
-
-    public static void writeMethods(String outPath, LinkedHashMap<String, String> map, boolean abstracted) {
-        if (abstracted) {
-            System.out.println("Writing abstracted methods... ");
-        } else {
-            System.out.println("Writing methods... ");
-        }
-
-        if (map == null) {
-            System.err.println("  ERROR: cannot write null input map");
-            return;
-        }
-
-        List<String> signatures = new ArrayList<>(map.keySet());
-        List<String> bodies = new ArrayList<>(map.values());
-
-        try {
-            Files.createDirectories(Paths.get(outPath));
-            Files.write(Paths.get(outPath + METHODS + KEY_SUFFIX), signatures);
-            if (abstracted) {
-                Files.write(Paths.get(outPath + METHODS + ABS_SUFFIX), bodies);
-            } else {
-                Files.write(Paths.get(outPath + METHODS + SRC_SUFFIX), bodies);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("done.");
-    }
-
     public static LinkedHashMap<String, String> readMethods(String outPath, boolean abstracted) {
         if (abstracted) {
             System.out.println("Reading abstracted methods from file... ");
@@ -561,21 +515,6 @@ public class IOHandler {
                 }
                 e.printStackTrace();
             }
-        }
-        System.out.println("done.");
-    }
-
-    public static void writeMappings(String outPath, Map<String, String> dictMap) {
-        System.out.println("Writing mappings... ");
-        if (dictMap == null) {
-            System.err.println("ERROR: cannot write null input mappings");
-            return;
-        }
-        List<String> mappings = new ArrayList<>(dictMap.values());
-        try {
-            Files.write(Paths.get(outPath + METHODS + MAP_SUFFIX), mappings);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         System.out.println("done.");
     }

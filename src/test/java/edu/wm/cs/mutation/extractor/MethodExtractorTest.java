@@ -18,6 +18,6 @@ public class MethodExtractorTest {
         boolean compiled = true;
 
         MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
-        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
+        MethodExtractor.writeMethods(outPath);
     }
 }

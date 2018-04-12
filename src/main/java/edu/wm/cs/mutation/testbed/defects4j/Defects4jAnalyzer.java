@@ -71,11 +71,11 @@ public class Defects4jAnalyzer {
 			String inputMethodsPath = revisionsRoot + projectName + "/" + rev + ".key";
 
 			MethodExtractor.extractMethods(revPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
-			IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
+			MethodExtractor.writeMethods(outPath);
 
 			MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-			IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-			IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+			MethodAbstractor.writeMethods(outPath);
+			MethodAbstractor.writeMappings(outPath);
 
 			MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
 			IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);

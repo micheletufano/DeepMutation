@@ -1,6 +1,11 @@
 package edu.wm.cs.mutation.abstractor;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+
+import edu.wm.cs.mutation.Consts;
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 import edu.wm.cs.mutation.io.IOHandler;
@@ -86,6 +91,43 @@ public class MethodAbstractor {
 		    dictMap.put(signature, mappings);
 
 		return afterTokenized;
+	}
+
+	public static void writeMethods(String outPath) {
+        System.out.println("Writing abstracted methods... ");
+
+		if (absMethodsMap == null) {
+			System.err.println("  ERROR: cannot write null map");
+			return;
+		}
+
+		List<String> signatures = new ArrayList<>(absMethodsMap.keySet());
+		List<String> bodies = new ArrayList<>(absMethodsMap.values());
+
+		try {
+			Files.createDirectories(Paths.get(outPath));
+			Files.write(Paths.get(outPath + Consts.METHODS + Consts.KEY_SUFFIX), signatures);
+            Files.write(Paths.get(outPath + Consts.METHODS + Consts.ABS_SUFFIX), bodies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("done.");
+	}
+
+	public static void writeMappings(String outPath) {
+		System.out.println("Writing mappings... ");
+
+		if (dictMap == null) {
+			System.err.println("ERROR: cannot write null input mappings");
+			return;
+		}
+		List<String> mappings = new ArrayList<>(dictMap.values());
+		try {
+			Files.write(Paths.get(outPath + Consts.METHODS + Consts.MAP_SUFFIX), mappings);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("done.");
 	}
 
 	public static LinkedHashMap<String, String> getAbstractedMethods() {

@@ -19,7 +19,7 @@ public class ExtractDefects4JTest {
 
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
-            IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+            MethodExtractor.writeMethods(input.getOutPath());
         }
     }
 

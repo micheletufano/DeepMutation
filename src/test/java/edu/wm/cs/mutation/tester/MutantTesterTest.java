@@ -36,11 +36,10 @@ public class MutantTesterTest {
 
         MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
         MethodExtractor.writeMethods(outPath);
-//        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
 
-//        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-//        IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-//        IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
+        MethodAbstractor.writeMethods(outPath);
+        MethodAbstractor.writeMappings(outPath);
 //
 //        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
 //        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);

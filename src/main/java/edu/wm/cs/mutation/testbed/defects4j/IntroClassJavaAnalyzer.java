@@ -72,15 +72,15 @@ public class IntroClassJavaAnalyzer {
 				
 				//Extract all methods
 				MethodExtractor.extractMethods(projPath, srcPath, LIB_PATH, complianceLvl, compiled, null);
-				IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
-				
+				MethodExtractor.writeMethods(outPath);
+
 				//Find exec method
 				findExecMethod();
 				
 				//Abstract exec method
 				MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-				IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-				IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+				MethodAbstractor.writeMethods(outPath);
+				MethodAbstractor.writeMappings(outPath);
 
 				MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
 				IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);

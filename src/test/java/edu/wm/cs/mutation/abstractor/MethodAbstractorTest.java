@@ -24,10 +24,10 @@ public class MethodAbstractorTest {
 		String idiomPath = dataPath + "idioms.csv";
         
 		MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
-		IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
+		MethodExtractor.writeMethods(outPath);
 
 		MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-		IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-		IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+		MethodAbstractor.writeMethods(outPath);
+		MethodAbstractor.writeMappings(outPath);
 	}
 }

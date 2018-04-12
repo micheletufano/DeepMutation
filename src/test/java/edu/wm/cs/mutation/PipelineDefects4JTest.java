@@ -38,13 +38,13 @@ public class PipelineDefects4JTest {
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
-            IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+            MethodExtractor.writeMethods(input.getOutPath());
              
             MethodAbstractor.setInputMode(specified);
             MethodAbstractor.setTokenThreshold(tokenThreshold);
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-            IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
-            IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
+            MethodAbstractor.writeMethods(input.getOutPath());
+            MethodAbstractor.writeMappings(input.getOutPath());
 
             MethodMutator.useBeams(true);
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
