@@ -22,9 +22,12 @@ public class LoadFromFilesTest {
         int complianceLvl = 4;
         boolean compiled = true;
 
-        String defects4j = System.getProperty("user.home") + "/defects4j/framework/bin/defects4j";
+        String defects4j = "defects4j";
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
+        MutantTester.setCompileFailStrings("FAIL");
+        MutantTester.setTestFailStrings("FAIL", "Failing");
+        MutantTester.useBaseline(false);
 
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
@@ -47,8 +50,18 @@ public class LoadFromFilesTest {
 
         MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
         MethodTranslator.createMutantFiles(System.getProperty("user.home"), modelPaths, MethodExtractor.getMethods());
-//
-//        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
-//                MethodExtractor.getMethods(), modelPaths);
+
+        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
+                MethodExtractor.getMethods(), modelPaths);
+
+        if (MutantTester.usingBaseline()) {
+            IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
+            IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
+        }
+
+        IOHandler.writeLogs(outPath, MutantTester.getCompileLogs(), modelPaths, "compile");
+        IOHandler.writeLogs(outPath, MutantTester.getTestLogs(), modelPaths, "test");
+        IOHandler.writeResults(outPath, MutantTester.getCompilable(), modelPaths, "compile");
+        IOHandler.writeResults(outPath, MutantTester.getSuccessful(), modelPaths, "test");
     }
 }
