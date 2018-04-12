@@ -125,7 +125,7 @@ public class MutantTester {
         String[] mutantProjPaths = new String[numThreads];
         for (int i = 0; i < numThreads; i++) {
             try {
-                mutantProj[i] = new File(projFile.getParent() + "/" + projFile.getName() + i);
+                mutantProj[i] = new File(projFile.getParent() + File.separator + projFile.getName() + i);
                 FileUtils.copyDirectory(projFile, mutantProj[i]);
                 System.out.println("    Created " + mutantProj[i].getPath() + ".");
 
@@ -142,7 +142,7 @@ public class MutantTester {
         if (usingBaseline) {
             System.out.println("  Establishing baseline... ");
 
-            File baselineProj = new File(projFile.getParent() + "/" + projFile.getName() + ".base");
+            File baselineProj = new File(projFile.getParent() + File.separator + projFile.getName() + ".base");
             try {
                 FileUtils.copyDirectory(projFile, baselineProj);
             } catch (IOException e) {

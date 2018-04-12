@@ -128,7 +128,7 @@ public class IOHandler {
             }
 
             try {
-                String modelOutPath = outPath + modelName + "/";
+                String modelOutPath = outPath + modelName + File.separator;
                 Files.createDirectories(Paths.get(modelOutPath));
                 Files.write(Paths.get(modelOutPath + MUTANTS + KEY_SUFFIX), signatures);
                 if (abstracted) {
@@ -159,7 +159,7 @@ public class IOHandler {
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            String modelOutPath = outPath + modelName + "/";
+            String modelOutPath = outPath + modelName + File.separator;
             List<String> signatures = null;
             List<String> bodies = null;
 
@@ -223,7 +223,7 @@ public class IOHandler {
             }
 
             // create directory
-            String mutantPath = outPath + modelName + "/" + MUTANT_DIR;
+            String mutantPath = outPath + modelName + File.separator + MUTANT_DIR;
             if (!Files.exists(Paths.get(mutantPath))) {
                 try {
                     Files.createDirectories(Paths.get(mutantPath));
@@ -269,7 +269,7 @@ public class IOHandler {
                         mutantID = String.format(format.toString(), counter) + "-" + (i + 1);
                     }
                     String fileName = mutantID + "_" + sp.getCompilationUnit().getFile().getPath()
-                            .replaceFirst(System.getProperty("user.dir") + "/", "").replace("/", "-");
+                            .replaceFirst(System.getProperty("user.dir") + File.separator, "").replace(File.separator, "-");
 
                     StringBuilder sb = new StringBuilder();
                     sb.append(original.substring(0, srcStart));
@@ -293,7 +293,7 @@ public class IOHandler {
                                     + method.getSimpleName();
 
                             // Output the changes to folder mutantPath/mutantID_change_ID
-                            String outDir = mutantPath + "/" + mutantID;
+                            String outDir = mutantPath + File.separator + mutantID;
                             ChangeExporter exporter = new ChangeExporter(changesMap);
                             exporter.exportChanges(outDir);
 
@@ -302,7 +302,7 @@ public class IOHandler {
                         }
 
                         // Write mutant log to /modelpath/mutants.log
-                        String logPath = outPath + modelName + "/";
+                        String logPath = outPath + modelName + File.separator;
                         Files.write(Paths.get(logPath + MUTANTS + MUTANT_LOG_SUFFIX), logs);
 
                     } catch (FormatterException e) {
@@ -344,7 +344,7 @@ public class IOHandler {
             }
 
             // Create log directory
-            String logPath = outPath + modelName + "/" + LOG_DIR;
+            String logPath = outPath + modelName + File.separator + LOG_DIR;
             try {
                 Files.createDirectories(Paths.get(logPath));
             } catch (IOException e) {
@@ -413,7 +413,7 @@ public class IOHandler {
             SortedMap<String, List<Boolean>> sortedMutantsMap = new TreeMap<>(mutantsMap);
 
             String name = (type.equals("test")) ? RESULTS_TEST : RESULTS_COMP;
-            String path = outPath + modelName + "/";
+            String path = outPath + modelName + File.separator;
 
             StringBuilder sb = new StringBuilder();
 
@@ -458,7 +458,7 @@ public class IOHandler {
                 continue;
             }
 
-            String path = outPath + modelName + "/";
+            String path = outPath + modelName + File.separator;
             try {
                 Files.write(Paths.get(path + FAILED_OUT), failedMutants);
             } catch (IOException e) {
@@ -491,8 +491,8 @@ public class IOHandler {
             }
             String mutantID = mutant.getName().split("_")[0];
             File mutantProj = new File(outPath + origProj.getName() + mutantID);
-            String mutantPath = mutant.getName().split("_")[1].replace("-", "/").replaceFirst(projPath,
-                    mutantProj.getPath() + "/");
+            String mutantPath = mutant.getName().split("_")[1].replace("-", File.separator).replaceFirst(projPath,
+                    mutantProj.getPath() + File.separator);
 
             try {
                 FileUtils.copyDirectory(origProj, mutantProj);
@@ -568,7 +568,7 @@ public class IOHandler {
     	List<String> paths = new ArrayList<>();
     	
     	for(File dir : directories) {
-    		paths.add(dir.getAbsolutePath()+"/");
+    		paths.add(dir.getAbsolutePath()+File.separator);
     	}
     	
     	return paths;

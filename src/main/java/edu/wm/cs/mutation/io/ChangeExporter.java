@@ -1,5 +1,6 @@
 package edu.wm.cs.mutation.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -38,7 +39,7 @@ public class ChangeExporter {
 		int id = 0;
 		for (Entry<MethodPair, List<Operation>> e : changedMethods.entrySet()) {
 			// Create directory
-			String out = outDir + "_change_" + id + "/";
+			String out = outDir + "_change_" + id + File.separator;
 			createDir(out);
 			id++;
 

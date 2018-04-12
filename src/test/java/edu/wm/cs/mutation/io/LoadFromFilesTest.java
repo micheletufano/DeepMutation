@@ -29,20 +29,21 @@ public class LoadFromFilesTest {
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
-        MethodExtractor.setRawMethodsMap(IOHandler.readMethods(outPath, false));
-        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
+        String inputMethodsPath = dataPath + "methods.input";
 
-        MethodAbstractor.setAbstractedMethods(IOHandler.readMethods(outPath, true));
-        MethodAbstractor.setMappings(IOHandler.readMappings(outPath));
+        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
 
-        MethodMutator.setMutantsMap(IOHandler.readMutants(outPath, modelPaths, true));
-
-        MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
-
-        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
-                MethodExtractor.getMethods(), modelPaths);
-
-        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
-                MethodExtractor.getMethods(), modelPaths);
+//        MethodAbstractor.setAbstractedMethods(IOHandler.readMethods(outPath, true));
+//        MethodAbstractor.setMappings(IOHandler.readMappings(outPath));
+//
+//        MethodMutator.setMutantsMap(IOHandler.readMutants(outPath, modelPaths, true));
+//
+//        MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
+//
+//        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
+//                MethodExtractor.getMethods(), modelPaths);
+//
+//        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
+//                MethodExtractor.getMethods(), modelPaths);
     }
 }

@@ -65,7 +65,7 @@ public class MethodMutator {
 
             // Get absolute paths to input file
             File outFile = new File(outPath);
-            String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
+            String input = outFile.getAbsolutePath() + File.separator + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
 
             // Check that input file exists
             if (!new File(input).isFile()) {
