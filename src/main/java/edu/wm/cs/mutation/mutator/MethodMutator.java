@@ -320,12 +320,12 @@ public class MethodMutator {
             String modelName = modelFile.getName();
             System.out.println("  Processing model " + modelName + "... ");
 
-            String modelOutPath = outPath + modelName + File.separator;
+            String modelOutPath = outPath + File.separator + modelName + File.separator;
             List<String> signatures = null;
             List<String> bodies = null;
 
             try {
-                signatures = Files.readAllLines(Paths.get(outPath + Consts.METHODS + Consts.KEY_SUFFIX));
+                signatures = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX));
                 bodies = Files.readAllLines(Paths.get(modelOutPath + Consts.MUTANTS + Consts.ABS_SUFFIX));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -344,7 +344,7 @@ public class MethodMutator {
             int index = 0;
             LinkedHashMap<String, List<String>> mutantMap = new LinkedHashMap<>();
             for (String sign : signatures) {
-                mutantMap.put(sign, new ArrayList<String>());
+                mutantMap.put(sign, new ArrayList<>());
                 String[] predictions = bodies.get(index++).split("<SEP>");
                 for (String pred : predictions) {
                     mutantMap.get(sign).add(pred);

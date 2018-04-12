@@ -39,11 +39,12 @@ public class LoadFromFilesTest {
 //        MethodAbstractor.writeMethods(System.getProperty("user.home"));
 //        MethodAbstractor.writeMappings(System.getProperty("user.home"));
 
-        MethodMutator.readMutants(outPath, modelPaths);
-        MethodMutator.writeMutants(System.getProperty("user.home"), modelPaths);
-//
-//        MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
-//
+//        MethodMutator.readMutants(outPath, modelPaths);
+//        MethodMutator.writeMutants(System.getProperty("user.home"), modelPaths);
+
+        MethodTranslator.readMutants(outPath, modelPaths);
+        MethodTranslator.writeMutants(System.getProperty("user.home"), modelPaths);
+
 //        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
 //

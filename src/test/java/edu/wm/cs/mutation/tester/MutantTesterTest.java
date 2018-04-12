@@ -7,7 +7,6 @@ import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class MutantTesterTest {
@@ -40,12 +39,13 @@ public class MutantTesterTest {
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
         MethodAbstractor.writeMethods(outPath);
         MethodAbstractor.writeMappings(outPath);
-//
-//        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-//        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);
-//
-//        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
-//        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
+
+        MethodMutator.setPython("python3");
+        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
+        MethodMutator.writeMutants(outPath, modelPaths);
+
+        MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+        MethodTranslator.writeMutants(outPath, modelPaths);
 //
 //        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
 //                MethodExtractor.getMethods(), modelPaths);
