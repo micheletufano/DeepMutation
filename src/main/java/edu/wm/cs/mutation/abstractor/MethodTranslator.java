@@ -34,7 +34,9 @@ public class MethodTranslator {
 			LinkedHashMap<String, String> dictMap, List<String> modelPaths) {
 
 		System.out.println("Translating abstract mutants...");
-
+        
+		translatedMutantsMap.clear();
+		
 		if (mutantsMap == null || mutantsMap.size() == 0) {
 			System.err.println("  ERROR: null/empty input map");
 			return;
@@ -45,7 +47,6 @@ public class MethodTranslator {
 			return;
 		}
 
-		translatedMutantsMap.clear();;
 		for (String modelPath : modelPaths) {
 			File modelFile = new File(modelPath);
 			String modelName = modelFile.getName();

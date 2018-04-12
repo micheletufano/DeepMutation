@@ -16,7 +16,9 @@ public class MethodAbstractor {
 	public static void abstractMethods(LinkedHashMap<String, String> rawMethods, String idiomPath) {
 
 		System.out.println("Abstracting methods... ");
-
+		
+		absMethodsMap.clear();
+		
 		if (rawMethods == null || rawMethods.size() == 0) {
 			System.err.println("  ERROR: null/empty input map");
 			return;
@@ -28,8 +30,6 @@ public class MethodAbstractor {
 			System.err.println("  Could not load idioms");
 			return;
 		}
-
-		absMethodsMap.clear();
 
 		int unparseable = 0;
 		int tooLong = 0;

@@ -39,10 +39,10 @@ public class ChangeExtractor {
 			mutatedMethod = curMethod;
 			diff = (DiffImpl) comp.compare(srcBefore, srcAfter);
 		} catch (Exception e) {
-			System.out.println("ERROR while computing the DIFF" + e.getMessage());
+			System.err.println("ERROR while computing the DIFF" + e.getMessage());
 			return null;
 		} catch (StackOverflowError t) {
-			System.out.println("ERROR while computing the DIFF (StackOverflow)");
+			System.err.println("ERROR while computing the DIFF (StackOverflow)");
 			return null;
 		}
 

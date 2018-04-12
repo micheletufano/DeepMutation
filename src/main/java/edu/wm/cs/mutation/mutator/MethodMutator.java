@@ -30,7 +30,9 @@ public class MethodMutator {
      */
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
-
+       
+        mutantsMap.clear();
+        
         if (absMethodsMap == null || absMethodsMap.size() == 0) {
             System.err.println("  ERROR: null/empty input map");
             return;
@@ -54,7 +56,6 @@ public class MethodMutator {
         }
 
         // Run all models on all revisions
-        mutantsMap.clear();
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
