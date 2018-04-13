@@ -40,10 +40,10 @@ public class TranslateDefects4JTest {
             MethodAbstractor.writeMappings(input.getOutPath());
 
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantMaps(), modelPaths, true);
+            MethodMutator.writeMutants(input.getOutPath(), modelPaths);
 
             MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantMaps(), modelPaths, false);
+            MethodTranslator.writeMutants(input.getOutPath(), modelPaths);
         }
 	}
 }

@@ -33,12 +33,10 @@ public class PipelineTest {
         MethodAbstractor.writeMappings(outPath);
 
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);                // abstract mutants
+        MethodMutator.writeMutants(outPath, modelPaths);
 
         MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantMaps(), modelPaths, false);  // mutants
-
-        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantMaps(),    // mutant files
-                MethodExtractor.getMethods(), modelPaths);
+        MethodTranslator.writeMutants(outPath, modelPaths);
+        MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
     }
 }

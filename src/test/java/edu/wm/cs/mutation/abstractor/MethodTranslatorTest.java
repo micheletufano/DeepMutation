@@ -32,10 +32,10 @@ public class MethodTranslatorTest {
         MethodAbstractor.writeMappings(outPath);
 
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantMaps(), modelPaths, true);
+        MethodMutator.writeMutants(outPath, modelPaths);
 
         MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantMaps(), modelPaths, false);
+        MethodTranslator.writeMutants(outPath, modelPaths);
     }
 
 }

@@ -55,13 +55,9 @@ public class LoadFromFilesTest {
                 MethodExtractor.getMethods(), modelPaths);
 
         if (MutantTester.usingBaseline()) {
-            IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
-            IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
+            MutantTester.writeBaseline(outPath);
         }
-
-        IOHandler.writeLogs(outPath, MutantTester.getCompileLogs(), modelPaths, "compile");
-        IOHandler.writeLogs(outPath, MutantTester.getTestLogs(), modelPaths, "test");
-        IOHandler.writeResults(outPath, MutantTester.getCompilable(), modelPaths, "compile");
-        IOHandler.writeResults(outPath, MutantTester.getSuccessful(), modelPaths, "test");
+        MutantTester.writeLogs(outPath, modelPaths);
+        MutantTester.writeResults(outPath, modelPaths);
     }
 }
