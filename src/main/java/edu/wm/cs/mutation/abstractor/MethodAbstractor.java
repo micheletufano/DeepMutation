@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import edu.wm.cs.mutation.Consts;
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
@@ -31,7 +33,7 @@ public class MethodAbstractor {
 		}
 
 		// Set up Idioms
-		idioms = IOHandler.readIdioms(idiomPath);
+		idioms = readIdioms(idiomPath);
 		if (idioms == null) {
 			System.err.println("  Could not load idioms");
 			return;
@@ -194,6 +196,16 @@ public class MethodAbstractor {
 		System.out.println("done.");
 		return;
 	}
+
+	private static Set<String> readIdioms(String filePath) {
+		try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
+			return stream.collect(Collectors.toSet());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 
 	public static LinkedHashMap<String, String> getAbstractedMethods() {
 		return absMethodsMap;
