@@ -161,6 +161,7 @@ public class MethodAbstractor {
 			absMethodsMap.put(signatures.get(i), bodies.get(i));
 		}
 
+		System.out.println("  Read " + absMethodsMap.size() + " methods.");
 		System.out.println("done.");
 		return;
 	}
@@ -193,6 +194,7 @@ public class MethodAbstractor {
 			dictMap.put(signatures.get(i), mappings.get(i));
 		}
 
+		System.out.println("  Read " + dictMap.size() + " mappings.");
 		System.out.println("done.");
 		return;
 	}

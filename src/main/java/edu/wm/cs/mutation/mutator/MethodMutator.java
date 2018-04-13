@@ -351,6 +351,8 @@ public class MethodMutator {
                 }
             }
             mutantMaps.put(modelName, mutantMap);
+
+            System.out.println("    Read " + mutantMap.size() + " mutants.");
             System.out.println("  done.");
         }
         System.out.println("done.");
