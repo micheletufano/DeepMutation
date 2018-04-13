@@ -137,8 +137,12 @@ public class MutantTester {
         for (int i = 0; i < numThreads; i++) {
             try {
                 mutantProj[i] = new File(projFile.getParent() + File.separator + projFile.getName() + i);
-                FileUtils.copyDirectory(projFile, mutantProj[i]);
-                System.out.println("    Created " + mutantProj[i].getPath() + ".");
+                if (!mutantProj[i].exists()) {
+                    FileUtils.copyDirectory(projFile, mutantProj[i]);
+                    System.out.println("    Created " + mutantProj[i].getPath() + ".");
+                } else {
+                    System.out.println("    " + mutantProj[i].getPath() + " already exists.");
+                }
 
                 mutantProjPaths[i] = mutantProj[i].getAbsolutePath();
             } catch (IOException e) {

@@ -36,6 +36,7 @@ public class PipelineDefects4JTest {
         MethodMutator.useBeams(true);
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
+        MutantTester.setCleanUp(false);
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
