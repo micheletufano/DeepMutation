@@ -1,10 +1,14 @@
 package edu.wm.cs.mutation.mutator;
 
+import edu.wm.cs.mutation.Consts;
 import edu.wm.cs.mutation.io.IOHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class MethodMutator {
@@ -19,7 +23,7 @@ public class MethodMutator {
     private static String interpretBeams = "interpretBeams.py";
     private static boolean printModelOutput = false;
 
-    private static Map<String, LinkedHashMap<String,List<String>>> mutantsMap = new HashMap<>();
+    private static Map<String, LinkedHashMap<String,List<String>>> mutantMaps = new HashMap<>();
 
     /**
      * Mutates methods given abstracted methods and model directories.
@@ -31,7 +35,7 @@ public class MethodMutator {
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
        
-        mutantsMap.clear();
+        mutantMaps.clear();
         
         if (absMethodsMap == null || absMethodsMap.size() == 0) {
             System.err.println("  ERROR: null/empty input map");
@@ -65,7 +69,7 @@ public class MethodMutator {
 
             // Get absolute paths to input file
             File outFile = new File(outPath);
-            String input = outFile.getAbsolutePath() + "/" + IOHandler.METHODS + IOHandler.ABS_SUFFIX;
+            String input = outFile.getAbsolutePath() + File.separator + Consts.METHODS + Consts.ABS_SUFFIX;
 
             // Check that input file exists
             if (!new File(input).isFile()) {
@@ -111,7 +115,7 @@ public class MethodMutator {
                     numUnchangedMethods++;
                 }
             }
-            mutantsMap.put(modelName, modelMap);
+            MethodMutator.mutantMaps.put(modelName, modelMap);
             System.out.println("    Removed " + numUnchangedMutants + " unchanged mutants.");
             System.out.println("    Resulted in " + numUnchangedMethods + " removed methods.");
             System.out.println("    There are " + modelMap.size() + " methods and " + numMutants + " mutants remaining.");
@@ -260,12 +264,107 @@ public class MethodMutator {
         }
     }
 
-    public static Map<String, LinkedHashMap<String, List<String>>> getMutantsMap() {
-        return mutantsMap;
+    public static void writeMutants(String outPath, List<String> modelPaths) {
+        System.out.println("Writing abstracted mutants... ");
+
+        if (mutantMaps == null || mutantMaps.size() == 0) {
+            System.err.println("  ERROR: cannot write null/empty map");
+            return;
+        }
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            LinkedHashMap<String, List<String>> mutantsMap = mutantMaps.get(modelName);
+            if (mutantsMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
+
+            List<String> signatures = new ArrayList<>(mutantsMap.keySet());
+            List<String> bodies = new ArrayList<>();
+            // join multiple predictions for each method
+            for (String signature : signatures) {
+                StringBuilder sb = new StringBuilder();
+                List<String> predictions = new ArrayList<>(mutantsMap.get(signature));
+
+                for (String pred : predictions) {
+                    sb.append(pred).append("<SEP>");
+                }
+                sb.setLength(sb.length() - 5);
+                bodies.add(sb.toString());
+            }
+
+            try {
+                String modelOutPath = outPath + File.separator + modelName + File.separator;
+                Files.createDirectories(Paths.get(modelOutPath));
+                Files.write(Paths.get(modelOutPath + Consts.MUTANTS + Consts.KEY_SUFFIX), signatures);
+                Files.write(Paths.get(modelOutPath + Consts.MUTANTS + Consts.ABS_SUFFIX), bodies);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("  done.");
+        }
+        System.out.println("done.");
     }
 
-    public static void setMutantsMap(Map<String, LinkedHashMap<String, List<String>>> mutantsMap) {
-        MethodMutator.mutantsMap = mutantsMap;
+    public static void readMutants(String outPath, List<String> modelPaths) {
+        System.out.println("Reading abstracted mutants from files... ");
+
+        mutantMaps.clear();
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            String modelOutPath = outPath + File.separator + modelName + File.separator;
+            List<String> signatures = null;
+            List<String> bodies = null;
+
+            try {
+                signatures = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX));
+                bodies = Files.readAllLines(Paths.get(modelOutPath + Consts.MUTANTS + Consts.ABS_SUFFIX));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (signatures == null || bodies == null) {
+                System.err.println("  ERROR: could not load map from files");
+                return;
+            }
+
+            if (signatures.size() != bodies.size()) {
+                System.err.println("  ERROR: unequal number of keys and values");
+                return;
+            }
+
+            int index = 0;
+            LinkedHashMap<String, List<String>> mutantMap = new LinkedHashMap<>();
+            for (String sign : signatures) {
+                mutantMap.put(sign, new ArrayList<>());
+                String[] predictions = bodies.get(index++).split("<SEP>");
+                for (String pred : predictions) {
+                    mutantMap.get(sign).add(pred);
+                }
+            }
+            mutantMaps.put(modelName, mutantMap);
+
+            System.out.println("    Read " + mutantMap.size() + " mutants.");
+            System.out.println("  done.");
+        }
+        System.out.println("done.");
+        return;
+    }
+
+    public static Map<String, LinkedHashMap<String, List<String>>> getMutantMaps() {
+        return mutantMaps;
+    }
+
+    public static void setMutantsMap(Map<String, LinkedHashMap<String, List<String>>> mutantMaps) {
+        MethodMutator.mutantMaps = mutantMaps;
     }
 
     public static void setPython(String python) {

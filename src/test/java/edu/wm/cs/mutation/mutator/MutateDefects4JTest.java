@@ -26,14 +26,14 @@ public class MutateDefects4JTest {
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled, null);
-            IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+            MethodExtractor.writeMethods(input.getOutPath());
 
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-            IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
-            IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
+            MethodAbstractor.writeMethods(input.getOutPath());
+            MethodAbstractor.writeMappings(input.getOutPath());
 
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            MethodMutator.writeMutants(input.getOutPath(), modelPaths);
         }
     }
 

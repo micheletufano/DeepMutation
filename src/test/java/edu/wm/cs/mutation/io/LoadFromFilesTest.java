@@ -3,10 +3,12 @@ package edu.wm.cs.mutation.io;
 import edu.wm.cs.mutation.abstractor.MethodAbstractor;
 import edu.wm.cs.mutation.abstractor.MethodTranslator;
 import edu.wm.cs.mutation.extractor.MethodExtractor;
-import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 import edu.wm.cs.mutation.tester.MutantTester;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,27 +24,73 @@ public class LoadFromFilesTest {
         int complianceLvl = 4;
         boolean compiled = true;
 
-        String defects4j = System.getProperty("user.home") + "/defects4j/framework/bin/defects4j";
-        MutantTester.setCompileCmd(defects4j, "compile");
-        MutantTester.setTestCmd(defects4j, "test");
-
+        String idiomPath = dataPath + "idioms.csv";
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
+        String inputMethodsPath = dataPath + "methods.input";
 
-        MethodExtractor.setRawMethodsMap(IOHandler.readMethods(outPath, false));
-        MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
+        String defects4j = "defects4j";
+        MutantTester.setCompileCmd(defects4j, "compile");
+        MutantTester.setTestCmd(defects4j, "test");
+        MutantTester.setCompileFailStrings("FAIL");
+        MutantTester.setTestFailStrings("FAIL", "Failing");
+        MutantTester.useBaseline(false);
 
-        MethodAbstractor.setAbstractedMethods(IOHandler.readMethods(outPath, true));
-        MethodAbstractor.setMappings(IOHandler.readMappings(outPath));
+        String tmpPath;
+        try {
+            tmpPath = Files.createTempDirectory(Paths.get(System.getProperty("user.home")), null)
+                    .toAbsolutePath().toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
-        MethodMutator.setMutantsMap(IOHandler.readMutants(outPath, modelPaths, true));
+        // MethodExtractor cannot read from file due to multi-line source code
+        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
+        MethodExtractor.writeMethods(outPath);
 
-        MethodTranslator.setTranslatedMutantsMap(IOHandler.readMutants(outPath, modelPaths, false));
+        MethodExtractor.writeMethods(tmpPath);
 
-        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
+        // MethodAbstractor
+        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
+        MethodAbstractor.writeMethods(outPath);
+        MethodAbstractor.writeMappings(outPath);
+
+        MethodAbstractor.readMethods(outPath);
+        MethodAbstractor.readMappings(outPath);
+        MethodAbstractor.writeMethods(tmpPath);
+        MethodAbstractor.writeMappings(tmpPath);
+
+        // MethodMutator
+        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
+        MethodMutator.writeMutants(outPath, modelPaths);
+
+        MethodMutator.readMutants(outPath, modelPaths);
+        MethodMutator.writeMutants(tmpPath, modelPaths);
+
+        // MethodTranslator
+        MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+        MethodTranslator.writeMutants(outPath, modelPaths);
+        MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
+
+        MethodTranslator.readMutants(outPath, modelPaths);
+        MethodTranslator.writeMutants(tmpPath, modelPaths);
+        MethodTranslator.createMutantFiles(tmpPath, modelPaths, MethodExtractor.getMethods());
+
+        // MutantTester (check with `diff -rq outPath tmpPath` on UNIX)
+        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
                 MethodExtractor.getMethods(), modelPaths);
 
-        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
-                MethodExtractor.getMethods(), modelPaths);
+        if (MutantTester.usingBaseline()) {
+            MutantTester.writeBaseline(outPath);
+        }
+        MutantTester.writeLogs(outPath, modelPaths);
+        MutantTester.writeResults(outPath, modelPaths);
+
+        if (MutantTester.usingBaseline()) {
+            MutantTester.writeBaseline(tmpPath);
+        }
+        MutantTester.writeLogs(tmpPath, modelPaths);
+        MutantTester.writeResults(tmpPath, modelPaths);
     }
 }

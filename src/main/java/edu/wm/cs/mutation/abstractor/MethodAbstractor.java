@@ -1,6 +1,14 @@
 package edu.wm.cs.mutation.abstractor;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import edu.wm.cs.mutation.Consts;
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
 import edu.wm.cs.mutation.io.IOHandler;
@@ -25,7 +33,7 @@ public class MethodAbstractor {
 		}
 
 		// Set up Idioms
-		idioms = IOHandler.readIdioms(idiomPath);
+		idioms = readIdioms(idiomPath);
 		if (idioms == null) {
 			System.err.println("  Could not load idioms");
 			return;
@@ -87,6 +95,119 @@ public class MethodAbstractor {
 
 		return afterTokenized;
 	}
+
+	public static void writeMethods(String outPath) {
+        System.out.println("Writing abstracted methods... ");
+
+		if (absMethodsMap == null) {
+			System.err.println("  ERROR: cannot write null map");
+			return;
+		}
+
+		List<String> signatures = new ArrayList<>(absMethodsMap.keySet());
+		List<String> bodies = new ArrayList<>(absMethodsMap.values());
+
+		try {
+			Files.createDirectories(Paths.get(outPath));
+			Files.write(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX), signatures);
+            Files.write(Paths.get(outPath + File.separator + Consts.METHODS + Consts.ABS_SUFFIX), bodies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("done.");
+	}
+
+	public static void writeMappings(String outPath) {
+		System.out.println("Writing mappings... ");
+
+		if (dictMap == null) {
+			System.err.println("ERROR: cannot write null input mappings");
+			return;
+		}
+		List<String> mappings = new ArrayList<>(dictMap.values());
+		try {
+			Files.write(Paths.get(outPath + File.separator + Consts.METHODS + Consts.MAP_SUFFIX), mappings);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("done.");
+	}
+
+	public static void readMethods(String outPath) {
+        System.out.println("Reading abstracted methods from file... ");
+
+		absMethodsMap.clear();
+
+		List<String> signatures = null;
+		List<String> bodies = null;
+		try {
+			signatures = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX));
+            bodies = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.ABS_SUFFIX));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (signatures == null || bodies == null) {
+			System.err.println("  ERROR: could not load map from files");
+			return;
+		}
+
+		if (signatures.size() != bodies.size()) {
+			System.err.println("  ERROR: unequal number of keys and values");
+			return;
+		}
+
+		for (int i = 0; i < signatures.size(); i++) {
+			absMethodsMap.put(signatures.get(i), bodies.get(i));
+		}
+
+		System.out.println("  Read " + absMethodsMap.size() + " methods.");
+		System.out.println("done.");
+		return;
+	}
+
+	public static void readMappings(String outPath) {
+		System.out.println("Reading mappings from file... ");
+		dictMap = new LinkedHashMap<>();
+
+		List<String> signatures = null;
+		List<String> mappings = null;
+		try {
+			signatures = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX));
+			mappings = Files.readAllLines(Paths.get(outPath + File.separator + Consts.METHODS + Consts.MAP_SUFFIX));
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (signatures == null || mappings == null) {
+			System.err.println("  ERROR: could not load map from files");
+			return;
+		}
+
+		if (signatures.size() != mappings.size()) {
+			System.err.println("  ERROR: unequal number of keys and values");
+			return;
+		}
+
+		for (int i = 0; i < signatures.size(); i++) {
+			dictMap.put(signatures.get(i), mappings.get(i));
+		}
+
+		System.out.println("  Read " + dictMap.size() + " mappings.");
+		System.out.println("done.");
+		return;
+	}
+
+	private static Set<String> readIdioms(String filePath) {
+		try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
+			return stream.collect(Collectors.toSet());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 
 	public static LinkedHashMap<String, String> getAbstractedMethods() {
 		return absMethodsMap;

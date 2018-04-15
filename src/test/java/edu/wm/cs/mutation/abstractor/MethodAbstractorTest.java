@@ -14,7 +14,7 @@ public class MethodAbstractorTest {
 		String srcPath = projPath + "source/";
 		String outPath = dataPath + "out/Chart/1/b/";
 		String libPath = dataPath + "spoonModel/lib/Chart";
-		String inputMethodPath = dataPath + "methods.input";
+		String inputMethodsPath = dataPath + "methods.input";
 		int complianceLvl = 4;
 		boolean compiled = true;
 		boolean specified = false;
@@ -23,15 +23,11 @@ public class MethodAbstractorTest {
 		// Idiom path
 		String idiomPath = dataPath + "idioms.csv";
         
-		if (specified) {
-			inputMethods = IOHandler.readInputMethods(inputMethodPath);
-		}
-
-		MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethods);
-		IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
+		MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsPath);
+		MethodExtractor.writeMethods(outPath);
 
 		MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-		IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-		IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+		MethodAbstractor.writeMethods(outPath);
+		MethodAbstractor.writeMappings(outPath);
 	}
 }

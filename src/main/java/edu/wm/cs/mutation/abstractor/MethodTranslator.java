@@ -11,9 +11,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.googlejavaformat.java.Formatter;
+import com.google.googlejavaformat.java.FormatterException;
+import edu.wm.cs.mutation.Consts;
 import edu.wm.cs.mutation.abstractor.lexer.MethodLexer;
 import edu.wm.cs.mutation.abstractor.parser.MethodParser;
-import edu.wm.cs.mutation.io.IOHandler;
+import edu.wm.cs.mutation.io.ChangeExporter;
+import edu.wm.cs.mutation.tester.ChangeExtractor;
+import gumtree.spoon.diff.operations.Operation;
+import gumtree.spoon.pair.MethodPair;
+import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtType;
 
 public class MethodTranslator {
 
@@ -28,14 +37,14 @@ public class MethodTranslator {
 
 	private static final String ERROR = "error";
 
-	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap = new HashMap<>();;
+	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantMaps = new HashMap<>();;
 
 	public static void translateMethods(Map<String, LinkedHashMap<String, List<String>>> mutantsMap,
 			LinkedHashMap<String, String> dictMap, List<String> modelPaths) {
 
 		System.out.println("Translating abstract mutants...");
         
-		translatedMutantsMap.clear();
+		translatedMutantMaps.clear();
 		
 		if (mutantsMap == null || mutantsMap.size() == 0) {
 			System.err.println("  ERROR: null/empty input map");
@@ -85,7 +94,7 @@ public class MethodTranslator {
 			System.out.println("    Removed " + untranslatable + " untranslatable mutants.");
 			System.out.println("    There are " + modelMap.size() + " methods and " + numMutants + " mutants remaining.");
 
-			translatedMutantsMap.put(modelName, modelMap);
+			translatedMutantMaps.put(modelName, modelMap);
 			System.out.println("  done.");
 		}
 		System.out.println("done.");
@@ -185,11 +194,227 @@ public class MethodTranslator {
 		return true;
 	}
 
-	public static Map<String, LinkedHashMap<String, List<String>>> getTranslatedMutantsMap() {
-		return translatedMutantsMap;
+	public static void writeMutants(String outPath, List<String> modelPaths) {
+        System.out.println("Writing translated mutants... ");
+
+		if (translatedMutantMaps == null || translatedMutantMaps.size() == 0) {
+			System.err.println("ERROR: cannot write null/empty map");
+			return;
+		}
+
+		for (String modelPath : modelPaths) {
+			File modelFile = new File(modelPath);
+			String modelName = modelFile.getName();
+			System.out.println("  Processing model " + modelName + "... ");
+
+			LinkedHashMap<String, List<String>> mutantsMap = translatedMutantMaps.get(modelName);
+			if (mutantsMap == null) {
+				System.err.println("    WARNING: cannot write null map for model " + modelName);
+				continue;
+			}
+
+			List<String> signatures = new ArrayList<>(mutantsMap.keySet());
+			List<String> bodies = new ArrayList<>();
+			// join multiple predictions for each method
+			for (String signature : signatures) {
+				StringBuilder sb = new StringBuilder();
+				List<String> predictions = new ArrayList<>(mutantsMap.get(signature));
+
+				for (String pred : predictions) {
+					sb.append(pred).append("<SEP>");
+				}
+				sb.setLength(sb.length() - 5);
+				bodies.add(sb.toString());
+			}
+
+			try {
+				String modelOutPath = outPath + File.separator + modelName + File.separator;
+				Files.createDirectories(Paths.get(modelOutPath));
+				Files.write(Paths.get(modelOutPath + Consts.MUTANTS + Consts.KEY_SUFFIX), signatures);
+                Files.write(Paths.get(modelOutPath + Consts.MUTANTS + Consts.SRC_SUFFIX), bodies);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("  done.");
+		}
+		System.out.println("done.");
 	}
 
-	public static void setTranslatedMutantsMap(Map<String, LinkedHashMap<String, List<String>>> translatedMutantsMap) {
-		MethodTranslator.translatedMutantsMap = translatedMutantsMap;
+	public static void readMutants(String outPath, List<String> modelPaths) {
+        System.out.println("Reading translated mutants from files... ");
+
+		translatedMutantMaps.clear();
+
+		for (String modelPath : modelPaths) {
+			File modelFile = new File(modelPath);
+			String modelName = modelFile.getName();
+			System.out.println("  Processing model " + modelName + "... ");
+
+			String modelOutPath = outPath + File.separator + modelName + File.separator;
+			List<String> signatures = null;
+			List<String> bodies = null;
+
+			try {
+                signatures = Files.readAllLines(Paths.get(modelOutPath + File.separator + Consts.MUTANTS + Consts.KEY_SUFFIX));
+                bodies = Files.readAllLines(Paths.get(modelOutPath + Consts.MUTANTS + Consts.SRC_SUFFIX));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			if (signatures == null || bodies == null) {
+				System.err.println("  ERROR: could not load map from files");
+				return;
+			}
+
+			if (signatures.size() == 0 || bodies.size() == 0) {
+				System.err.println("  ERROR: unequal number of keys and values");
+				return;
+			}
+
+			int index = 0;
+			LinkedHashMap<String, List<String>> mutantMap = new LinkedHashMap<>();
+			for (String sign : signatures) {
+				mutantMap.put(sign, new ArrayList<>());
+				String[] predictions = bodies.get(index++).split("<SEP>");
+				for (String pred : predictions) {
+					mutantMap.get(sign).add(pred);
+				}
+			}
+			translatedMutantMaps.put(modelName, mutantMap);
+
+			System.out.println("    Read " + mutantMap.size() + " mutants.");
+			System.out.println("  done.");
+		}
+		System.out.println("done.");
+		return;
+	}
+
+	/**
+	 * Create mutants for each mutated method. Output the changes from original
+	 * class to mutant class
+	 */
+	public static void createMutantFiles(String outPath, List<String> modelPaths, List<CtMethod> methods) {
+		System.out.println("Creating mutant files... ");
+
+		if (translatedMutantMaps == null || translatedMutantMaps.size() == 0) {
+			System.err.println("  ERROR: cannot write null/empty map");
+			return;
+		}
+
+		for (String modelPath : modelPaths) {
+			File modelFile = new File(modelPath);
+			String modelName = modelFile.getName();
+			System.out.println("  Processing model " + modelName + "... ");
+
+			LinkedHashMap<String, List<String>> mutantsMap = translatedMutantMaps.get(modelName);
+			List<String> logs = new ArrayList<>();
+
+			if (mutantsMap == null) {
+				System.err.println("    WARNING: cannot write null map for model " + modelName);
+				continue;
+			}
+
+			// create directory
+			String mutantPath = outPath + File.separator + modelName + File.separator + Consts.MUTANT_DIR;
+			if (!Files.exists(Paths.get(mutantPath))) {
+				try {
+					Files.createDirectories(Paths.get(mutantPath));
+				} catch (IOException e) {
+					System.out.println("    ERROR: could not create mutant directory: " + e.getMessage());
+					e.printStackTrace();
+					continue;
+				}
+			}
+
+			// create format for padded mutantIDs
+			int num_digits = Integer.toString(mutantsMap.keySet().size()).length();
+			StringBuilder format = new StringBuilder();
+			format.append("%0").append(num_digits).append("d");
+
+			// replace original methods with mutants
+			int counter = 1; // counter for mutated file
+			for (CtMethod method : methods) {
+				String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
+				if (!mutantsMap.containsKey(signature)) {
+					continue;
+				}
+
+				SourcePosition sp = method.getPosition();
+				String original = sp.getCompilationUnit().getOriginalSourceCode();
+
+				// find start position of original source code
+				int srcStart = sp.getNameSourceStart();
+				while (original.charAt(srcStart) != '\n')
+					srcStart--;
+				srcStart++;
+
+				// construct mutant for each prediction result of a method
+				List<String> mutants = mutantsMap.get(signature);
+				for (int i=0; i<mutants.size(); i++) {
+					String pred = mutants.get(i);
+
+					// XXXX_relative-path-to-file.java
+					String mutantID;
+					if (mutants.size() == 1) {
+						mutantID = String.format(format.toString(), counter);
+					} else {
+						mutantID = String.format(format.toString(), counter) + "-" + (i + 1);
+					}
+					String fileName = mutantID + "_" + sp.getCompilationUnit().getFile().getPath()
+							.replaceFirst(System.getProperty("user.dir") + File.separator, "").replace(File.separator, "-");
+
+					StringBuilder sb = new StringBuilder();
+					sb.append(original.substring(0, srcStart));
+					sb.append(pred);
+					sb.append(original.substring(sp.getSourceEnd() + 1));
+
+					try {
+						String formattedSrc = new Formatter().formatSource(sb.toString());
+						Files.write(Paths.get(mutantPath + fileName), formattedSrc.getBytes());
+
+						// Extract the changes from original src code to mutanted src code
+						ChangeExtractor changeTester = new ChangeExtractor();
+						Map<MethodPair, List<Operation>> changesMap = changeTester.extractChanges(original,
+								formattedSrc, method);
+
+						if (changesMap == null || changesMap.size() == 0) {
+							logs.add(fileName + "_" + method.getSignature() + "_un-mutated");
+						} else {
+							// Output the changes to folder mutantPath/counter_mutatedMethodName/
+							String mutatedMethod = String.format(format.toString(), counter) + "_"
+									+ method.getSimpleName();
+
+							// Output the changes to folder mutantPath/mutantID_change_ID
+							String outDir = mutantPath + File.separator + mutantID;
+							ChangeExporter exporter = new ChangeExporter(changesMap);
+							exporter.exportChanges(outDir);
+
+							// Create log for mutated method
+							logs.add(fileName + "_" + method.getSignature());
+						}
+
+						// Write mutant log to /modelpath/mutants.log
+						String logPath = outPath + File.separator + modelName + File.separator;
+						Files.write(Paths.get(logPath + Consts.MUTANTS + Consts.MUTANT_LOG_SUFFIX), logs);
+
+					} catch (FormatterException e) {
+						System.err.println("    ERROR: could not format mutant " + counter + ": " + e.getMessage());
+					} catch (IOException e) {
+						System.err.println("    ERROR: could not write mutant " + counter + ": " + e.getMessage());
+					}
+				}
+				counter++;
+			}
+			System.out.println("  done.");
+		}
+		System.out.println("done.");
+	}
+
+	public static Map<String, LinkedHashMap<String, List<String>>> getTranslatedMutantMaps() {
+		return translatedMutantMaps;
+	}
+
+	public static void setTranslatedMutantMaps(Map<String, LinkedHashMap<String, List<String>>> translatedMutantMaps) {
+		MethodTranslator.translatedMutantMaps = translatedMutantMaps;
 	}
 }

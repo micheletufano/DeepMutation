@@ -72,33 +72,31 @@ public class IntroClassJavaAnalyzer {
 				
 				//Extract all methods
 				MethodExtractor.extractMethods(projPath, srcPath, LIB_PATH, complianceLvl, compiled, null);
-				IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);
-				
+				MethodExtractor.writeMethods(outPath);
+
 				//Find exec method
 				findExecMethod();
 				
 				//Abstract exec method
 				MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-				IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);
-				IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+				MethodAbstractor.writeMethods(outPath);
+				MethodAbstractor.writeMappings(outPath);
 
 				MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-				IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);
+				MethodMutator.writeMutants(outPath, modelPaths);
 
-				MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
-				IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
+				MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+				MethodTranslator.writeMutants(outPath, modelPaths);
+				MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
 
-				IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),
+				MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
 						MethodExtractor.getMethods(), modelPaths);
 
-				MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantsMap(),
-						MethodExtractor.getMethods(), modelPaths);
-//				IOHandler.writeBaseline(outPath, MutantTester.getCompileBaseline(), "compile");
-//				IOHandler.writeBaseline(outPath, MutantTester.getTestBaseline(), "test");
-				IOHandler.writeLogs(outPath, MutantTester.getCompileLogs(), modelPaths, "compile");
-				IOHandler.writeLogs(outPath, MutantTester.getTestLogs(), modelPaths, "test");
-				IOHandler.writeResults(outPath, MutantTester.getCompilable(), modelPaths, "compile");
-				IOHandler.writeResults(outPath, MutantTester.getSuccessful(), modelPaths, "test");
+				if (MutantTester.usingBaseline()) {
+					MutantTester.writeBaseline(outPath);
+				}
+				MutantTester.writeLogs(outPath, modelPaths);
+				MutantTester.writeResults(outPath, modelPaths);
 
 				System.setOut(console);
 			}

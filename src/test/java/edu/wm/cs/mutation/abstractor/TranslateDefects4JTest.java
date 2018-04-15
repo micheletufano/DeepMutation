@@ -18,7 +18,7 @@ public class TranslateDefects4JTest {
         String outBasePath = dataPath + "out/Chart/";
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
-		String inputMethodPath = dataPath + "methods.input";
+		String inputMethodsPath = dataPath + "methods.input";
 		boolean compiled = true;
 		boolean specified = false;
 		HashSet<String> inputMethods = null;
@@ -26,28 +26,24 @@ public class TranslateDefects4JTest {
         //Idiom path
         String idiomPath = dataPath + "idioms.csv";
         
-        if (specified) {
-			inputMethods = IOHandler.readInputMethods(inputMethodPath);
-		}
-
         // MethodMutator
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
-            MethodExtractor.extractMethods(input, libPath, compiled, inputMethods);
-            IOHandler.writeMethods(input.getOutPath(), MethodExtractor.getRawMethodsMap(), false);
+            MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
+            MethodExtractor.writeMethods(input.getOutPath());
 
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-            IOHandler.writeMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), true);
-            IOHandler.writeMappings(input.getOutPath(), MethodAbstractor.getMappings());
+            MethodAbstractor.writeMethods(input.getOutPath());
+            MethodAbstractor.writeMappings(input.getOutPath());
 
             MethodMutator.mutateMethods(input.getOutPath(), MethodAbstractor.getAbstractedMethods(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodMutator.getMutantsMap(), modelPaths, true);
+            MethodMutator.writeMutants(input.getOutPath(), modelPaths);
 
-            MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
-            IOHandler.writeMutants(input.getOutPath(), MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);
+            MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+            MethodTranslator.writeMutants(input.getOutPath(), modelPaths);
         }
 	}
 }

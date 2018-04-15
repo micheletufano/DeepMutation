@@ -1,8 +1,12 @@
 package edu.wm.cs.mutation.extractor;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
+import edu.wm.cs.mutation.Consts;
 import spoon.SpoonAPI;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
@@ -12,29 +16,26 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 public class MethodExtractor {
 
-    public static final String BUGGY_DIR = "/b/";
+    public static final String BUGGY_DIR = File.separator + "b" + File.separator;
     private static LinkedHashMap<String,String> rawMethodsMap = new LinkedHashMap();
     private static List<CtMethod> methods;
 
     public static void extractMethods(String projPath, String srcPath, String libPath,
-                                      int complianceLvl, boolean compiled, Set<String> inputMethods) {
+                                      int complianceLvl, boolean compiled, String inputMethodsPath) {
         System.out.println("Extracting methods from " + projPath + "... ");
 
-        File project = new File(projPath);
         rawMethodsMap.clear();
-        // Build Spoon model
-        if (compiled) {
-            libPath = project.getAbsolutePath() + "/";
+
+        // Read user-specified methods
+        Set<String> inputMethods = null;
+        if (inputMethodsPath != null) {
+            inputMethods = readInputMethods(inputMethodsPath);
         }
-        
-        SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
-        // Generate methods
-        methods = spoon.getFactory()
-                .Package()
-                .getRootPackage()
-                .getElements(new TypeFilter<>(CtMethod.class));
+        // Build spoon model
+        buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
 
+        // Select methods
         int userMethods = 0;
         int interfaceMethods = 0;
         for (CtMethod method : methods) {
@@ -73,7 +74,7 @@ public class MethodExtractor {
             System.err.println("  ERROR: Could not extract any methods.");
         } else {
             if (inputMethods != null) {
-                System.out.println("  Found " + userMethods + "/" + inputMethods.size() + " user-specified methods.");
+                System.out.println("  Found " + userMethods + File.separator + inputMethods.size() + " user-specified methods.");
                 System.out.println("  Ignored " + interfaceMethods + " interface methods.");
             }
             System.out.println("  Extracted " + rawMethodsMap.size() + " methods.");
@@ -81,8 +82,8 @@ public class MethodExtractor {
         System.out.println("done.");
     }
 
-    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled, Set<String> inputMethods) {
-        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled, inputMethods);
+    public static void extractMethods(Defects4JInput input, String libPath, boolean compiled, String inputMethodsPath) {
+        extractMethods(input.getProjPath(), input.getSrcPath(), libPath, input.getComplianceLvl(), compiled, inputMethodsPath);
     }
 
     public static List<Defects4JInput> generateDefect4JInputs(String projBasePath, String outBasePath, String modelConfigPath) {
@@ -109,11 +110,11 @@ public class MethodExtractor {
 
     public static void buildModel(String projPath, String srcPath, String libPath,
                                   int complianceLvl, boolean compiled) {
-        System.out.println("Building spoon model... ");
+        System.out.println("  Building AST... ");
 
         File project = new File(projPath);
         if (compiled) {
-            libPath = project.getAbsolutePath() + "/";
+            libPath = project.getAbsolutePath() + File.separator;
         }
         SpoonAPI spoon = SpoonConfig.buildModel(srcPath, complianceLvl, libPath, compiled);
 
@@ -122,7 +123,7 @@ public class MethodExtractor {
                 .getRootPackage()
                 .getElements(new TypeFilter<>(CtMethod.class));
 
-        System.out.println("done.");
+        System.out.println("  done.");
     }
 
     private static void sortRevisionDirectories(File[] revisions) {
@@ -137,6 +138,46 @@ public class MethodExtractor {
                 }
             }
         });
+    }
+
+    public static void writeMethods(String outPath) {
+        System.out.println("Writing extracted methods... ");
+
+        if (rawMethodsMap == null) {
+            System.err.println("  ERROR: cannot write null map");
+            return;
+        }
+
+        List<String> signatures = new ArrayList<>(rawMethodsMap.keySet());
+        List<String> bodies = new ArrayList<>(rawMethodsMap.values());
+
+        try {
+            Files.createDirectories(Paths.get(outPath));
+            Files.write(Paths.get(outPath + File.separator + Consts.METHODS + Consts.KEY_SUFFIX), signatures);
+            Files.write(Paths.get(outPath + File.separator + Consts.METHODS + Consts.SRC_SUFFIX), bodies);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("done.");
+    }
+
+    private static HashSet<String> readInputMethods(String methodPath) {
+        System.out.println("  Reading specified methods from input file... ");
+
+        List<String> methods = null;
+        try {
+            methods = Files.readAllLines(Paths.get(methodPath));
+        } catch (IOException e) {
+            System.err.println("    ERROR: could not load specified methods from files: " + e.getMessage());
+        }
+
+        if (methods == null) {
+            System.err.println("    ERROR: could not load specified methods from files");
+            return null;
+        }
+
+        System.out.println("  done.");
+        return new HashSet<>(methods);
     }
 
     public static LinkedHashMap<String, String> getRawMethodsMap() {

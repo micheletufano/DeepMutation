@@ -2,6 +2,7 @@ package edu.wm.cs.mutation.tester;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
+import edu.wm.cs.mutation.Consts;
 import org.apache.commons.io.FileUtils;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
@@ -92,6 +93,16 @@ public class MutantTester {
             return;
         }
 
+        // Check for existing binaries
+        if (!findCommand(compileCmd[0])) {
+            System.err.println("  ERROR: could not find " + compileCmd[0]);
+            return;
+        }
+        if (!findCommand(testCmd[0])) {
+            System.err.println("  ERROR: could not find " + testCmd[0]);
+            return;
+        }
+
         // Check for null fail string
         if (!usingBaseline) {
             if (compileFailStrings == null) {
@@ -125,9 +136,13 @@ public class MutantTester {
         String[] mutantProjPaths = new String[numThreads];
         for (int i = 0; i < numThreads; i++) {
             try {
-                mutantProj[i] = new File(projFile.getParent() + "/" + projFile.getName() + i);
-                FileUtils.copyDirectory(projFile, mutantProj[i]);
-                System.out.println("    Created " + mutantProj[i].getPath() + ".");
+                mutantProj[i] = new File(projFile.getParent() + File.separator + projFile.getName() + i);
+                if (!mutantProj[i].exists()) {
+                    FileUtils.copyDirectory(projFile, mutantProj[i]);
+                    System.out.println("    Created " + mutantProj[i].getPath() + ".");
+                } else {
+                    System.out.println("    " + mutantProj[i].getPath() + " already exists.");
+                }
 
                 mutantProjPaths[i] = mutantProj[i].getAbsolutePath();
             } catch (IOException e) {
@@ -142,7 +157,7 @@ public class MutantTester {
         if (usingBaseline) {
             System.out.println("  Establishing baseline... ");
 
-            File baselineProj = new File(projFile.getParent() + "/" + projFile.getName() + ".base");
+            File baselineProj = new File(projFile.getParent() + File.separator + projFile.getName() + ".base");
             try {
                 FileUtils.copyDirectory(projFile, baselineProj);
             } catch (IOException e) {
@@ -417,6 +432,20 @@ public class MutantTester {
         System.out.println("done.");
     }
 
+    private static boolean findCommand(String cmd) {
+        if (!new File(cmd).exists()) {
+            String PATH = System.getenv("PATH");
+            String[] paths = PATH.split(File.pathSeparator);
+            for (String path : paths) {
+                if (new File(path + File.separator + cmd).exists()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Compile project. Adapted from {@link ProcessBuilder} javadoc.
      *
@@ -474,6 +503,153 @@ public class MutantTester {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void writeBaseline(String outPath) {
+        if (compileBaseline == null || testBaseline == null) {
+            System.err.println("ERROR: cannot write null baselines");
+            return;
+        }
+
+        try {
+            Files.write(Paths.get(outPath + File.separator + "baseline" + Consts.COMPILE_LOG_SUFFIX), compileBaseline.getBytes());
+            Files.write(Paths.get(outPath + File.separator + "baseline" + Consts.TEST_LOG_SUFFIX), testBaseline.getBytes());
+        } catch (IOException e) {
+            System.err.println("    Error in writing baseline: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeLogs(String outPath, List<String> modelPaths) {
+        System.out.println("Writing logs... ");
+
+        if (compileLogs == null || testLogs == null) {
+            System.err.println("  ERROR: cannot write null maps");
+            return;
+        }
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            Map<String, List<String>> compileMap = compileLogs.get(modelName);
+            Map<String, List<String>> testMap = testLogs.get(modelName);
+
+            if (compileMap == null || testMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
+
+            // Create log directory
+            String logPath = outPath + File.separator + modelName + File.separator + Consts.LOG_DIR + File.separator;
+            try {
+                Files.createDirectories(Paths.get(logPath));
+            } catch (IOException e) {
+                System.err.println("    ERROR: could not create log directory");
+                e.printStackTrace();
+                continue;
+            }
+
+            for (String methodID : compileMap.keySet()) {
+                List<String> logs = compileMap.get(methodID);
+                for (int i=0; i<logs.size(); i++) {
+                    try {
+                        if (logs.size() == 1) {
+                            Files.write(Paths.get(logPath + methodID + Consts.COMPILE_LOG_SUFFIX), logs.get(i).getBytes());
+                        } else {
+                            Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.COMPILE_LOG_SUFFIX), logs.get(i).getBytes());
+                        }
+                    } catch (IOException e) {
+                        System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
+                    }
+                }
+            }
+            for (String methodID : testMap.keySet()) {
+                List<String> logs = testMap.get(methodID);
+                for (int i=0; i<logs.size(); i++) {
+                    try {
+                        if (logs.size() == 1) {
+                            Files.write(Paths.get(logPath + methodID + Consts.TEST_LOG_SUFFIX), logs.get(i).getBytes());
+                        } else {
+                            Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.TEST_LOG_SUFFIX), logs.get(i).getBytes());
+                        }
+                    } catch (IOException e) {
+                        System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
+                    }
+                }
+            }
+            System.out.println("  done.");
+        }
+        System.out.println("done.");
+    }
+
+    public static void writeResults(String outPath, List<String> modelPaths) {
+        System.out.println("Writing results... ");
+        if (compilable == null || successful == null) {
+            System.err.println("ERROR: cannot write null result maps");
+            return;
+        }
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            Map<String, List<Boolean>> compMap = compilable.get(modelName);
+            Map<String, List<Boolean>> succMap = successful.get(modelName);
+            if (compMap == null || succMap == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
+
+            SortedMap<String, List<Boolean>> sortedCompMap = new TreeMap<>(compMap);
+            SortedMap<String, List<Boolean>> sortedSuccMap = new TreeMap<>(succMap);
+
+            String path = outPath + File.separator + modelName + File.separator;
+            StringBuilder sb = new StringBuilder();
+
+            for (String methodID : sortedCompMap.keySet()) {
+                List<Boolean> results = sortedCompMap.get(methodID);
+                sb.append(methodID);
+                for (Boolean b : results) {
+                    sb.append(" ");
+                    if (b) {
+                        sb.append(Consts.PASSED);
+                    } else {
+                        sb.append(Consts.FAILED);
+                    }
+                }
+                sb.append(System.lineSeparator());
+            }
+            try {
+                Files.write(Paths.get(path + Consts.RESULTS_COMP), sb.toString().getBytes());
+            } catch (IOException e) {
+                System.err.println("    Error in writing results");
+            }
+
+            sb.setLength(0);
+            for (String methodID : sortedSuccMap.keySet()) {
+                List<Boolean> results = sortedSuccMap.get(methodID);
+                sb.append(methodID);
+                for (Boolean b : results) {
+                    sb.append(" ");
+                    if (b) {
+                        sb.append(Consts.PASSED);
+                    } else {
+                        sb.append(Consts.FAILED);
+                    }
+                }
+                sb.append(System.lineSeparator());
+            }
+            try {
+                Files.write(Paths.get(path + Consts.RESULTS_TEST), sb.toString().getBytes());
+            } catch (IOException e) {
+                System.err.println("    Error in writing results");
+            }
+            System.out.println("  done.");
+        }
+        System.out.println("done.");
     }
 
     public static void setCompileCmd(String... compileCmd) {

@@ -26,19 +26,17 @@ public class PipelineTest {
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, null);
-        IOHandler.writeMethods(outPath, MethodExtractor.getRawMethodsMap(), false);                     // originals
+        MethodExtractor.writeMethods(outPath);
 
         MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
-        IOHandler.writeMethods(outPath, MethodAbstractor.getAbstractedMethods(), true);                 // abstract originals
-        IOHandler.writeMappings(outPath, MethodAbstractor.getMappings());
+        MethodAbstractor.writeMethods(outPath);
+        MethodAbstractor.writeMappings(outPath);
 
         MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodMutator.getMutantsMap(), modelPaths, true);                // abstract mutants
+        MethodMutator.writeMutants(outPath, modelPaths);
 
-        MethodTranslator.translateMethods(MethodMutator.getMutantsMap(), MethodAbstractor.getMappings(), modelPaths);
-        IOHandler.writeMutants(outPath, MethodTranslator.getTranslatedMutantsMap(), modelPaths, false);  // mutants
-
-        IOHandler.createMutantFiles(outPath, MethodTranslator.getTranslatedMutantsMap(),    // mutant files
-                MethodExtractor.getMethods(), modelPaths);
+        MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+        MethodTranslator.writeMutants(outPath, modelPaths);
+        MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
     }
 }
