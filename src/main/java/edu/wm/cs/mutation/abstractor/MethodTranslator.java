@@ -5,11 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import org.apache.commons.lang3.RandomStringUtils;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
@@ -36,6 +41,8 @@ public class MethodTranslator {
 	private static final String FLOAT_PREFIX = "FLOAT_";
 
 	private static final String ERROR = "error";
+	
+	private static boolean rdmMode = false;
 
 	private static Map<String, LinkedHashMap<String, List<String>>> translatedMutantMaps = new HashMap<>();;
 
@@ -134,26 +141,73 @@ public class MethodTranslator {
 					sb.append(dictMethod[index - 1]);
 			} else if (token.startsWith(STRING_PREFIX)) {
 				index = Integer.valueOf(token.substring(token.indexOf('_') + 1));
-				if (dictString[0].equals("") || index > dictString.length)
-					return ERROR;
+				if ((dictString[0].equals("") || index > dictString.length) ) {
+					if (rdmMode) {
+						// randomly generate String literal
+						Set<String> stringSet = new HashSet<String>(Arrays.asList(dictString));
+						Random rdm = new Random();
+						String rdmString = RandomStringUtils.randomAlphanumeric(rdm.nextInt(10) + 1);	
+		                while (stringSet.contains(rdmString)) {
+		                	    rdmString = RandomStringUtils.randomAlphanumeric(rdm.nextInt(10) + 1);
+	                }
+	                    sb.append(rdmString);
+					}
+					else
+						return ERROR;
+					}
 				else
 					sb.append(dictString[index - 1]);
 			} else if (token.startsWith(CHAR_PREFIX)) {
 				index = Integer.valueOf(token.substring(token.indexOf('_') + 1));
-				if (dictChar[0].equals("") || index > dictChar.length)
-					return ERROR;
+				if (dictChar[0].equals("") || index > dictChar.length) {
+					if (rdmMode) {
+						// randomly generate char literal
+						Set<String> charSet = new HashSet<String>(Arrays.asList(dictChar));
+		                String rdmChar = RandomStringUtils.randomAlphanumeric(1);
+		                while (charSet.contains(rdmChar)) {
+		                	    rdmChar = RandomStringUtils.randomAlphanumeric(1);
+		                }
+		                sb.append(rdmChar);
+					}
+					else
+						return ERROR;
+					}
 				else
 					sb.append(dictChar[index - 1]);
 			} else if (token.startsWith(INT_PREFIX)) {
 				index = Integer.valueOf(token.substring(token.indexOf('_') + 1));
-				if (dictInt[0].equals("") || index > dictInt.length)
-					return ERROR;
+				if (dictInt[0].equals("") || index > dictInt.length) {
+					if (rdmMode) {
+						// randomly generate integer literal	
+						Set<String> intSet = new HashSet<String>(Arrays.asList(dictInt));
+						Random rdm = new Random();
+						String rdmInt = Integer.toString(rdm.nextInt());
+		                while (intSet.contains(rdmInt)) {
+		                	    rdmInt = Integer.toString(rdm.nextInt());
+		                }
+		                sb.append(rdmInt);
+					}
+					else
+					    return ERROR;
+					}
 				else
 					sb.append(dictInt[index - 1]);
 			} else if (token.startsWith(FLOAT_PREFIX)) {
 				index = Integer.valueOf(token.substring(token.indexOf('_') + 1));
-				if (dictFloat[0].equals("") || index > dictFloat.length)
-					return ERROR;
+				if (dictFloat[0].equals("") || index > dictFloat.length) {
+					if (rdmMode) {
+						// randomly generate float literal	
+						Set<String> floatSet = new HashSet<String>(Arrays.asList(dictFloat));
+						Random rdm = new Random();
+						String rdmFloat = Float.toString(rdm.nextFloat());
+		                while (floatSet.contains(rdmFloat)) {
+		                	    rdmFloat = Float.toString(rdm.nextFloat());
+		                }
+		                sb.append(rdmFloat);
+					}
+					else
+					    return ERROR;
+					}
 				else
 					sb.append(dictFloat[index - 1]);
 			} else {
@@ -416,5 +470,9 @@ public class MethodTranslator {
 
 	public static void setTranslatedMutantMaps(Map<String, LinkedHashMap<String, List<String>>> translatedMutantMaps) {
 		MethodTranslator.translatedMutantMaps = translatedMutantMaps;
+	}
+	
+	public static void setRandomMode (boolean rdmMode) {
+		MethodTranslator.rdmMode = rdmMode;
 	}
 }
