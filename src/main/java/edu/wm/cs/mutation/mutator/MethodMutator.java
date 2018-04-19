@@ -17,7 +17,7 @@ public class MethodMutator {
     private static final String VOCAB_TARGET = "vocab.before.txt";
     private static final String TRAIN_OPTIONS = "train_options.json";
 
-    private static String python = "python";
+    private static String python = "python3";
     private static boolean usingBeams = false;
     private static Integer numBeams = 2;
     private static String interpretBeams = "interpretBeams.py";
