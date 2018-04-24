@@ -1,0 +1,33 @@
+# Configuration file example.
+
+# Paths
+project.path=data/fixed/Chart/1/f/
+source.path=data/fixed/Chart/1/f/source/
+output.path=data/out/fixed/Chart/1/f/
+library.path=data/spoonModel/lib/Chart/
+model.paths=data/models/50len_ident_lit/
+idioms.file=data/idioms.csv
+#input.methods.file=data/methods.input
+
+# MethodExtractor
+compliance.level=4
+compiled=true
+
+# MethodAbstractor
+token.threshold=50
+
+# MethodMutator
+python=python3
+use.beams=false
+num.beams=5
+
+# MutantTester
+parallel=true
+compile.command=defects4j compile
+test.command=defects4j test
+timeout=300
+use.baseline=false
+compile.fail.strings=FAIL
+test.fail.strings=FAIL,Failing
+
+
