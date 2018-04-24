@@ -6,12 +6,25 @@
     <property name="src" location="src"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
+    <property name="entry.point" value="edu.wm.cs.mutation.DeepMutation"/>
 
-    <path id="classpath">
-        <fileset dir="lib">
-            <include name="**/*.jar"/>
+    <!-- https://stackoverflow.com/a/1892936 -->
+    <path id="build.classpath">
+        <fileset dir="${basedir}">
+            <include name="lib/*.jar"/>
         </fileset>
     </path>
+
+    <pathconvert property="manifest.classpath" pathsep=" ">
+      <path refid="build.classpath"/>
+      <mapper>
+        <chainedmapper>
+           <flattenmapper/>
+           <globmapper from="*.jar" to="../lib/*.jar"/>
+        </chainedmapper>
+      </mapper>
+    </pathconvert>
+    <!-- end -->
 
     <target name="init">
         <!-- Create the time stamp -->
@@ -23,7 +36,7 @@
     <target name="compile" depends="init"
             description="compile the source">
         <!-- Compile the Java code from ${src} into ${build} -->
-        <javac includeantruntime="false" classpathref="classpath"
+        <javac includeantruntime="false" classpathref="build.classpath"
             srcdir="${src}" destdir="${build}"/>
     </target>
 
@@ -35,7 +48,8 @@
         <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
         <jar jarfile="${dist}/DeepMutation.jar" basedir="${build}">
             <manifest>
-                <attribute name="Main-Class" value="edu.wm.cs.mutation.DeepMutation"/>
+                <attribute name="Main-Class" value="${entry.point}"/>
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
             </manifest>
         </jar>
     </target>
