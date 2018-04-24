@@ -30,10 +30,14 @@
     <target name="dist" depends="compile"
             description="generate the distribution">
         <!-- Create the distribution directory -->
-        <mkdir dir="${dist}/lib"/>
+        <mkdir dir="${dist}"/>
 
         <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-        <jar jarfile="${dist}/lib/DeepMutation-${DSTAMP}.jar" basedir="${build}"/>
+        <jar jarfile="${dist}/DeepMutation.jar" basedir="${build}">
+            <manifest>
+                <attribute name="Main-Class" value="edu.wm.cs.mutation.DeepMutation"/>
+            </manifest>
+        </jar>
     </target>
 
     <target name="clean"
