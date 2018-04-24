@@ -23,7 +23,7 @@ public class PipelineDefects4JTest {
         
         boolean compiled = true;
         boolean specified = false;
-        int tokenThreshold = 100;
+        int tokenThreshold = 50;
 
         String idiomPath = dataPath + "idioms.csv";
         
@@ -33,14 +33,16 @@ public class PipelineDefects4JTest {
         String defects4j = "defects4j";
         MethodAbstractor.setInputMode(specified);
         MethodAbstractor.setTokenThreshold(tokenThreshold);
-        MethodMutator.useBeams(true);
+        MethodMutator.useBeams(false);
         MutantTester.setCompileCmd(defects4j, "compile");
         MutantTester.setTestCmd(defects4j, "test");
-        MutantTester.setCleanUp(false);
+        MutantTester.useBaseline(false);
+        MutantTester.setCompileFailStrings("FAIL");
+        MutantTester.setTestFailStrings("FAIL","Failing");
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
-            MethodExtractor.extractMethods(input, libPath, compiled, inputMethodsPath);
+            MethodExtractor.extractMethods(input, libPath, compiled, null);
             MethodExtractor.writeMethods(input.getOutPath());
              
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
@@ -61,6 +63,7 @@ public class PipelineDefects4JTest {
                 MutantTester.writeBaseline(input.getOutPath());
             }
             MutantTester.writeLogs(input.getOutPath(), modelPaths);
+            MutantTester.writeTimeouts(input.getOutPath(), modelPaths);
             MutantTester.writeResults(input.getOutPath(), modelPaths);
         }
     }

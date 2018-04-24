@@ -20,6 +20,10 @@ public class Consts {
     public static final String COMPILE_LOG_SUFFIX = "_compile.log";
     public static final String TEST_LOG_SUFFIX = "_test.log";
 
+    public static final String TIMEOUTS = "timeouts.txt";
+    public static final String OK = "OK";
+    public static final String TIMEOUT = "TIMEOUT";
+
     public static final String MUTANT_DIR = "mutants/";
     public static final String LOG_DIR = "logs/";
 

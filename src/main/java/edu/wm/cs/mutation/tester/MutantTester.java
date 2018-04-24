@@ -31,9 +31,10 @@ public class MutantTester {
     private static String[] compileFailStrings;
     private static String[] testFailStrings;
 
-    // model -> (mutantID -> logs)
+    // model -> (mutantID -> output)
     private static Map<String, Map<String,List<String>>> compileLogs;
     private static Map<String, Map<String,List<String>>> testLogs;
+    private static Map<String, Map<String,List<Boolean>>> timeouts;
 
     // model -> (mutantIDs)
     private static Map<String, List<String>> failedMutants;
@@ -41,6 +42,8 @@ public class MutantTester {
     // model -> (mutantID -> pass/fail)
     private static Map<String, Map<String,List<Boolean>>> compilable;
     private static Map<String, Map<String,List<Boolean>>> successful;
+
+    private static long timeout = 300; // seconds
 
     private static boolean parallel = true;
     private static boolean cleanUp = true;
@@ -161,7 +164,7 @@ public class MutantTester {
             try {
                 FileUtils.copyDirectory(projFile, baselineProj);
             } catch (IOException e) {
-                System.err.println("  ERROR: could not establish baseline");
+                System.err.println("  ERROR: could not copy directory for baseline");
                 e.printStackTrace();
                 return;
             }
@@ -185,6 +188,7 @@ public class MutantTester {
         // Begin testing
         compileLogs = new HashMap<>();
         testLogs = new HashMap<>();
+        timeouts = new HashMap<>();
         compilable = new HashMap<>();
         successful = new HashMap<>();
         failedMutants = new HashMap<>();
@@ -230,16 +234,23 @@ public class MutantTester {
 
             // Test each mutant in parallel
             ExecutorService executorService = Executors.newFixedThreadPool(maxIter);
-            List<Callable<LogContainer>> tasks = new ArrayList<>(maxIter);
+            List<Callable<Output>> tasks = new ArrayList<>(maxIter);
 
             // Create task list
             for (int i=0; i<maxIter; i++) {
                 int threadID = i;
-                tasks.add(new Callable<LogContainer>() {
+                tasks.add(new Callable<Output>() {
                     @Override
-                    public LogContainer call() throws Exception {
+                    public Output call() throws Exception {
                         Map<String, List<String>> compileMap = new HashMap<>();
                         Map<String, List<String>> testMap = new HashMap<>();
+                        Map<String, List<Boolean>> timeoutMap = new HashMap<>();
+
+                        int size = 0;
+                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                            size++;
+                        }
+                        int count = 1;
 
                         for (int j = threadID; j < mutated.size(); j += numThreads) {
                             String methodID = String.format(mutantFormat.toString(), j+1);
@@ -248,7 +259,7 @@ public class MutantTester {
                             String signature = method.getParent(CtType.class).getQualifiedName() + "#" + method.getSignature();
 
                             System.out.println("    " + String.format(threadFormat.toString(), threadID) +
-                                    ": Testing method " + methodID + ": " + signature + "... ");
+                                    ": Testing method " + methodID + " (" + (count++) + "/" + size + "): " + signature + "... ");
 
                             // Get original source code and path to file
                             SourcePosition sp = method.getPosition();
@@ -268,6 +279,7 @@ public class MutantTester {
                             List<String> mutants = mutantsMap.get(signature);
                             List<String> compileLogs = new ArrayList<>();
                             List<String> testLogs = new ArrayList<>();
+                            List<Boolean> timeouts = new ArrayList<>();
                             for (int k=0; k<mutants.size(); k++) {
                                 String mutant = mutants.get(k);
                                 String mutantID = Integer.toString(k+1);
@@ -283,34 +295,44 @@ public class MutantTester {
                                     Files.write(Paths.get(mutantPath), formattedSrc.getBytes());
                                 } catch (IOException e) {
                                     System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                            ": Error in writing mutant " + methodID + "." + mutantID +": " + e.getMessage());
+                                            ": Error in writing mutant " + methodID + "-" + mutantID +": " + e.getMessage());
+                                    e.printStackTrace();
                                     try {
                                         Files.write(Paths.get(mutantPath), original.getBytes());
                                     } catch (IOException ee) {
                                         System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                                ": Failed to recover from mutant " + methodID + "." + mutantID + ": " + ee.getMessage());
+                                                ": Failed to recover from mutant " + methodID + "-" + mutantID + ": " + ee.getMessage());
                                         return null;
                                     }
                                     System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                            ": Successfully recovered from mutant " + methodID + "." + mutantID);
+                                            ": Successfully recovered from mutant " + methodID + "-" + mutantID);
                                     e.printStackTrace();
                                     continue;
                                 } catch (FormatterException e) {
                                     System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                            ": Error in formatting mutant " + methodID + "." + mutantID + ": " + e.getMessage());
+                                            ": Error in formatting mutant " + methodID + "-" + mutantID + ": " + e.getMessage());
                                     continue;
                                 }
 
-                                // Run tests and save output
-                                compileLogs.add(compile(mutantProj[threadID].getPath()));
-                                testLogs.add(test(mutantProj[threadID].getPath()));
+                                // Run tests
+                                String compileLog = compile(mutantProj[threadID].getPath());
+                                String testLog = test(mutantProj[threadID].getPath());
+
+                                // Save outputs
+                                if (compileLog == null || testLog == null) {
+                                    timeouts.add(true);
+                                } else {
+                                    timeouts.add(false);
+                                }
+                                compileLogs.add(compileLog);
+                                testLogs.add(testLog);
 
                                 // Replace mutant file with original file
                                 try {
                                     Files.write(Paths.get(mutantPath), original.getBytes());
                                 } catch (IOException e) {
                                     System.err.println("    " + String.format(threadFormat.toString(), threadID) +
-                                            ": ERROR: " + methodID + "." + mutantID +
+                                            ": ERROR: " + methodID + "-" + mutantID +
                                             ": could not restore original file: " + mutantPath + "'");
 
 //                                    List<String> failedIDs = new ArrayList<>();
@@ -325,8 +347,9 @@ public class MutantTester {
                             }
                             compileMap.put(methodID, compileLogs);
                             testMap.put(methodID, testLogs);
+                            timeoutMap.put(methodID, timeouts);
                         }
-                        return new LogContainer(compileMap, testMap);
+                        return new Output(compileMap, testMap, timeoutMap);
                     }
                 });
             }
@@ -334,16 +357,22 @@ public class MutantTester {
             // Run tasks
             Map<String,List<String>> modelCompileLogs = new HashMap<>();
             Map<String,List<String>> modelTestLogs = new HashMap<>();
+            Map<String,List<Boolean>> modelTimeouts = new HashMap<>();
 //            List<String> modelFailedMutants = new ArrayList<>();
             try {
                 long start = System.nanoTime();
-                List<Future<LogContainer>> futures = executorService.invokeAll(tasks);
+                List<Future<Output>> futures = executorService.invokeAll(tasks);
                 System.out.println("    Took " + (System.nanoTime() - start) / 1000000000.0 + " seconds.");
 
-                for (Future<LogContainer> future : futures) {
-                    LogContainer lc = future.get();
-                    modelCompileLogs.putAll(lc.getCompileLogs());
-                    modelTestLogs.putAll(lc.getTestLogs());
+                for (Future<Output> future : futures) {
+                    Output output = future.get();
+                    if (output == null ) {
+                        continue;
+                    }
+
+                    modelCompileLogs.putAll(output.getCompileLogs());
+                    modelTestLogs.putAll(output.getTestLogs());
+                    modelTimeouts.putAll(output.getTimeouts());
                 }
             } catch (InterruptedException e) {
                 System.err.println("    ERROR: main thread was interrupted");
@@ -363,6 +392,7 @@ public class MutantTester {
             }
             compileLogs.put(modelName, modelCompileLogs);
             testLogs.put(modelName, modelTestLogs);
+            timeouts.put(modelName, modelTimeouts);
 //            failedMutants.put(modelName, modelFailedMutants);
 
             // Generate results
@@ -373,6 +403,10 @@ public class MutantTester {
                 List<String> compileLogs = modelCompileLogs.get(methodID);
                 List<Boolean> canCompile = new ArrayList<>();
                 for (String log : compileLogs) {
+                    if (log == null) {
+                        canCompile.add(null);
+                        continue;
+                    }
                     if (usingBaseline) {
                         canCompile.add(log.equals(compileBaseline));
                     } else {
@@ -393,6 +427,10 @@ public class MutantTester {
                 List<String> testLogs = modelTestLogs.get(methodID);
                 List<Boolean> passesTest = new ArrayList<>();
                 for (String log : testLogs) {
+                    if (log == null) {
+                        passesTest.add(null);
+                        continue;
+                    }
                     if (usingBaseline) {
                         passesTest.add(log.equals(testBaseline));
                     } else {
@@ -416,18 +454,17 @@ public class MutantTester {
         }
 
         // Clean up extra projects
-        if (cleanUp) {
-            System.out.println("  Deleting mutant project(s)...");
-            for (int i = 0; i < numThreads; i++) {
-                try {
-                    FileUtils.deleteDirectory(mutantProj[i]);
-                } catch (IOException e) {
-                    System.err.println("  WARNING: could not clean up mutant project(s)");
-                    e.printStackTrace();
-                }
-            }
-            System.out.println("  done.");
-        }
+//        if (cleanUp) {
+//            System.out.println("  Deleting mutant project(s)...");
+//            for (int i = 0; i < numThreads; i++) {
+//                try {
+//                    FileUtils.deleteDirectory(mutantProj[i]);
+//                } catch (IOException e) {
+//                    System.err.println("  WARNING: could not clean up mutant project " + mutantProj[i]);
+//                }
+//            }
+//            System.out.println("  done.");
+//        }
 
         System.out.println("done.");
     }
@@ -459,12 +496,15 @@ public class MutantTester {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
+            if (!p.waitFor(timeout, TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                return null;
+            }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             for (String line; (line = br.readLine()) != null; ) {
                 sb.append(line).append(System.lineSeparator());
             }
-            p.waitFor();
             return sb.toString();
         } catch (IOException e) {
             System.err.println("    ERROR: could not run compile command");
@@ -489,12 +529,15 @@ public class MutantTester {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
+            if (!p.waitFor(timeout, TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                return null;
+            }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             for (String line; (line = br.readLine()) != null; ) {
                 sb.append(line).append(System.lineSeparator());
             }
-            p.waitFor();
             return sb.toString();
         } catch (IOException e) {
             System.err.println("    ERROR: could not run test command");
@@ -506,8 +549,9 @@ public class MutantTester {
     }
 
     public static void writeBaseline(String outPath) {
+        System.out.println("Writing baseline... ");
         if (compileBaseline == null || testBaseline == null) {
-            System.err.println("ERROR: cannot write null baselines");
+            System.err.println("    ERROR: cannot write null baselines");
             return;
         }
 
@@ -518,6 +562,7 @@ public class MutantTester {
             System.err.println("    Error in writing baseline: " + e.getMessage());
             e.printStackTrace();
         }
+        System.out.println("done.");
     }
 
     public static void writeLogs(String outPath, List<String> modelPaths) {
@@ -555,13 +600,10 @@ public class MutantTester {
                 List<String> logs = compileMap.get(methodID);
                 for (int i=0; i<logs.size(); i++) {
                     try {
-                        if (logs.size() == 1) {
-                            Files.write(Paths.get(logPath + methodID + Consts.COMPILE_LOG_SUFFIX), logs.get(i).getBytes());
-                        } else {
-                            Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.COMPILE_LOG_SUFFIX), logs.get(i).getBytes());
-                        }
+                        String log = (logs.get(i) == null) ? Consts.TIMEOUT : logs.get(i);
+                        Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.COMPILE_LOG_SUFFIX), log.getBytes());
                     } catch (IOException e) {
-                        System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
+                        System.err.println("    Error in writing mutant " + methodID + "-" + i + ": " + e.getMessage());
                     }
                 }
             }
@@ -569,13 +611,10 @@ public class MutantTester {
                 List<String> logs = testMap.get(methodID);
                 for (int i=0; i<logs.size(); i++) {
                     try {
-                        if (logs.size() == 1) {
-                            Files.write(Paths.get(logPath + methodID + Consts.TEST_LOG_SUFFIX), logs.get(i).getBytes());
-                        } else {
-                            Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.TEST_LOG_SUFFIX), logs.get(i).getBytes());
-                        }
+                        String log = (logs.get(i) == null) ? Consts.TIMEOUT : logs.get(i);
+                        Files.write(Paths.get(logPath + methodID + "-" + (i + 1) + Consts.TEST_LOG_SUFFIX), log.getBytes());
                     } catch (IOException e) {
-                        System.err.println("    Error in writing mutant " + methodID + "." + i + ": " + e.getMessage());
+                        System.err.println("    Error in writing mutant " + methodID + "-" + i + ": " + e.getMessage());
                     }
                 }
             }
@@ -584,10 +623,56 @@ public class MutantTester {
         System.out.println("done.");
     }
 
+    public static void writeTimeouts(String outPath, List<String> modelPaths) {
+        System.out.println("Writing timeouts... ");
+        if (timeouts == null) {
+            System.err.println("  ERROR: cannot write null timeouts map");
+            return;
+        }
+
+        for (String modelPath : modelPaths) {
+            File modelFile = new File(modelPath);
+            String modelName = modelFile.getName();
+            System.out.println("  Processing model " + modelName + "... ");
+
+            Map<String, List<Boolean>> modelTimeouts = timeouts.get(modelName);
+            if (modelTimeouts == null) {
+                System.err.println("    WARNING: cannot write null map for model " + modelName);
+                continue;
+            }
+            SortedMap<String, List<Boolean>> sortedTimeouts = new TreeMap<>(modelTimeouts);
+
+            String path = outPath + File.separator + modelName + File.separator;
+            StringBuilder sb = new StringBuilder();
+
+            for (String methodID : sortedTimeouts.keySet()) {
+                List<Boolean> results = sortedTimeouts.get(methodID);
+                sb.append(methodID);
+                for (Boolean b : results) {
+                    sb.append(" ");
+                    if (b) {
+                        sb.append(Consts.TIMEOUT);
+                    } else {
+                        sb.append(Consts.OK);
+                    }
+                }
+                sb.append(System.lineSeparator());
+            }
+
+            try {
+                Files.write(Paths.get(path + Consts.TIMEOUTS), sb.toString().getBytes());
+            } catch (IOException e) {
+                System.err.println("    Error in writing results");
+            }
+        }
+
+        System.out.println("done.");
+    }
+
     public static void writeResults(String outPath, List<String> modelPaths) {
         System.out.println("Writing results... ");
         if (compilable == null || successful == null) {
-            System.err.println("ERROR: cannot write null result maps");
+            System.err.println("  ERROR: cannot write null result maps");
             return;
         }
 
@@ -614,7 +699,9 @@ public class MutantTester {
                 sb.append(methodID);
                 for (Boolean b : results) {
                     sb.append(" ");
-                    if (b) {
+                    if (b == null) {
+                        sb.append(Consts.TIMEOUT);
+                    } else if (b) {
                         sb.append(Consts.PASSED);
                     } else {
                         sb.append(Consts.FAILED);
@@ -634,7 +721,9 @@ public class MutantTester {
                 sb.append(methodID);
                 for (Boolean b : results) {
                     sb.append(" ");
-                    if (b) {
+                    if (b == null) {
+                        sb.append(Consts.TIMEOUT);
+                    } else if (b) {
                         sb.append(Consts.PASSED);
                     } else {
                         sb.append(Consts.FAILED);
@@ -688,8 +777,20 @@ public class MutantTester {
         return successful;
     }
 
+    public static Map<String, Map<String, List<Boolean>>> getTimeouts() {
+        return timeouts;
+    }
+
     public static Map<String, List<String>> getFailedMutants() {
         return failedMutants;
+    }
+
+    public static long getTimeout() {
+        return timeout;
+    }
+
+    public static void setTimeout(long timeout) {
+        MutantTester.timeout = timeout;
     }
 
     public static void useBaseline(boolean usingBaseline) {
