@@ -21,6 +21,7 @@ public class RestartTest {
         boolean compiled = true;
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
+        String wrapperLibFile = "dist/libWrapper.so";
 
         String defects4j = "defects4j";
         MutantTester.setCompileCmd(defects4j, "compile");
@@ -30,7 +31,7 @@ public class RestartTest {
         MethodTranslator.readMutants(outPath, modelPaths);
 
         MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-                MethodExtractor.getMethods(), modelPaths);
+                MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
         if (MutantTester.usingBaseline()) {
             MutantTester.writeBaseline(outPath);

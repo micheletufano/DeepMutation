@@ -28,6 +28,7 @@ public class LoadFromFilesTest {
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
         String inputMethodsPath = dataPath + "methods.input";
+        String wrapperLibFile = "dist/libWrapper.so";
 
         String defects4j = "defects4j";
         MutantTester.setCompileCmd(defects4j, "compile");
@@ -79,7 +80,7 @@ public class LoadFromFilesTest {
 
         // MutantTester (check with `diff -rq outPath tmpPath` on UNIX)
         MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-                MethodExtractor.getMethods(), modelPaths);
+                MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
         if (MutantTester.usingBaseline()) {
             MutantTester.writeBaseline(outPath);

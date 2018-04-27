@@ -34,6 +34,7 @@ public class MutantTesterTest {
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
         String inputMethodsPath = dataPath + "methods.input";
+        String wrapperLibFile = "dist/libWrapper.so";
 
         MethodMutator.setPython("python3");
 
@@ -53,7 +54,7 @@ public class MutantTesterTest {
         MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
 
         MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-                MethodExtractor.getMethods(), modelPaths);
+                MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
         if (MutantTester.usingBaseline()) {
             MutantTester.writeBaseline(outPath);

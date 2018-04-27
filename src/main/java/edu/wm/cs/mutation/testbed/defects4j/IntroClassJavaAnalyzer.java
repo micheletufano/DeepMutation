@@ -35,6 +35,7 @@ public class IntroClassJavaAnalyzer {
 		MutantTester.setTestFailStrings("ailure", "Failing", "FAIL");
 		MutantTester.useBaseline(false);
 		MutantTester.setParallel(false);
+		String wrapperLibFile = "dist/libWrapper.so";
 
 		//MethodMutator settings
 		MethodMutator.useBeams(true);
@@ -90,7 +91,7 @@ public class IntroClassJavaAnalyzer {
 				MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
 
 				MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-						MethodExtractor.getMethods(), modelPaths);
+						MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
 				if (MutantTester.usingBaseline()) {
 					MutantTester.writeBaseline(outPath);

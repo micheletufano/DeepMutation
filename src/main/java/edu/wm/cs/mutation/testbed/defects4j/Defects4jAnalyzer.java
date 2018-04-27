@@ -25,6 +25,8 @@ public class Defects4jAnalyzer {
 		String modelBuildingInfo = spoonModelRoot + projectName + ".json";
 		String revisionFile = revisionsRoot + projectName + "/revs.list";
 		String idiomPath = mutationModelRoot + "/idioms.csv";
+		String wrapperLibFile = "dist/libWrapper.so";
+
 		IOHandler.createDirectories(outProjectLog);
 
 		//Mutation models settings
@@ -84,7 +86,7 @@ public class Defects4jAnalyzer {
 			MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
 
 			MutantTester.testMutants(revPath, MethodTranslator.getTranslatedMutantMaps(),
-					MethodExtractor.getMethods(), modelPaths);
+					MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
 			if (MutantTester.usingBaseline()) {
 				MutantTester.writeBaseline(outPath);

@@ -19,7 +19,8 @@ public class PipelineDefects4JTest {
         String outBasePath = dataPath + "out/Chart/";
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
-        String inputMethodsPath = dataPath + "methods.input";
+        String inputMethodsFile = dataPath + "methods.input";
+        String wrapperLibFile = "dist/libWrapper.so";
         
         boolean compiled = true;
         boolean specified = false;
@@ -57,7 +58,7 @@ public class PipelineDefects4JTest {
             MethodTranslator.createMutantFiles(input.getOutPath(), modelPaths, MethodExtractor.getMethods());
 
             MutantTester.testMutants(input.getProjPath(), MethodTranslator.getTranslatedMutantMaps(),
-                    MethodExtractor.getMethods(), modelPaths);
+                    MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
             if (MutantTester.usingBaseline()) {
                 MutantTester.writeBaseline(input.getOutPath());
