@@ -8,6 +8,7 @@ library.path=data/spoonModel/lib/Chart/
 model.paths=data/models/50len_ident_lit/
 idioms.file=data/idioms.csv
 #input.methods.file=data/methods.input
+wrapper.library.file=dist/libWrapper.so
 
 # MethodExtractor
 compliance.level=4
@@ -25,9 +26,8 @@ num.beams=5
 parallel=true
 compile.command=defects4j compile
 test.command=defects4j test
-timeout=300
+timeout=1
 use.baseline=false
 compile.fail.strings=FAIL
 test.fail.strings=FAIL,Failing
-
-
+clean.up=true

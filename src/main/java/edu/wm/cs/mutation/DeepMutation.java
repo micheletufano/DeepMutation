@@ -21,6 +21,7 @@ public class DeepMutation {
     private static Integer complianceLvl;
     private static Boolean compiled;
     private static String inputMethodsFile;
+    private static String wrapperLibFile;
 
     private static String idiomsFile;
     private static List<String> modelPaths;
@@ -44,12 +45,13 @@ public class DeepMutation {
         MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
 
         MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-                MethodExtractor.getMethods(), modelPaths);
+                MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
         if (MutantTester.usingBaseline()) {
             MutantTester.writeBaseline(outPath);
         }
         MutantTester.writeLogs(outPath, modelPaths);
+        MutantTester.writeTimeouts(outPath, modelPaths);
         MutantTester.writeResults(outPath, modelPaths);
 
     }
@@ -99,6 +101,9 @@ public class DeepMutation {
                         inputMethodsFile = val;
                         MethodAbstractor.setInputMode(true);
                         break;
+                    case "wrapper.library.file":
+                        wrapperLibFile = val;
+                        break;
                     case "compliance.level":
                         complianceLvl = Integer.parseInt(val);
                         break;
@@ -126,6 +131,9 @@ public class DeepMutation {
                     case "test.command":
                         MutantTester.setTestCmd(val.split(" "));
                         break;
+                    case "timeout":
+                        MutantTester.setTimeout(Integer.parseInt(val));
+                        break;
                     case "use.baseline":
                         MutantTester.useBaseline(Boolean.parseBoolean(val));
                         break;
@@ -135,8 +143,8 @@ public class DeepMutation {
                     case "test.fail.strings":
                         MutantTester.setTestFailStrings(val.split(","));
                         break;
-                    case "timeout":
-                        MutantTester.setTimeout(Integer.parseInt(val));
+                    case "clean.up":
+                        MutantTester.setCleanUp(Boolean.parseBoolean(val));
                         break;
                 }
             }
