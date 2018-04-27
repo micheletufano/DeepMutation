@@ -7,6 +7,9 @@
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
     <property name="entry.point" value="edu.wm.cs.mutation.DeepMutation"/>
+    <property name="build.c" location="build/c"/>
+    <property name="c.path" location="${src}/main/c"/>
+    <property name="c.lib.out" location="${dist}/libWrapper.so"/>
 
     <!-- https://stackoverflow.com/a/1892936 -->
     <path id="build.classpath">
@@ -31,21 +34,37 @@
         <tstamp/>
         <!-- Create the build directory structure used by compile -->
         <mkdir dir="${build}"/>
+        <mkdir dir="${build.c}"/>
+        <mkdir dir="${dist}"/>
+
     </target>
 
     <target name="compile" depends="init"
             description="compile the source">
         <!-- Compile the Java code from ${src} into ${build} -->
         <javac includeantruntime="false" classpathref="build.classpath"
-            srcdir="${src}" destdir="${build}"/>
+               srcdir="${src}/main" destdir="${build}"/>
     </target>
 
-    <target name="dist" depends="compile"
-            description="generate the distribution">
-        <!-- Create the distribution directory -->
-        <mkdir dir="${dist}"/>
+    <target name="jni" depends="compile"
+            description="compile jni">
 
-        <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+        <javah outputFile="${build.c}/Wrapper.h" classpath="build">
+            <class name="edu.wm.cs.mutation.tester.Wrapper"/>
+        </javah>
+
+        <exec executable="make" failonerror="true">
+            <arg value="-f"/>
+            <arg value="jni/Makefile"/>
+            <arg value="C_PATH=${c.path}"/>
+            <arg value="HEADER_PATH=${build.c}"/>
+            <arg value="LIB_OUT=${c.lib.out}"/>
+        </exec>
+    </target>
+
+    <target name="dist" depends="compile,jni"
+            description="generate the distribution">
+
         <jar jarfile="${dist}/DeepMutation.jar" basedir="${build}">
             <manifest>
                 <attribute name="Main-Class" value="${entry.point}"/>

@@ -8,10 +8,8 @@ import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -49,7 +47,7 @@ public class MutantTester {
     private static boolean cleanUp = true;
 
     public static void testMutants(String projPath, Map<String, LinkedHashMap<String, List<String>>> modelsMap,
-                                   List<CtMethod> methods, List<String> modelPaths) {
+                                   List<CtMethod> methods, List<String> modelPaths, String wrapperLib) {
 
         // get real and absolute path to projPath
         final File projFile;
@@ -97,12 +95,14 @@ public class MutantTester {
         }
 
         // Check for existing binaries
-        if (!findCommand(compileCmd[0])) {
-            System.err.println("  ERROR: could not find " + compileCmd[0]);
+        String cmd = compileCmd[0];
+        if ((compileCmd[0] = findAbsolutePath(cmd)) == null) {
+            System.err.println("  ERROR: could not find compile command: " + cmd);
             return;
         }
-        if (!findCommand(testCmd[0])) {
-            System.err.println("  ERROR: could not find " + testCmd[0]);
+        cmd = testCmd[0];
+        if ((testCmd[0] = findAbsolutePath(cmd)) == null) {
+            System.err.println("  ERROR: could not find test command: " + cmd);
             return;
         }
 
@@ -117,6 +117,9 @@ public class MutantTester {
                 return;
             }
         }
+
+        // Load C wrapper library
+        Wrapper.load(wrapperLib);
 
         // Get number of threads
         int numThreads;
@@ -454,33 +457,35 @@ public class MutantTester {
         }
 
         // Clean up extra projects
-//        if (cleanUp) {
-//            System.out.println("  Deleting mutant project(s)...");
-//            for (int i = 0; i < numThreads; i++) {
-//                try {
-//                    FileUtils.deleteDirectory(mutantProj[i]);
-//                } catch (IOException e) {
-//                    System.err.println("  WARNING: could not clean up mutant project " + mutantProj[i]);
-//                }
-//            }
-//            System.out.println("  done.");
-//        }
+        if (cleanUp) {
+            System.out.println("  Deleting mutant project(s)...");
+            for (int i = 0; i < numThreads; i++) {
+                try {
+                    FileUtils.deleteDirectory(mutantProj[i]);
+                } catch (IOException e) {
+                    System.err.println("  WARNING: could not clean up mutant project " + mutantProj[i]);
+                }
+            }
+            System.out.println("  done.");
+        }
 
         System.out.println("done.");
     }
 
-    private static boolean findCommand(String cmd) {
-        if (!new File(cmd).exists()) {
+    private static String findAbsolutePath(String cmd) {
+        File f = new File(cmd);
+        if (!f.exists()) {
             String PATH = System.getenv("PATH");
             String[] paths = PATH.split(File.pathSeparator);
             for (String path : paths) {
-                if (new File(path + File.separator + cmd).exists()) {
-                    return true;
+                File ff = new File(path + File.separator + cmd);
+                if (ff.exists()) {
+                    return ff.getAbsolutePath();
                 }
             }
-            return false;
+            return null;
         }
-        return true;
+        return f.getAbsolutePath();
     }
 
     /**
@@ -489,31 +494,16 @@ public class MutantTester {
      * @param mutantProjPath
      */
     private static String compile(String mutantProjPath) {
-        StringBuilder sb = new StringBuilder();
-
-        ProcessBuilder pb = new ProcessBuilder(compileCmd);
-        pb.directory(new File(mutantProjPath));
-        pb.redirectErrorStream(true);
-        try {
-            Process p = pb.start();
-            if (!p.waitFor(timeout, TimeUnit.SECONDS)) {
-                p.destroyForcibly();
-                return null;
-            }
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            for (String line; (line = br.readLine()) != null; ) {
-                sb.append(line).append(System.lineSeparator());
+        String[] output = Wrapper.run(compileCmd, mutantProjPath, timeout);
+        if (output == null) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String line : output) {
+                sb.append(line);
             }
             return sb.toString();
-        } catch (IOException e) {
-            System.err.println("    ERROR: could not run compile command");
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            System.err.println("    ERROR: interrupted compile command");
-            e.printStackTrace();
         }
-        return null;
     }
 
     /**
@@ -522,30 +512,16 @@ public class MutantTester {
      * @param mutantProjPath
      */
     private static String test(String mutantProjPath) {
-        StringBuilder sb = new StringBuilder();
-
-        ProcessBuilder pb = new ProcessBuilder(testCmd);
-        pb.directory(new File(mutantProjPath));
-        pb.redirectErrorStream(true);
-        try {
-            Process p = pb.start();
-            if (!p.waitFor(timeout, TimeUnit.SECONDS)) {
-                p.destroyForcibly();
-                return null;
-            }
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            for (String line; (line = br.readLine()) != null; ) {
-                sb.append(line).append(System.lineSeparator());
+        String[] output = Wrapper.run(testCmd, mutantProjPath, timeout);
+        if (output == null) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String line : output) {
+                sb.append(line);
             }
             return sb.toString();
-        } catch (IOException e) {
-            System.err.println("    ERROR: could not run test command");
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        return null;
     }
 
     public static void writeBaseline(String outPath) {
