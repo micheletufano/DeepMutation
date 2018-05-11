@@ -24,7 +24,7 @@ public class Wrapper {
 
         args.add(prog.getAbsolutePath());
         args.add(prog.getName());
-        for (int i=1; i<cmd.length; i++) {
+        for (int i = 1; i < cmd.length; i++) {
             args.add(cmd[i]);
         }
 

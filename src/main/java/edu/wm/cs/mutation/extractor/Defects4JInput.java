@@ -1,5 +1,9 @@
 package edu.wm.cs.mutation.extractor;
 
+/**
+ * Container for a Defects4J project.
+ * Useful for testing multiple revisions.
+ */
 public class Defects4JInput {
 
     private String projPath;

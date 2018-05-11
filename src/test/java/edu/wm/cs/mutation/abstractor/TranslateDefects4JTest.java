@@ -10,7 +10,7 @@ import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 
 public class TranslateDefects4JTest {
-	public static void main(String[] args) {
+    public static void main(String[] args) {
         String dataPath = "data/";
 
         //Chart
@@ -18,14 +18,14 @@ public class TranslateDefects4JTest {
         String outBasePath = dataPath + "out/Chart/";
         String modelConfigPath = dataPath + "spoonModel/model/Chart.json";
         String libPath = dataPath + "spoonModel/lib/Chart";
-		String inputMethodsPath = dataPath + "methods.input";
-		boolean compiled = true;
-		boolean specified = false;
-		HashSet<String> inputMethods = null;
+        String inputMethodsPath = dataPath + "methods.input";
+        boolean compiled = true;
+        boolean specified = false;
+        HashSet<String> inputMethods = null;
 
         //Idiom path
         String idiomPath = dataPath + "idioms.csv";
-        
+
         // MethodMutator
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
@@ -45,5 +45,5 @@ public class TranslateDefects4JTest {
             MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
             MethodTranslator.writeMutants(input.getOutPath(), modelPaths);
         }
-	}
+    }
 }

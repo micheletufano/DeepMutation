@@ -11,12 +11,20 @@ import java.util.Set;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+/**
+ * Container for Spoon model configurations.
+ */
 public class ModelConfig {
     private JSONObject data;
     private JSONObject compliance;
     private Map<Integer, String> srcMap;
     private List<Integer> srcKeys;
 
+    /**
+     * Parse a model config JSON file.
+     *
+     * @param file Model config JSON file
+     */
     public void init(String file) {
         //Parse json file
         JSONParser parser = new JSONParser();

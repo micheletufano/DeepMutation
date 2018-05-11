@@ -96,55 +96,55 @@ public class IOHandler {
     }
 
     public static String[] readRevsCSV(String filePath) {
-    	
-    	List<String> lines = readLines(filePath);
 
-    	return lines.get(0).split(",");
-    }
-    
-    public static List<String> listDirectoriesPaths(String dirPath){
-    	
-    	File[] directories = new File(dirPath).listFiles(File::isDirectory);	
-    	List<String> paths = new ArrayList<>();
-    	
-    	for(File dir : directories) {
-    		paths.add(dir.getAbsolutePath()+File.separator);
-    	}
-    	
-    	return paths;
+        List<String> lines = readLines(filePath);
+
+        return lines.get(0).split(",");
     }
 
-    public static List<String> readLines(String filePath){
-    	List<String> lines = null;
-    	
-    	try {
-			lines = Files.readAllLines(Paths.get(filePath));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	
-    	return lines;
+    public static List<String> listDirectoriesPaths(String dirPath) {
+
+        File[] directories = new File(dirPath).listFiles(File::isDirectory);
+        List<String> paths = new ArrayList<>();
+
+        for (File dir : directories) {
+            paths.add(dir.getAbsolutePath() + File.separator);
+        }
+
+        return paths;
     }
-    
-    
+
+    public static List<String> readLines(String filePath) {
+        List<String> lines = null;
+
+        try {
+            lines = Files.readAllLines(Paths.get(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return lines;
+    }
+
+
     public static void setOutputStream(String logFilePath) {
-		try {
-			FileOutputStream log = new FileOutputStream(logFilePath);
-			PrintStream out = new PrintStream(log);
-			PrintStream err = new PrintStream(log);
-			System.setOut(out);
-			System.setErr(err);  
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
+        try {
+            FileOutputStream log = new FileOutputStream(logFilePath);
+            PrintStream out = new PrintStream(log);
+            PrintStream err = new PrintStream(log);
+            System.setOut(out);
+            System.setErr(err);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    
+
     public static void createDirectories(String dirPath) {
-    	try {
-			Files.createDirectories(Paths.get(dirPath));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        try {
+            Files.createDirectories(Paths.get(dirPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

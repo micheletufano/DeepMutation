@@ -7,6 +7,7 @@ import edu.wm.cs.mutation.extractor.MethodExtractor;
 import edu.wm.cs.mutation.io.IOHandler;
 import edu.wm.cs.mutation.mutator.MethodMutator;
 import edu.wm.cs.mutation.tester.MutantTester;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,13 +22,13 @@ public class PipelineDefects4JTest {
         String libPath = dataPath + "spoonModel/lib/Chart";
         String inputMethodsFile = dataPath + "methods.input";
         String wrapperLibFile = "dist/libWrapper.so";
-        
+
         boolean compiled = true;
         boolean specified = false;
         int tokenThreshold = 50;
 
         String idiomPath = dataPath + "idioms.csv";
-        
+
         List<String> modelPaths = new ArrayList<>();
         modelPaths.add(dataPath + "models/50len_ident_lit/");
 
@@ -39,13 +40,13 @@ public class PipelineDefects4JTest {
         MutantTester.setTestCmd(defects4j, "test");
         MutantTester.useBaseline(false);
         MutantTester.setCompileFailStrings("FAIL");
-        MutantTester.setTestFailStrings("FAIL","Failing");
+        MutantTester.setTestFailStrings("FAIL", "Failing");
 
         List<Defects4JInput> inputs = MethodExtractor.generateDefect4JInputs(projBasePath, outBasePath, modelConfigPath);
         for (Defects4JInput input : inputs) {
             MethodExtractor.extractMethods(input, libPath, compiled, null);
             MethodExtractor.writeMethods(input.getOutPath());
-             
+
             MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomPath);
             MethodAbstractor.writeMethods(input.getOutPath());
             MethodAbstractor.writeMappings(input.getOutPath());

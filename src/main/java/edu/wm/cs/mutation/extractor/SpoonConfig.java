@@ -1,6 +1,8 @@
 package edu.wm.cs.mutation.extractor;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,13 +55,31 @@ public class SpoonConfig {
     private static void addJarFiles(List<String> paths, String path) {
         File file = new File(path);
         if (file.exists()) {
-            List<String> jars = FileUtility.listJARFiles(path)
+            List<String> jars = listJARFiles(path)
                     .stream()
                     .map(j -> j.getAbsolutePath())
                     .collect(Collectors.toList());
 
             paths.addAll(jars);
         }
+    }
+
+    private static List<File> listJARFiles(String dirPath) {
+        //Path Matcher for java files (recursive)
+        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.jar");
+
+        List<File> files = null;
+        try {
+            files = Files.walk(Paths.get(dirPath))
+                    .filter(Files::isRegularFile)
+                    .filter(p -> matcher.matches(p))
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return files;
     }
 
     private static void addFilesInPath(List<String> paths, String path) {

@@ -23,20 +23,21 @@ public class MethodMutator {
     private static String interpretBeams = "interpretBeams.py";
     private static boolean printModelOutput = false;
 
-    private static Map<String, LinkedHashMap<String,List<String>>> mutantMaps = new HashMap<>();
+    private static Map<String, LinkedHashMap<String, List<String>>> mutantMaps = new HashMap<>();
 
     /**
-     * Mutates methods given abstracted methods and model directories.
-     *
+     * Mutate methods given abstracted methods and model directories.
+     * <p>
      * For file dependencies, refer to {@link MethodMutator#foundFileDeps(List)}.
-     * @param absMethodsMap
-     * @param modelPaths
+     *
+     * @param absMethodsMap Map of method signatures and their abstracted bodies
+     * @param modelPaths    List of paths to each model directory
      */
     public static void mutateMethods(String outPath, LinkedHashMap<String, String> absMethodsMap, List<String> modelPaths) {
         System.out.println("Mutating methods... ");
-       
+
         mutantMaps.clear();
-        
+
         if (absMethodsMap == null || absMethodsMap.size() == 0) {
             System.err.println("  ERROR: null/empty input map");
             return;
@@ -53,13 +54,13 @@ public class MethodMutator {
             }
         }
 
-        // Check for train_options.json and vocab files
+        // Check for train_options.json and vocab files in model directories
         if (!foundFileDeps(modelPaths)) {
             System.err.println("ERROR: cannot find file dependencies");
             return;
         }
 
-        // Run all models on all revisions
+        // Run all models
         for (String modelPath : modelPaths) {
             File modelFile = new File(modelPath);
             String modelName = modelFile.getName();
@@ -84,11 +85,11 @@ public class MethodMutator {
             }
 
             // Save mutants
-            LinkedHashMap<String,List<String>> modelMap = new LinkedHashMap<>();
-            int i=0;
-            int numUnchangedMethods=0;
-            int numUnchangedMutants=0;
-            int numMutants=0;
+            LinkedHashMap<String, List<String>> modelMap = new LinkedHashMap<>();
+            int i = 0;
+            int numUnchangedMethods = 0;
+            int numUnchangedMutants = 0;
+            int numMutants = 0;
             for (String signature : absMethodsMap.keySet()) {
                 List<String> mutatedMethod = mutants.get(i++);
 
@@ -128,7 +129,7 @@ public class MethodMutator {
 
     /**
      * Returns true if all file dependencies were found for in all model directories.
-     *
+     * <p>
      * File dependencies:
      * - {@link MethodMutator#VOCAB_SOURCE}
      * - {@link MethodMutator#VOCAB_TARGET}
@@ -155,6 +156,13 @@ public class MethodMutator {
         return true;
     }
 
+    /**
+     * Run a model given a file with abstracted methods bodies.
+     *
+     * @param modelFile Model directory as a File
+     * @param input     Path to file with abstracted method bodies
+     * @return
+     */
     private static List<List<String>> runModel(File modelFile, String input) {
         try {
             List<String> cmd = buildCommand(input);
@@ -166,7 +174,7 @@ public class MethodMutator {
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             List<List<String>> mutants = new ArrayList<>();
             String line;
-            int i=0;
+            int i = 0;
 
             if (usingBeams) {
                 while (br.readLine() != null) {
@@ -176,6 +184,8 @@ public class MethodMutator {
                 }
                 System.out.println("    Generated " + i + " mutated methods.");
                 p.waitFor();
+
+                // Interpret model-generated beams.npz
                 interpretBeams(modelFile, mutants);
             } else {
                 while ((line = br.readLine()) != null) {
@@ -212,26 +222,43 @@ public class MethodMutator {
         }
     }
 
+    /**
+     * Return the command to run a model with correct formatting.
+     *
+     * @param input File with abstracted method bodies
+     * @return
+     */
     private static List<String> buildCommand(String input) {
         List<String> cmd = new ArrayList<>();
-        cmd.add(python); cmd.add("-m"); cmd.add("bin.infer");
+        cmd.add(python);
+        cmd.add("-m");
+        cmd.add("bin.infer");
         cmd.add("--tasks");
         if (usingBeams) {
             cmd.add("- class: DecodeText\n- class: DumpBeams\n  params:\n    file: beams.npz");
-            cmd.add("--model_params"); cmd.add("inference.beam_search.beam_width: " + numBeams);
+            cmd.add("--model_params");
+            cmd.add("inference.beam_search.beam_width: " + numBeams);
         } else {
             cmd.add("- class: DecodeText");
         }
-        cmd.add("--model_dir"); cmd.add(".");
+        cmd.add("--model_dir");
+        cmd.add(".");
         cmd.add("--input_pipeline");
         cmd.add("class: ParallelTextInputPipeline\nparams:\n  source_files:\n  - " + input);
         return cmd;
     }
 
+    /**
+     * Interpret beams generated by a model using interpretBeams.py.
+     *
+     * @param modelFile Model directory as a File
+     * @param mutants   Store results
+     */
     private static void interpretBeams(File modelFile, List<List<String>> mutants) {
         try {
             List<String> cmd = new ArrayList<>();
-            cmd.add(python); cmd.add(new File(interpretBeams).getAbsolutePath());
+            cmd.add(python);
+            cmd.add(new File(interpretBeams).getAbsolutePath());
 
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(modelFile);
@@ -239,8 +266,8 @@ public class MethodMutator {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String mutant;
-            int i=0;
-            int beam=0;
+            int i = 0;
+            int beam = 0;
 
             List<String> mutatedMethod = new ArrayList<>();
             while ((mutant = br.readLine()) != null) {
@@ -264,6 +291,13 @@ public class MethodMutator {
         }
     }
 
+    /**
+     * Write mutant signatures to outPath/modelName/mutants.key and
+     * respective bodies to outPath/modelName/mutants.abs.
+     *
+     * @param outPath    Path to output directory
+     * @param modelPaths Paths to each model directory
+     */
     public static void writeMutants(String outPath, List<String> modelPaths) {
         System.out.println("Writing abstracted mutants... ");
 
@@ -310,6 +344,12 @@ public class MethodMutator {
         System.out.println("done.");
     }
 
+    /**
+     * Populate {@link MethodMutator#mutantMaps} from outPath/modelName/mutants.{key,abs}.
+     *
+     * @param outPath    Path to output directory
+     * @param modelPaths Paths to each model directory
+     */
     public static void readMutants(String outPath, List<String> modelPaths) {
         System.out.println("Reading abstracted mutants from files... ");
 

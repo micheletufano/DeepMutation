@@ -1,33 +1,73 @@
 # Configuration file example.
 
-# Paths
-project.path=data/fixed/Chart/1/f/
-source.path=data/fixed/Chart/1/f/source/
+################## Paths #####################
+# Path to output directory
 output.path=data/out/fixed/Chart/1/f/
+
+# Path to the project directory
+project.path=data/fixed/Chart/1/f/
+
+# Path to the src root directory
+source.path=data/fixed/Chart/1/f/source/
+
+# Path to lib directory
 library.path=data/spoonModel/lib/Chart/
-model.paths=data/models/50len_ident_lit/
-idioms.file=data/idioms.csv
-#input.methods.file=data/methods.input
+
+# Path to libWrapper.so (generated post-build)
 wrapper.library.file=dist/libWrapper.so
 
-# MethodExtractor
+# (Optional) Path to list of input methods
+#input.methods.file=data/methods.input
+
+# Path to model directories (comma-separated)
+model.paths=data/models/50len_ident_lit/
+
+# Path to idioms.csv
+idioms.file=data/idioms.csv
+
+############## MethodExtractor ###############
+# Project SDK
 compliance.level=4
+
+#
 compiled=true
 
-# MethodAbstractor
+############## MethodAbstractor ##############
+# Maximum number of tokens of an extracted method
 token.threshold=50
 
-# MethodMutator
+############## MethodMutator #################
+# python3 command
 python=python3
+
+# Use beam search
 use.beams=false
+
+# Number of beams
 num.beams=5
 
-# MutantTester
+############## MutantTester ##################
+# Enable parallel testing
 parallel=true
+
+# Compile command
 compile.command=defects4j compile
+
+# Test command
 test.command=defects4j test
+
+# Timeout per command (in seconds)
 timeout=300
+
+# Remove project copies after testing
+clean.up=true
+
+# Baseline is established by running the provided
+# commands on a copy of the original project.
+# Success/failure is determined by a string diff.
 use.baseline=false
+
+# Alternatively, set fail strings that appear in
+# command output (comma-separated)
 compile.fail.strings=FAIL
 test.fail.strings=FAIL,Failing
-clean.up=true
