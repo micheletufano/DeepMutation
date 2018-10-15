@@ -22,7 +22,7 @@ tf_ver=`pip show tensorflow | grep Version | awk '{print $2}' \
 if [ -z "$tf_ver" ] || [ ! "$tf_ver" = "1.3" ]; then
     echo >&2 "Please install tensorflow 1.3 using:
 > pip install [--user] tensorflow==1.3.0"
-    exit 1
+    # exit 1
 fi
 
 # Check seq2seq
@@ -34,7 +34,7 @@ if [ -z "$s2s_ver" ] || [ ! "$s2s_ver" = "0.1" ]; then
 > git clone https://github.com/google/seq2seq.git
 > cd seq2seq
 > pip install [--user] -e ."
-    exit 1
+    # exit 1
 fi
 
 # Test seq2seq
@@ -57,6 +57,10 @@ A common issue related to helper.py can be addressed by following these steps:
   Replace the import lines for bernoulli and categorical with these:
     from tensorflow.contrib.distributions import Bernoulli
     from tensorflow.contrib.distributions import Categorical
+
+Another common issue relates to $DISPLAY not being correct. This may be a matplotlib issue best resolved with:
+    echo "backend : Agg" >> ${XDG_CACHE_HOME:-$HOME/.cache}/matplotlib/matplotlibrc
+
 
 Please refer to https://github.com/google/seq2seq/issues/285 for ImportErrors."
     exit 1
