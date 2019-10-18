@@ -33,7 +33,7 @@ $ ./setup_env.sh
 
 <a name="build"></a>
 ### Building
-DeepMutation can be compiled into lib/DeepMutation.jar with:
+DeepMutation can be compiled into DeepMutation.jar with:
 ```
 $ ant dist
 ```
