@@ -7,18 +7,18 @@ thousands of real world bug-fixes performed by developers, how to generate
 mutants that resemble real buggy code.
 
 ## Installation
-#### Setting up the environment
+### Setting up the environment
 DeepMutation uses [seq2seq](https://github.com/google/seq2seq.git), a 
 Tensorflow framework.
 
-In our study, we worked with tensorflow 1.3 and seq2seq 0.1.
+In our study, we worked with tensorflow 1.3 and seq2seq 0.1.  
 We include the script [setup_env.sh](setup_env.sh) to guide the installation process.
 
 ```
 $ ./setup_env.sh
 ```
 
-#### Building
+### Building
 DeepMutation can be compiled into lib/DeepMutation.jar with:
 ```
 ant dist
