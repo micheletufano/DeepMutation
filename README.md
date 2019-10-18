@@ -21,13 +21,13 @@ $ ./setup_env.sh
 ### Building
 DeepMutation can be compiled into lib/DeepMutation.jar with:
 ```
-ant dist
+$ ant dist
 ```
 
 ## Generating mutants
 DeepMutation runs using a configuration file:
 ```
-java -jar DeepMutation.jar config_file
+$ java -jar DeepMutation.jar config_file
 ```
 An [example](config) is provided.
 
