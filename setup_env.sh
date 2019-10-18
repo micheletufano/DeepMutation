@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-# Check that we are running this (not sourcing) so that exit clauses are safe
-if [[ "$(basename -- "$0")" != "setup_env.sh" ]]; then
-    echo "Don't source setup_env.sh, run it"
-# The rest of program is within the else close
-else
-
 # Check python
 command -v python >/dev/null 2>&1 && python --version 2>&1 | grep -q " 3.[0-6]" || 
     { echo >&2 "Please install python version 3.0.* through 3.6.*."; exit 1; }
@@ -22,7 +16,7 @@ tf_ver=`pip show tensorflow | grep Version | awk '{print $2}' \
 if [ -z "$tf_ver" ] || [ ! "$tf_ver" = "1.3" ]; then
     echo >&2 "Please install tensorflow 1.3 using:
 > pip install [--user] tensorflow==1.3.0"
-    # exit 1
+    exit 1
 fi
 
 # Check seq2seq
@@ -34,7 +28,7 @@ if [ -z "$s2s_ver" ] || [ ! "$s2s_ver" = "0.1" ]; then
 > git clone https://github.com/google/seq2seq.git
 > cd seq2seq
 > pip install [--user] -e ."
-    # exit 1
+    exit 1
 fi
 
 # Test seq2seq
@@ -66,7 +60,4 @@ Please refer to https://github.com/google/seq2seq/issues/285 for ImportErrors."
     exit 1
 else 
     echo "Success."
-fi
-
-# End of 'source' check
 fi
