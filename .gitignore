@@ -1,16 +1,19 @@
-data
+/data/
 
 # IntelliJ IDEA
 .idea/
 *.iml
-out/
+/out/
 
 # Eclipse
 .settings/
 .classpath
 .project
-bin/
+/bin/
 
 # Ant
-build/
-dist/
+/build/
+/dist/
+
+# virtualenv
+/venv/
