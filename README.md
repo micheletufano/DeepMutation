@@ -9,8 +9,9 @@ mutants that resemble real buggy code.
 
 ## Table of Contents
 1. [Installation](#install)  
-  a. [Setting up the environment](#setup)  
-  b. [Building](#build)  
+  a. [Requirements](#reqs)  
+  b. [Setting up the environment](#setup)  
+  c. [Building](#build)  
 2. [Running](#run)
 3. [How it works](#how)
 4. [Credits](#credits)
@@ -19,17 +20,50 @@ mutants that resemble real buggy code.
 <a name="install"></a>
 ## Installation
 
+<a name="reqs"></a>
+### Requirements
+- python 3.4-3.6
+- pip
+- seq2seq
+  - tensorflow
+
+For the study, we used versions:
+- python 3.6
+- seq2seq 0.1
+  - tensorflow 1.3
+
+We also used [defects4j](https://github.com/rjust/defects4j) for testing.
+We provide [defects4j_checkout.py](defects4j_checkout.py) for easier
+checking out following a valid defects4j installation:
+
+```
+$ ./defects4j_checkout.py [-f] [proj_name]...
+```
+
 <a name="setup"></a>
 ### Setting up the environment
 DeepMutation uses [seq2seq](https://github.com/google/seq2seq.git), a 
 Tensorflow framework.
 
 In our study, we worked with tensorflow 1.3 and seq2seq 0.1.  
-We include the script [setup_env.sh](setup_env.sh) to guide the installation process.
+
+The recommended way to install is with virtualenv:
 
 ```
-$ ./setup_env.sh
+$ virtualenv -p python3.6 venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
 ```
+
+
+We include the script [check_env.sh](check_env.sh) for verification.
+
+```
+$ ./check_env.sh
+```
+
+Note: at the time of writing, a bug is present in seq2seq; this script provides
+the related bugfix.
 
 <a name="build"></a>
 ### Building
