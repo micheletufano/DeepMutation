@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Check python
-command -v python >/dev/null 2>&1 && python --version 2>&1 | grep -q " 3.[0-6]" || 
-    { echo >&2 "Please install python version 3.0.* through 3.6.*."; exit 1; }
+command -v python >/dev/null 2>&1 && python --version 2>&1 | grep -q " 3.[4-6]" || 
+    { echo >&2 "Please install python version 3.4.* through 3.6.*."; exit 1; }
 
 # Check pip
 command -v pip >/dev/null 2>&1 || 
