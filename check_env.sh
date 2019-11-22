@@ -47,16 +47,17 @@ If the seq2seq module is not found, please check that pip and python are
 on the correct version.
 
 A common issue related to helper.py can be addressed by following these steps:
-  emacs seq2seq/contrib/seq2seq/helper.py
-  Replace the import lines for bernoulli and categorical with these:
-    from tensorflow.contrib.distributions import Bernoulli
-    from tensorflow.contrib.distributions import Categorical
+  vim $(pip show seq2seq | grep Location | awk '{print $2}')/seq2seq/contrib/seq2seq/helper.py
+  # Replace the import lines for bernoulli and categorical with these:
+  from tensorflow.python.ops.distributions import bernoulli
+  from tensorflow.python.ops.distributions import categorical
+(https://github.com/google/seq2seq/issues/285) 
 
-Another common issue relates to $DISPLAY not being correct. This may be a matplotlib issue best resolved with:
-    echo "backend : Agg" >> ${XDG_CACHE_HOME:-$HOME/.cache}/matplotlib/matplotlibrc
+Another common issue relates to DISPLAY=$DISPLAY not being correct.
+This may be a matplotlib issue that may be resolved with:
+    echo 'backend : Agg' >> ${XDG_CACHE_HOME:-$HOME/.cache}/matplotlib/matplotlibrc
+"
 
-
-Please refer to https://github.com/google/seq2seq/issues/285 for ImportErrors."
     exit 1
 else 
     echo "Success."
