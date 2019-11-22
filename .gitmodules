@@ -1,0 +1,3 @@
+[submodule "seq2seq"]
+	path = seq2seq
+	url = https://github.com/google/seq2seq.git
