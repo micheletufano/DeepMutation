@@ -42,10 +42,7 @@ $ ./defects4j_checkout.py [-f] [proj_name]...
 
 <a name="setup"></a>
 ### Setting up the environment
-DeepMutation uses [seq2seq](https://github.com/google/seq2seq.git), a 
-Tensorflow framework.
-
-The recommended way to install is with virtualenv:
+The recommended way to setup the environment is with virtualenv:
 
 ```
 $ virtualenv -p python3.6 venv
@@ -61,13 +58,13 @@ $ ./check_env.sh
 ```
 
 Note: at the time of writing, a bug is present in seq2seq; this script provides
-the related bugfix.
+the instructions for the related bugfix.
 
 <a name="build"></a>
 ### Building
 DeepMutation can be compiled into DeepMutation.jar with:
 ```
-$ ant dist
+$ ant
 ```
 
 <a name="run"></a>
