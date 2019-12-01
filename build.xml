@@ -29,40 +29,68 @@
     </pathconvert>
     <!-- end -->
 
+    <!-- test if javah is supported (JDK < 1.8) -->
+    <condition property="has.javah">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="4"></equals>
+            <equals arg1="${ant.java.version}" arg2="5"></equals>
+            <equals arg1="${ant.java.version}" arg2="6"></equals>
+            <equals arg1="${ant.java.version}" arg2="7"></equals>
+        </or>
+    </condition>
+
+    <!-- Compile the Java code from ${src} into ${build} with javac -->
+    <target name="with.javac" depends="init,compile.javac,make"
+            description="compile the source with javac"/>
+
+    <!-- Compile the Java code from ${src} into ${build} with javah -->
+    <target name="with.javah" depends="init,compile.javah,jni.javah,make"
+            description="compile the source with javah"/>
+
+    <!-- Helpers -->
     <target name="init">
-        <!-- Create the time stamp -->
         <tstamp/>
-        <!-- Create the build directory structure used by compile -->
         <mkdir dir="${build}"/>
         <mkdir dir="${build.c}"/>
         <mkdir dir="${dist}"/>
-
     </target>
 
-    <target name="compile" depends="init"
-            description="compile the source">
-        <!-- Compile the Java code from ${src} into ${build} -->
+    <target name="compile.javac" unless="has.javah">
+        <javac includeantruntime="false" classpathref="build.classpath"
+               srcdir="${src}/main" destdir="${build}"
+               nativeHeaderDir="${build.c}"/>
+       <first id="wrapper.header">
+           <fileset dir="${build.c}" includes="*_Wrapper.h"/>
+       </first>
+       <exec executable="mv" failonerror="true">
+           <arg value="${toString:wrapper.header}"/>
+           <arg value="${build.c}/Wrapper.h"/>
+       </exec>
+    </target>
+
+    <target name="compile.javah" if="has.javah">
         <javac includeantruntime="false" classpathref="build.classpath"
                srcdir="${src}/main" destdir="${build}"/>
     </target>
 
-    <target name="jni" depends="compile"
-            description="compile jni">
-
+    <target name="jni.javah" if="has.javah">
         <javah outputFile="${build.c}/Wrapper.h" classpath="build">
             <class name="edu.wm.cs.mutation.tester.Wrapper"/>
         </javah>
+    </target>
 
+    <target name="make">
         <exec executable="make" failonerror="true">
             <arg value="-f"/>
             <arg value="jni/Makefile"/>
+            <arg value="JAVA_HOME=${java.home}"/>
             <arg value="C_PATH=${c.path}"/>
             <arg value="HEADER_PATH=${build.c}"/>
             <arg value="LIB_OUT=${c.lib.out}"/>
         </exec>
     </target>
 
-    <target name="dist" depends="compile,jni"
+    <target name="dist" depends="with.javac,with.javah"
             description="generate the distribution">
 
         <jar jarfile="${dist}/DeepMutation.jar" basedir="${build}">

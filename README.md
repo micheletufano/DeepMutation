@@ -45,8 +45,6 @@ $ ./defects4j_checkout.py [-f] [proj_name]...
 DeepMutation uses [seq2seq](https://github.com/google/seq2seq.git), a 
 Tensorflow framework.
 
-In our study, we worked with tensorflow 1.3 and seq2seq 0.1.  
-
 The recommended way to install is with virtualenv:
 
 ```
