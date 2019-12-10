@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-projects = {
-            'Chart': 1,
-            'Lang': 1,
-            #'Chart': 26,
-            #'Closure': 176,
-            #'Lang': 65,
-            #'Math': 106,
-            #'Mockito': 38,
-            #'Time': 27,
-           }
+#projects = {'Chart': 26,
+#            'Closure': 176,
+#            'Lang': 65,
+#            'Math': 106,
+#            'Mockito': 38,
+#            'Time': 27 }
+#vers = ['b', 'f']
+
+projects = {'Chart': 1,
+            'Lang': 1, }
+vers = ['f']
 
 # DO NOT PASS.
 
@@ -78,7 +79,7 @@ os.makedirs(base, exist_ok=True)
 
 for name, count in projects.items():
     for num in range(1, count+1):
-        for ver in ['b', 'f']:
+        for ver in vers:
             num = str(num)
             rev = num + ver
             d = os.path.join(base, name, rev)
