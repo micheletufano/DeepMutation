@@ -42,10 +42,10 @@ $ ./defects4j_checkout.py [-f] [proj_name]...
 
 <a name="setup"></a>
 ### Setting up the environment
-The recommended way to setup the environment is with virtualenv:
+The recommended way to setup the environment is with venv:
 
 ```
-$ virtualenv -p python3.6 venv
+$ python -m venv venv
 $ source venv/bin/activate
 $ pip install -r requirements.txt
 ```
