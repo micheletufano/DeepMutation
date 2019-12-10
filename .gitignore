@@ -1,4 +1,10 @@
+# inputs
 /data/
+/defects4j/
+
+# build
+/build/
+/dist/
 
 # IntelliJ IDEA
 .idea/
@@ -11,9 +17,6 @@
 .project
 /bin/
 
-# Ant
-/build/
-/dist/
-
-# virtualenv
+# environment
+/.python-version
 /venv/
