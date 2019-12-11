@@ -21,7 +21,7 @@ public class MethodMutator {
     private static boolean usingBeams = false;
     private static Integer numBeams = 2;
     private static String interpretBeams = "interpretBeams.py";
-    private static boolean printModelOutput = false;
+    private static boolean verbose = false;
 
     private static Map<String, LinkedHashMap<String, List<String>>> mutantMaps = new HashMap<>();
 
@@ -200,7 +200,7 @@ public class MethodMutator {
                 p.waitFor();
             }
 
-            if (printModelOutput) {
+            if (verbose) {
                 System.err.println("    Using command:\n" + String.join(" ", cmd));
 
                 br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -211,7 +211,7 @@ public class MethodMutator {
 
             if (mutants.size() == 0) {
                 System.err.println("    WARNING: could not generate mutated methods. " +
-                        "Set MethodMutator.printModelOutput(true) for more details.");
+                        "Set MethodMutator.verbose(true) via config file for more details.");
                 return null;
             }
 
@@ -423,7 +423,7 @@ public class MethodMutator {
         MethodMutator.numBeams = numBeams;
     }
 
-    public static void printModelOutput(boolean printModelOutput) {
-        MethodMutator.printModelOutput = printModelOutput;
+    public static void verbose(boolean verbose) {
+        MethodMutator.verbose = verbose;
     }
 }
