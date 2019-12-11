@@ -22,6 +22,7 @@ mutants that resemble real buggy code.
 
 <a name="reqs"></a>
 ### Requirements
+- java 1.8
 - python 3.4-3.6
 - pip
 - seq2seq
