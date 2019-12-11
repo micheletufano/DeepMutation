@@ -2,28 +2,28 @@
 
 ################## Paths #####################
 # Path to output directory
-output.path=data/out/fixed/Chart/1/f/
+output.path=data/out/Chart/1f/
 
 # Path to the project directory
-project.path=data/fixed/Chart/1/f/
+project.path=data/in/Chart/1f/
 
 # Path to the src root directory
-source.path=data/fixed/Chart/1/f/source/
+source.path=data/in/Chart/1f/source/
 
 # Path to lib directory
-library.path=data/spoonModel/lib/Chart/
+library.path=spoonLibs/Chart/
 
 # Path to libWrapper.so (generated post-build)
 wrapper.library.file=dist/libWrapper.so
 
-# (Optional) Path to list of input methods
-#input.methods.file=data/methods.input
-
 # Path to model directories (comma-separated)
-model.paths=data/models/50len_ident_lit/
+model.paths=models/50len_ident_lit/
 
 # Path to idioms.csv
-idioms.file=data/idioms.csv
+idioms.file=models/idioms.csv
+
+# (Optional) Path to list of input methods
+#input.methods.file=data/methods.input
 
 ############## MethodExtractor ###############
 # Project SDK
@@ -39,6 +39,9 @@ token.threshold=50
 ############## MethodMutator #################
 # python3 command
 python=python3
+
+# verbose
+verbose=false
 
 # Use beam search
 use.beams=false
