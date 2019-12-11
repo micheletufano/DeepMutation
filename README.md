@@ -82,7 +82,7 @@ This will generate and test mutants.
 ## How it works
 DeepMutation is a mutation infrastructure that allows to generate mutants that resemble real bugs. At its core, DeepMutation relies on a Neural Machine Translation model that learned from more than 700 thousands real bug-fixes mined on GitHub, how to translate fixed code into buggy code. Thus, the trained model is used to translate a method into a mutant.
 
-![Overview of DeepMutation](https://github.com/micheletufano/DeepMutation/blob/setup/approach.png)
+![Overview of DeepMutation](approach.png)
 
 DeepMutation starts by receiving the system to mutate and a configuration file. Next, the following modules are executed:
 - The Extractor, extracts the raw methods from the system;
