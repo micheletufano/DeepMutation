@@ -1,16 +1,23 @@
-data
+# inputs
+/data/
+/defects4j/
+*.class
+
+# build
+/build/
+/dist/
 
 # IntelliJ IDEA
 .idea/
 *.iml
-out/
+/out/
 
 # Eclipse
 .settings/
 .classpath
 .project
-bin/
+/bin/
 
-# Ant
-build/
-dist/
+# environment
+/.python-version
+/venv/

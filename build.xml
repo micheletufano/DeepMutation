@@ -3,12 +3,16 @@
         Build file adapted from https://ant.apache.org/manual/using.html
     </description>
     <!-- set global properties for this build -->
+    <property name="entry.point" value="edu.wm.cs.mutation.DeepMutation"/>
     <property name="src" location="src"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
-    <property name="entry.point" value="edu.wm.cs.mutation.DeepMutation"/>
-    <property name="build.c" location="build/c"/>
-    <property name="c.path" location="${src}/main/c"/>
+    <property name="src.main" location="src/main/java"/>
+    <property name="src.test" location="src/test/java"/>
+    <property name="build.c" location="build/main/c"/>
+    <property name="build.main" location="build/main/java"/>
+    <property name="build.test" location="build/test/java"/>
+    <property name="c.path" location="src/main/c"/>
     <property name="c.lib.out" location="${dist}/libWrapper.so"/>
 
     <!-- https://stackoverflow.com/a/1892936 -->
@@ -29,30 +33,57 @@
     </pathconvert>
     <!-- end -->
 
+    <!-- test if javah is supported (JDK < 1.8) -->
+    <condition property="has.javah">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="4"></equals>
+            <equals arg1="${ant.java.version}" arg2="5"></equals>
+            <equals arg1="${ant.java.version}" arg2="6"></equals>
+            <equals arg1="${ant.java.version}" arg2="7"></equals>
+        </or>
+    </condition>
+
+    <!-- Compile the Java code from ${src.main} into ${build.main} with javac -->
+    <target name="with.javac" depends="init,compile.javac,make"
+            description="compile the source with javac"/>
+
+    <!-- Compile the Java code from ${src.main} into ${build.main} with javah -->
+    <target name="with.javah" depends="init,compile.javah,jni.javah,make"
+            description="compile the source with javah"/>
+
+    <!-- Helpers -->
     <target name="init">
-        <!-- Create the time stamp -->
         <tstamp/>
-        <!-- Create the build directory structure used by compile -->
-        <mkdir dir="${build}"/>
+        <mkdir dir="${build.main}"/>
         <mkdir dir="${build.c}"/>
         <mkdir dir="${dist}"/>
-
     </target>
 
-    <target name="compile" depends="init"
-            description="compile the source">
-        <!-- Compile the Java code from ${src} into ${build} -->
+    <target name="compile.javac" unless="has.javah">
         <javac includeantruntime="false" classpathref="build.classpath"
-               srcdir="${src}/main" destdir="${build}"/>
+               srcdir="${src.main}" destdir="${build.main}"
+               nativeHeaderDir="${build.c}"/>
+       <first id="wrapper.header">
+           <fileset dir="${build.c}" includes="*_Wrapper.h"/>
+       </first>
+       <exec executable="mv" failonerror="true">
+           <arg value="${toString:wrapper.header}"/>
+           <arg value="${build.c}/Wrapper.h"/>
+       </exec>
     </target>
 
-    <target name="jni" depends="compile"
-            description="compile jni">
+    <target name="compile.javah" if="has.javah">
+        <javac includeantruntime="false" classpathref="build.classpath"
+               srcdir="${src.main}" destdir="${build.main}"/>
+    </target>
 
+    <target name="jni.javah" if="has.javah">
         <javah outputFile="${build.c}/Wrapper.h" classpath="build">
             <class name="edu.wm.cs.mutation.tester.Wrapper"/>
         </javah>
+    </target>
 
+    <target name="make">
         <exec executable="make" failonerror="true">
             <arg value="-f"/>
             <arg value="jni/Makefile"/>
@@ -62,15 +93,21 @@
         </exec>
     </target>
 
-    <target name="dist" depends="compile,jni"
+    <target name="dist" depends="with.javac,with.javah"
             description="generate the distribution">
 
-        <jar jarfile="${dist}/DeepMutation.jar" basedir="${build}">
+        <jar jarfile="${dist}/DeepMutation.jar" basedir="${build.main}">
             <manifest>
                 <attribute name="Main-Class" value="${entry.point}"/>
                 <attribute name="Class-Path" value="${manifest.classpath}"/>
             </manifest>
         </jar>
+    </target>
+
+    <target name="test">
+        <mkdir dir="${build.test}"/>
+        <javac includeantruntime="false" classpath="${build.main}" classpathref="build.classpath"
+               srcdir="${src.test}" destdir="${build.test}"/>
     </target>
 
     <target name="clean"

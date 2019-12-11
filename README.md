@@ -9,8 +9,9 @@ mutants that resemble real buggy code.
 
 ## Table of Contents
 1. [Installation](#install)  
-  a. [Setting up the environment](#setup)  
-  b. [Building](#build)  
+  a. [Requirements](#reqs)  
+  b. [Setting up the environment](#setup)  
+  c. [Building](#build)  
 2. [Running](#run)
 3. [How it works](#how)
 4. [Credits](#credits)
@@ -19,23 +20,52 @@ mutants that resemble real buggy code.
 <a name="install"></a>
 ## Installation
 
+<a name="reqs"></a>
+### Requirements
+- java 1.8
+- python 3.4-3.6
+- pip
+- seq2seq
+  - tensorflow
+
+For the study, we used versions:
+- python 3.6
+- seq2seq 0.1
+  - tensorflow 1.3
+
+We also used [defects4j](https://github.com/rjust/defects4j) for testing.
+We provide [defects4j_checkout.py](defects4j_checkout.py) for easier
+checking out following a valid defects4j installation:
+
+```
+$ ./defects4j_checkout.py [-f] [proj_name]...
+```
+
 <a name="setup"></a>
 ### Setting up the environment
-DeepMutation uses [seq2seq](https://github.com/google/seq2seq.git), a 
-Tensorflow framework.
-
-In our study, we worked with tensorflow 1.3 and seq2seq 0.1.  
-We include the script [setup_env.sh](setup_env.sh) to guide the installation process.
+The recommended way to setup the environment is with venv:
 
 ```
-$ ./setup_env.sh
+$ python -m venv venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
 ```
+
+
+We include the script [check_env.sh](check_env.sh) for verification.
+
+```
+$ ./check_env.sh
+```
+
+Note: at the time of writing, a bug is present in seq2seq; this script provides
+the instructions for the related bugfix.
 
 <a name="build"></a>
 ### Building
 DeepMutation can be compiled into DeepMutation.jar with:
 ```
-$ ant dist
+$ ant
 ```
 
 <a name="run"></a>
@@ -50,7 +80,17 @@ This will generate and test mutants.
 
 <a name="how"></a>
 ## How it works
-TODO Michele will describe the high-levle idea of the research paper.
+DeepMutation is a mutation infrastructure that allows to generate mutants that resemble real bugs. At its core, DeepMutation relies on a Neural Machine Translation model that learned from more than 700 thousands real bug-fixes mined on GitHub, how to translate fixed code into buggy code. Thus, the trained model is used to translate a method into a mutant.
+
+![Overview of DeepMutation](approach.png)
+
+DeepMutation starts by receiving the system to mutate and a configuration file. Next, the following modules are executed:
+- The Extractor, extracts the raw methods from the system;
+- The Abstractor, abstracts these raw methods into abstract methods, using the idioms specified in an input file. A mapping file to reconstruct the raw methods is stored.
+- The Mutator invokes the NMT model to generate abstract mutants;
+- The Translator uses the mapping file to translate abstract mutants in concrete mutants;
+- Finally, the mutants are injected in the system, compiled and tested.
+
 
 <a name="credits"></a>
 ## Credits

@@ -116,6 +116,9 @@ public class DeepMutation {
                     case "python":
                         MethodMutator.setPython(val);
                         break;
+                    case "verbose":
+                        MethodMutator.verbose(Boolean.parseBoolean(val));
+                        break;
                     case "use.beams":
                         MethodMutator.useBeams(Boolean.parseBoolean(val));
                         break;
