@@ -83,7 +83,6 @@
         <exec executable="make" failonerror="true">
             <arg value="-f"/>
             <arg value="jni/Makefile"/>
-            <arg value="JAVA_HOME=${java.home}"/>
             <arg value="C_PATH=${c.path}"/>
             <arg value="HEADER_PATH=${build.c}"/>
             <arg value="LIB_OUT=${c.lib.out}"/>
