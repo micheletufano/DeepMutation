@@ -1,6 +1,7 @@
 # inputs
 /data/
 /defects4j/
+*.class
 
 # build
 /build/
