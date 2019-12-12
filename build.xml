@@ -44,8 +44,17 @@
     <!-- Compile the Java code from ${src.main} into ${build.main} -->
     <target name="compile">
         <javac includeantruntime="false" classpathref="build.classpath"
-               srcdir="${src.main}" destdir="${build.main}"
-               nativeHeaderDir="${build.c}"/>
+               srcdir="${src.main}" destdir="${build.main}"/>
+       <!-- Java 1.9+
+           nativeHeaderDir="${build.c}"/>
+        -->
+    </target>
+
+    <!-- Java 1.8 -->
+    <target name="jni">
+        <javah outputFile="${build.c}/Wrapper.h" classpath="${build.main}">
+            <class name="edu.wm.cs.mutation.tester.Wrapper"/>
+        </javah>
     </target>
 
     <target name="make">
@@ -58,7 +67,7 @@
         </exec>
     </target>
 
-    <target name="dist" depends="init,compile,make">
+    <target name="dist" depends="init,compile,jni,make">
         <jar jarfile="${dist}/DeepMutation.jar" basedir="${build.main}">
             <manifest>
                 <attribute name="Main-Class" value="${entry.point}"/>
