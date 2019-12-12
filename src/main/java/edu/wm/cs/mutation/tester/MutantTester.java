@@ -259,6 +259,7 @@ public class MutantTester {
             // Create task list
             for (int i = 0; i < maxIter; i++) {
                 int threadID = i;
+                final int nThreads = numThreads;
                 tasks.add(new Callable<Output>() {
                     @Override
                     public Output call() throws Exception {
@@ -267,12 +268,12 @@ public class MutantTester {
                         Map<String, List<Boolean>> timeoutMap = new HashMap<>();
 
                         int size = 0;
-                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                        for (int j = threadID; j < mutated.size(); j += nThreads) {
                             size++;
                         }
                         int count = 1;
 
-                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                        for (int j = threadID; j < mutated.size(); j += nThreads) {
                             String methodID = String.format(mutantFormat.toString(), j + 1);
 
                             CtMethod method = mutated.get(j);
