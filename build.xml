@@ -66,7 +66,7 @@
        <first id="wrapper.header">
            <fileset dir="${build.c}" includes="*_Wrapper.h"/>
        </first>
-       <exec executable="mv" failonerror="true">
+       <exec executable="mv" failonerror="false">
            <arg value="${toString:wrapper.header}"/>
            <arg value="${build.c}/Wrapper.h"/>
        </exec>
