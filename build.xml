@@ -33,24 +33,6 @@
     </pathconvert>
     <!-- end -->
 
-    <!-- test if javah is supported (JDK < 1.8) -->
-    <condition property="has.javah">
-        <or>
-            <equals arg1="${ant.java.version}" arg2="4"></equals>
-            <equals arg1="${ant.java.version}" arg2="5"></equals>
-            <equals arg1="${ant.java.version}" arg2="6"></equals>
-            <equals arg1="${ant.java.version}" arg2="7"></equals>
-        </or>
-    </condition>
-
-    <!-- Compile the Java code from ${src.main} into ${build.main} with javac -->
-    <target name="with.javac" depends="init,compile.javac,make"
-            description="compile the source with javac"/>
-
-    <!-- Compile the Java code from ${src.main} into ${build.main} with javah -->
-    <target name="with.javah" depends="init,compile.javah,jni.javah,make"
-            description="compile the source with javah"/>
-
     <!-- Helpers -->
     <target name="init">
         <tstamp/>
@@ -59,28 +41,11 @@
         <mkdir dir="${dist}"/>
     </target>
 
-    <target name="compile.javac" unless="has.javah">
+    <!-- Compile the Java code from ${src.main} into ${build.main} -->
+    <target name="compile">
         <javac includeantruntime="false" classpathref="build.classpath"
                srcdir="${src.main}" destdir="${build.main}"
                nativeHeaderDir="${build.c}"/>
-       <first id="wrapper.header">
-           <fileset dir="${build.c}" includes="*_Wrapper.h"/>
-       </first>
-       <exec executable="mv" failonerror="false">
-           <arg value="${toString:wrapper.header}"/>
-           <arg value="${build.c}/Wrapper.h"/>
-       </exec>
-    </target>
-
-    <target name="compile.javah" if="has.javah">
-        <javac includeantruntime="false" classpathref="build.classpath"
-               srcdir="${src.main}" destdir="${build.main}"/>
-    </target>
-
-    <target name="jni.javah" if="has.javah">
-        <javah outputFile="${build.c}/Wrapper.h" classpath="build">
-            <class name="edu.wm.cs.mutation.tester.Wrapper"/>
-        </javah>
     </target>
 
     <target name="make">
@@ -93,9 +58,7 @@
         </exec>
     </target>
 
-    <target name="dist" depends="with.javac,with.javah"
-            description="generate the distribution">
-
+    <target name="dist" depends="init,compile,make">
         <jar jarfile="${dist}/DeepMutation.jar" basedir="${build.main}">
             <manifest>
                 <attribute name="Main-Class" value="${entry.point}"/>
@@ -110,8 +73,7 @@
                srcdir="${src.test}" destdir="${build.test}"/>
     </target>
 
-    <target name="clean"
-            description="clean up">
+    <target name="clean">
         <!-- Delete the ${build} and ${dist} directory trees -->
         <delete dir="${build}"/>
         <delete dir="${dist}"/>
