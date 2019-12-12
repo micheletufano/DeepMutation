@@ -19,6 +19,7 @@ public class MutantTester {
 
     private static final int OK_STATUS = 0;
     private static final int ERROR_STATUS = 1;
+    private static final int MAX_THREADS = 8;
 
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
@@ -134,6 +135,9 @@ public class MutantTester {
         int numThreads;
         if (parallel) {
             numThreads = Runtime.getRuntime().availableProcessors();
+            if (numThreads > MAX_THREADS) {
+                numThreads = MAX_THREADS;
+            }
         } else {
             numThreads = 1;
         }
@@ -173,12 +177,16 @@ public class MutantTester {
             System.out.println("  Establishing baseline... ");
 
             File baselineProj = new File(projFile.getParent() + File.separator + projFile.getName() + ".base");
-            try {
-                FileUtils.copyDirectory(projFile, baselineProj);
-            } catch (IOException e) {
-                System.err.println("  ERROR: could not copy directory for baseline");
-                e.printStackTrace();
-                return;
+            if (!baselineProj.exists()) {
+                try {
+                    FileUtils.copyDirectory(projFile, baselineProj);
+                } catch (IOException e) {
+                    System.err.println("  ERROR: could not copy directory for baseline");
+                    e.printStackTrace();
+                    return;
+                }
+            } else {
+                System.out.println("    " + baselineProj + " already exists.");
             }
 
             compileBaseline = compile(baselineProj.getPath());
