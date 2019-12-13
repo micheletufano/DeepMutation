@@ -58,38 +58,51 @@ JNIEXPORT jobjectArray JNICALL Java_edu_wm_cs_mutation_tester_Wrapper_wrapper
 
     // Fork.
     pid_t pid;
-    if ((pid = fork()) == 0) {
+    if ((pid = fork()) == -1) { perror("fork"); return NULL; }
+
+    if (pid == 0) {
         // Child creates a new process group, changes directory, redirects output, and execs command.
+        fprintf(stderr, "1\n");
         if (setsid() == (pid_t) -1) { perror("setsid"); return NULL; }
+        fprintf(stderr, "2\n");
         if (chdir(dir) == -1) { perror("chdir"); return NULL; }
 
         // redirect stdout to write pipe
+        fprintf(stderr, "3\n");
         if (dup2(p[1], STDOUT_FILENO) == -1) { perror("dup2: stdout"); return NULL; }
 
         // redirect stderr to write pipe
+        fprintf(stderr, "4\n");
         if (dup2(p[1], STDERR_FILENO) == -1) { perror("dup2: stderr"); return NULL; }
 
         // close stdin
+        fprintf(stderr, "5\n");
         if (close(STDIN_FILENO) == -1) { perror("close: stdin"); return NULL; }
 
         // close pipe
+        fprintf(stderr, "6\n");
         if (close(p[0]) == -1) { perror("close: read pipe"); return NULL; }
 
+        fprintf(stderr, "7\n");
         execv(abs_path, cmd);
-
         perror("execv"); return NULL;
     } else {
         // Parent waits until child finishes or timeout. Kills process group on timeout.
     
         // redirect read pipe to stdin
-        if (dup2(p[0], STDIN_FILENO) == -1) { perror("dup"); return NULL; }
+        fprintf(stderr, "8\n");
+        if (dup2(p[0], STDIN_FILENO) == -1) { perror("dup2: stdin"); return NULL; }
 
         // close stdout and stderr
+        fprintf(stderr, "9\n");
         if (close(STDOUT_FILENO) == -1) { perror("close: stdout"); return NULL; }
+        fprintf(stderr, "10\n");
         if (close(STDERR_FILENO) == -1) { perror("close: stderr"); return NULL; }
 
         // close pipe
+        fprintf(stderr, "11\n");
         close(p[0]); 
+        fprintf(stderr, "12\n");
         close(p[1]);       
 
         jobjectArray ret;
