@@ -183,7 +183,7 @@ public class MutantTester {
                     FileUtils.copyDirectory(projFile, baselineProj);
                     System.out.println("    done.");
                 } catch (IOException e) {
-                    System.err.println("  ERROR: could not copy directory for baseline");
+                    System.err.println("    ERROR: could not copy directory for baseline");
                     e.printStackTrace();
                     return;
                 }
@@ -200,7 +200,7 @@ public class MutantTester {
             System.out.println("    done.");
 
             if (compileBaseline == null || testBaseline == null) {
-                System.err.println("  ERROR: could not establish baseline");
+                System.err.println("    ERROR: could not establish baseline");
                 return;
             }
 
@@ -210,7 +210,7 @@ public class MutantTester {
                     FileUtils.deleteDirectory(baselineProj);
                     System.out.println("    done.");
                 } catch (IOException e) {
-                    System.err.println("  WARNING: could not clean up baseline project");
+                    System.err.println("    WARNING: could not clean up baseline project");
                     e.printStackTrace();
                 }
             }
