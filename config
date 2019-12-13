@@ -51,7 +51,7 @@ num.beams=5
 
 ############## MutantTester ##################
 # Enable parallel testing
-parallel=true
+max.threads=8
 
 # Compile command
 compile.command=defects4j compile

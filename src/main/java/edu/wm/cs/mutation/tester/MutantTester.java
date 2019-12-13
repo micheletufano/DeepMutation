@@ -19,7 +19,6 @@ public class MutantTester {
 
     private static final int OK_STATUS = 0;
     private static final int ERROR_STATUS = 1;
-    private static final int MAX_THREADS = 8;
 
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
@@ -44,8 +43,8 @@ public class MutantTester {
 
     private static long timeout = 300; // seconds
 
-    private static boolean parallel = true;
     private static boolean cleanUp = true;
+    private static int maxThreads = 8;
 
     /**
      * Test mutants one-by-one using the user-specified compile and test commands.
@@ -132,14 +131,9 @@ public class MutantTester {
         Wrapper.load(wrapperLib);
 
         // Get number of threads
-        int numThreads;
-        if (parallel) {
-            numThreads = Runtime.getRuntime().availableProcessors();
-            if (numThreads > MAX_THREADS) {
-                numThreads = MAX_THREADS;
-            }
-        } else {
-            numThreads = 1;
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        if (numThreads > maxThreads) {
+            numThreads = maxThreads;
         }
         System.out.println("  Using " + numThreads + " thread(s)...");
 
@@ -789,10 +783,6 @@ public class MutantTester {
         MutantTester.testCmd = testCmd;
     }
 
-    public static void setParallel(boolean parallel) {
-        MutantTester.parallel = parallel;
-    }
-
     public static String getCompileBaseline() {
         return compileBaseline;
     }
@@ -851,5 +841,9 @@ public class MutantTester {
 
     public static void setCleanUp(boolean cleanUp) {
         MutantTester.cleanUp = cleanUp;
+    }
+
+    public static void setMaxThreads(int maxThreads) {
+        MutantTester.maxThreads = maxThreads;
     }
 }
