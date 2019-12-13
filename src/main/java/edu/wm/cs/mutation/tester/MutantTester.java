@@ -497,19 +497,24 @@ public class MutantTester {
      * @return
      */
     private static String findAbsolutePath(String cmd) {
-        File f = new File(cmd);
-        if (!f.exists()) {
+        if (cmd.indexOf('/') >= 0) {
+            File f = new File(cmd);
+            if (f.isFile() && f.canExecute()) {
+                return f.getAbsolutePath();
+            } else {
+                return null;
+            }
+        } else {
             String PATH = System.getenv("PATH");
             String[] paths = PATH.split(File.pathSeparator);
             for (String path : paths) {
-                File ff = new File(path + File.separator + cmd);
-                if (ff.exists()) {
-                    return ff.getAbsolutePath();
+                File f = new File(path + File.separator + cmd);
+                if (f.isFile() && f.canExecute()) {
+                    return f.getAbsolutePath();
                 }
             }
             return null;
         }
-        return f.getAbsolutePath();
     }
 
     /**
