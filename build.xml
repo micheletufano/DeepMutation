@@ -76,7 +76,7 @@
         </jar>
     </target>
 
-    <target name="test">
+    <target name="test" depends="dist">
         <mkdir dir="${build.test}"/>
         <javac includeantruntime="false" classpath="${build.main}" classpathref="build.classpath"
                srcdir="${src.test}" destdir="${build.test}"/>
