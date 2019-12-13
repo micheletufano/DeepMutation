@@ -19,6 +19,7 @@ public class MutantTester {
 
     private static final int OK_STATUS = 0;
     private static final int ERROR_STATUS = 1;
+    private static final int MAX_THREADS = 8;
 
     private static String[] compileCmd = null;
     private static String[] testCmd = null;
@@ -134,6 +135,9 @@ public class MutantTester {
         int numThreads;
         if (parallel) {
             numThreads = Runtime.getRuntime().availableProcessors();
+            if (numThreads > MAX_THREADS) {
+                numThreads = MAX_THREADS;
+            }
         } else {
             numThreads = 1;
         }
@@ -173,26 +177,42 @@ public class MutantTester {
             System.out.println("  Establishing baseline... ");
 
             File baselineProj = new File(projFile.getParent() + File.separator + projFile.getName() + ".base");
-            try {
-                FileUtils.copyDirectory(projFile, baselineProj);
-            } catch (IOException e) {
-                System.err.println("  ERROR: could not copy directory for baseline");
-                e.printStackTrace();
-                return;
+            if (!baselineProj.exists()) {
+                try {
+                    System.out.println("    Creating " + baselineProj.getPath() + "...");
+                    FileUtils.copyDirectory(projFile, baselineProj);
+                    System.out.println("    done.");
+                } catch (IOException e) {
+                    System.err.println("    ERROR: could not copy directory for baseline");
+                    e.printStackTrace();
+                    return;
+                }
+            } else {
+                System.out.println("    " + baselineProj + " already exists.");
             }
 
+            System.out.println("    Compiling...");
             compileBaseline = compile(baselineProj.getPath());
+            System.out.println("    done.");
+
+            System.out.println("    Testing...");
             testBaseline = test(baselineProj.getPath());
+            System.out.println("    done.");
+
             if (compileBaseline == null || testBaseline == null) {
-                System.err.println("  ERROR: could not establish baseline");
+                System.err.println("    ERROR: could not establish baseline");
                 return;
             }
 
-            try {
-                FileUtils.deleteDirectory(baselineProj);
-            } catch (IOException e) {
-                System.err.println("  WARNING: could not clean up baseline project");
-                e.printStackTrace();
+            if (cleanUp) {
+                try {
+                    System.out.println("    Deleting baseline directory...");
+                    FileUtils.deleteDirectory(baselineProj);
+                    System.out.println("    done.");
+                } catch (IOException e) {
+                    System.err.println("    WARNING: could not clean up baseline project");
+                    e.printStackTrace();
+                }
             }
             System.out.println("  done. ");
         }
@@ -251,6 +271,7 @@ public class MutantTester {
             // Create task list
             for (int i = 0; i < maxIter; i++) {
                 int threadID = i;
+                final int nThreads = numThreads;
                 tasks.add(new Callable<Output>() {
                     @Override
                     public Output call() throws Exception {
@@ -259,12 +280,12 @@ public class MutantTester {
                         Map<String, List<Boolean>> timeoutMap = new HashMap<>();
 
                         int size = 0;
-                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                        for (int j = threadID; j < mutated.size(); j += nThreads) {
                             size++;
                         }
                         int count = 1;
 
-                        for (int j = threadID; j < mutated.size(); j += numThreads) {
+                        for (int j = threadID; j < mutated.size(); j += nThreads) {
                             String methodID = String.format(mutantFormat.toString(), j + 1);
 
                             CtMethod method = mutated.get(j);
@@ -488,19 +509,24 @@ public class MutantTester {
      * @return
      */
     private static String findAbsolutePath(String cmd) {
-        File f = new File(cmd);
-        if (!f.exists()) {
+        if (cmd.indexOf('/') >= 0) {
+            File f = new File(cmd);
+            if (f.isFile() && f.canExecute()) {
+                return f.getAbsolutePath();
+            } else {
+                return null;
+            }
+        } else {
             String PATH = System.getenv("PATH");
             String[] paths = PATH.split(File.pathSeparator);
             for (String path : paths) {
-                File ff = new File(path + File.separator + cmd);
-                if (ff.exists()) {
-                    return ff.getAbsolutePath();
+                File f = new File(path + File.separator + cmd);
+                if (f.isFile() && f.canExecute()) {
+                    return f.getAbsolutePath();
                 }
             }
             return null;
         }
-        return f.getAbsolutePath();
     }
 
     /**

@@ -1,11 +1,11 @@
 # inputs
 /data/
 /defects4j/
-*.class
 
 # build
 /build/
 /dist/
+*.class
 
 # IntelliJ IDEA
 .idea/
@@ -21,3 +21,6 @@
 # environment
 /.python-version
 /venv/
+
+# misc
+*.swp

@@ -29,12 +29,12 @@ def exit(rc):
             if not revs: 
                 continue
 
-            print(f'  {name}', end=' ')
+            print('  {}'.format(name), end=' ')
             for rev in revs:
-                print(f'{rev[0]}', end=' ')
+                print('{}'.format(rev[0]), end=' ')
             print()
 
-            user = input(f'\n>> Remove revision? [Y/n] ')
+            user = input('\n>> Remove revision? [Y/n] ')
             if user == '' or user.lower() == 'y':
                 for rev in revs:
                     shutil.rmtree(rev[1])
@@ -42,10 +42,10 @@ def exit(rc):
     sys.exit(rc)
 
 def usage():
-    print(f'usage: {sys.argv[0]} [-f] proj_name...')
+    print('usage: {} [-f] proj_name...'.format(sys.argv[0]))
 
 if not shutil.which(defects4j):
-    print(f"error: cannot find executable '{defects4j}'")
+    print("error: cannot find executable '{}'".format(defects4j))
     exit(1)
 
 if len(sys.argv) == 1:
@@ -61,7 +61,7 @@ for i in range(1, len(sys.argv)):
         exit(0)
     else:
         if arg not in projects:
-            print(f"error: bad project name '{arg}'")
+            print("error: bad project name '{}'".format(arg))
             exit(1)
         else:
             user_choices.append(arg)
@@ -98,7 +98,7 @@ for name, count in projects.items():
                 failed[name].append((rev, d))
 
                 if not fail_ok:
-                    user = input(f'\n\n>> Failed to checkout {name} {rev}. Continue? [Y/n] ')
+                    user = input('\n\n>> Failed to checkout {} {}. Continue? [Y/n] '.format(name, rev))
                     if user == '' or user.lower() == 'y':
                         pass
                     else:
