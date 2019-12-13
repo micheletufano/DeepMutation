@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 struct node_t {
     char *str;
@@ -53,27 +54,43 @@ JNIEXPORT jobjectArray JNICALL Java_edu_wm_cs_mutation_tester_Wrapper_wrapper
 
     // Pipes.
     int p[2];
-    pipe(p);
+    if (pipe(p) == -1) { perror("pipe"); return NULL; } 
 
     // Fork.
     pid_t pid;
     if ((pid = fork()) == 0) {
         // Child creates a new process group, changes directory, redirects output, and execs command.
-        setsid();
-        chdir(dir);
+        if (setsid() == (pid_t) -1) { perror("setsid"); return NULL; }
+        if (chdir(dir) == -1) { perror("chdir"); return NULL; }
 
-        close(1); dup(p[1]);            // redirect stdout to write pipe
-        close(2); dup(p[1]);            // redirect stderr to write pipe
-        close(0);                       // close stdin
-        close(p[0]); close(p[1]);       // close pipe
+        // redirect stdout to write pipe
+        if (dup2(p[1], STDOUT_FILENO) == -1) { perror("dup2: stdout"); return NULL; }
+
+        // redirect stderr to write pipe
+        if (dup2(p[1], STDERR_FILENO) == -1) { perror("dup2: stderr"); return NULL; }
+
+        // close stdin
+        if (close(STDIN_FILENO) == -1) { perror("close: stdin"); return NULL; }
+
+        // close pipe
+        if (close(p[0]) == -1) { perror("close: read pipe"); return NULL; }
 
         execv(abs_path, cmd);
-        perror("execv");
+
+        perror("execv"); return NULL;
     } else {
         // Parent waits until child finishes or timeout. Kills process group on timeout.
-        close(0); dup(p[0]);            // redirect read pipe to stdin
-//        close(1); close(2);             // close stdout and stderr
-        close(p[0]); close(p[1]);       // close pipe
+    
+        // redirect read pipe to stdin
+        if (dup2(p[0], STDIN_FILENO) == -1) { perror("dup"); return NULL; }
+
+        // close stdout and stderr
+        if (close(STDOUT_FILENO) == -1) { perror("close: stdout"); return NULL; }
+        if (close(STDERR_FILENO) == -1) { perror("close: stderr"); return NULL; }
+
+        // close pipe
+        close(p[0]); 
+        close(p[1]);       
 
         jobjectArray ret;
         int status;
