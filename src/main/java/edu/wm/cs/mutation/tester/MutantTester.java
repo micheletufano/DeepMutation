@@ -179,7 +179,9 @@ public class MutantTester {
             File baselineProj = new File(projFile.getParent() + File.separator + projFile.getName() + ".base");
             if (!baselineProj.exists()) {
                 try {
+                    System.out.println("    Creating " + baselineProj.getPath() + "...");
                     FileUtils.copyDirectory(projFile, baselineProj);
+                    System.out.println("    done.");
                 } catch (IOException e) {
                     System.err.println("  ERROR: could not copy directory for baseline");
                     e.printStackTrace();
@@ -189,18 +191,28 @@ public class MutantTester {
                 System.out.println("    " + baselineProj + " already exists.");
             }
 
+            System.out.println("    Compiling...");
             compileBaseline = compile(baselineProj.getPath());
+            System.out.println("    done.");
+
+            System.out.println("    Testing...");
             testBaseline = test(baselineProj.getPath());
+            System.out.println("    done.");
+
             if (compileBaseline == null || testBaseline == null) {
                 System.err.println("  ERROR: could not establish baseline");
                 return;
             }
 
-            try {
-                FileUtils.deleteDirectory(baselineProj);
-            } catch (IOException e) {
-                System.err.println("  WARNING: could not clean up baseline project");
-                e.printStackTrace();
+            if (cleanUp) {
+                try {
+                    System.out.println("    Deleting baseline directory...");
+                    FileUtils.deleteDirectory(baselineProj);
+                    System.out.println("    done.");
+                } catch (IOException e) {
+                    System.err.println("  WARNING: could not clean up baseline project");
+                    e.printStackTrace();
+                }
             }
             System.out.println("  done. ");
         }
