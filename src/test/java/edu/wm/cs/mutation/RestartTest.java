@@ -30,6 +30,7 @@ public class RestartTest {
         MethodExtractor.buildModel(projPath, srcPath, libPath, complianceLvl, compiled);
         MethodTranslator.readMutants(outPath, modelPaths);
 
+        MutantTester.parallel = false;
         MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
                 MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
 
