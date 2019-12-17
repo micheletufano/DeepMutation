@@ -62,7 +62,7 @@ translator.enable=true
 tester.enable=true
 
 # Enable parallel testing
-max.threads=8
+parallel=true
 
 # Compile command
 compile.command=defects4j compile

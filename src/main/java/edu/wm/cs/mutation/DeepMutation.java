@@ -153,8 +153,8 @@ public class DeepMutation {
                     case "tester.enable":
                         tester = Boolean.parseBoolean(val);
                         break;
-                    case "max.threads":
-                        MutantTester.setMaxThreads(Integer.parseInt(val));
+                    case "parallel":
+                        MutantTester.setParallel(Boolean.parseBoolean(val));
                         break;
                     case "compile.command":
                         MutantTester.setCompileCmd(val.split(" "));
