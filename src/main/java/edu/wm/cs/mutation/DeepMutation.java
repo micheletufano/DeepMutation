@@ -26,12 +26,6 @@ public class DeepMutation {
     private static String idiomsFile;
     private static List<String> modelPaths;
 
-    private static Boolean extractor = false;
-    private static Boolean abstractor = false;
-    private static Boolean mutator = false;
-    private static Boolean translator = false;
-    private static Boolean tester = false;
-
     public static void main(String[] args) {
         parseArgs(args);
 

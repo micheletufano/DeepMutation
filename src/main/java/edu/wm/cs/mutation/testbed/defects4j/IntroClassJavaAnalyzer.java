@@ -34,7 +34,7 @@ public class IntroClassJavaAnalyzer {
         MutantTester.setCompileFailStrings("FAIL");
         MutantTester.setTestFailStrings("ailure", "Failing", "FAIL");
         MutantTester.useBaseline(false);
-        MutantTester.setMaxThreads(1);
+        MutantTester.setParallel(false);
         String wrapperLibFile = "dist/libWrapper.so";
 
         //MethodMutator settings

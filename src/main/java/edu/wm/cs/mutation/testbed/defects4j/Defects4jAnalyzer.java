@@ -42,7 +42,7 @@ public class Defects4jAnalyzer {
         MutantTester.setCompileFailStrings("FAIL");
         MutantTester.setTestFailStrings("Failing", "FAIL");
         MutantTester.useBaseline(false);
-        MutantTester.setMaxThreads(1);
+        MutantTester.setParallel(false);
 
         //MethodMutator settings
         MethodMutator.useBeams(true);
