@@ -26,34 +26,47 @@ public class DeepMutation {
     private static String idiomsFile;
     private static List<String> modelPaths;
 
+    private static Boolean extractor = false;
+    private static Boolean abstractor = false;
+    private static Boolean mutator = false;
+    private static Boolean translator = false;
+    private static Boolean tester = false;
+
     public static void main(String[] args) {
         parseArgs(args);
 
-        MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsFile);
-        MethodExtractor.writeMethods(outPath);
+        if (extractor) {
+            MethodExtractor.extractMethods(projPath, srcPath, libPath, complianceLvl, compiled, inputMethodsFile);
+            MethodExtractor.writeMethods(outPath);
+        } else { return; }
 
-        MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomsFile);
-        MethodAbstractor.writeMethods(outPath);
-        MethodAbstractor.writeMappings(outPath);
+        if (abstractor) {
+            MethodAbstractor.abstractMethods(MethodExtractor.getRawMethodsMap(), idiomsFile);
+            MethodAbstractor.writeMethods(outPath);
+            MethodAbstractor.writeMappings(outPath);
+        } else { return; }
 
-        MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
-        MethodMutator.writeMutants(outPath, modelPaths);
+        if (mutator) {
+            MethodMutator.mutateMethods(outPath, MethodAbstractor.getAbstractedMethods(), modelPaths);
+            MethodMutator.writeMutants(outPath, modelPaths);
+        } else { return; }
 
-        MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
-        MethodTranslator.writeMutants(outPath, modelPaths);
+        if (translator) {
+            MethodTranslator.translateMethods(MethodMutator.getMutantMaps(), MethodAbstractor.getMappings(), modelPaths);
+            MethodTranslator.writeMutants(outPath, modelPaths);
+            MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
+        } else { return; }
 
-        MethodTranslator.createMutantFiles(outPath, modelPaths, MethodExtractor.getMethods());
-
-        MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
-                MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
-
-        if (MutantTester.usingBaseline()) {
-            MutantTester.writeBaseline(outPath);
-        }
-        MutantTester.writeLogs(outPath, modelPaths);
-        MutantTester.writeTimeouts(outPath, modelPaths);
-        MutantTester.writeResults(outPath, modelPaths);
-
+        if (tester) {
+            MutantTester.testMutants(projPath, MethodTranslator.getTranslatedMutantMaps(),
+                                     MethodExtractor.getMethods(), modelPaths, wrapperLibFile);
+            if (MutantTester.usingBaseline()) {
+                MutantTester.writeBaseline(outPath);
+            }
+            MutantTester.writeLogs(outPath, modelPaths);
+            MutantTester.writeTimeouts(outPath, modelPaths);
+            MutantTester.writeResults(outPath, modelPaths);
+        } else { return; }
     }
 
     private static void parseArgs(String[] args) {
@@ -101,6 +114,9 @@ public class DeepMutation {
                         inputMethodsFile = val;
                         MethodAbstractor.setInputMode(true);
                         break;
+                    case "extractor.enable":
+                        extractor = Boolean.parseBoolean(val);
+                        break;
                     case "wrapper.library.file":
                         wrapperLibFile = val;
                         break;
@@ -110,8 +126,14 @@ public class DeepMutation {
                     case "compiled":
                         compiled = Boolean.parseBoolean(val);
                         break;
+                    case "abstractor.enable":
+                        abstractor = Boolean.parseBoolean(val);
+                        break;
                     case "token.threshold":
                         MethodAbstractor.setTokenThreshold(Integer.parseInt(val));
+                        break;
+                    case "mutator.enable":
+                        mutator = Boolean.parseBoolean(val);
                         break;
                     case "python":
                         MethodMutator.setPython(val);
@@ -124,6 +146,12 @@ public class DeepMutation {
                         break;
                     case "num.beams":
                         MethodMutator.setNumBeams(Integer.parseInt(val));
+                        break;
+                    case "translator.enable":
+                        translator = Boolean.parseBoolean(val);
+                        break;
+                    case "tester.enable":
+                        tester = Boolean.parseBoolean(val);
                         break;
                     case "parallel":
                         MutantTester.setParallel(Boolean.parseBoolean(val));
