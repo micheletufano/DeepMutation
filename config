@@ -26,8 +26,6 @@ idioms.file=models/idioms.csv
 #input.methods.file=data/methods.input
 
 ############## MethodExtractor ###############
-extractor.enable=true
-
 # Project SDK
 compliance.level=4
 
@@ -35,14 +33,10 @@ compliance.level=4
 compiled=true
 
 ############## MethodAbstractor ##############
-abstractor.enable=true
-
 # Maximum number of tokens of an extracted method
 token.threshold=50
 
 ############## MethodMutator #################
-mutator.enable=true
-
 # python3 command
 python=python3
 
@@ -55,12 +49,7 @@ use.beams=false
 # Number of beams
 num.beams=5
 
-############## MutantTranslator ##################
-translator.enable=true
-
 ############## MutantTester ##################
-tester.enable=true
-
 # Enable parallel testing
 parallel=true
 
