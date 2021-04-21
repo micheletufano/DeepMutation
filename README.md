@@ -7,6 +7,8 @@ trained to translate fixed code into buggy code. DeepMutation has learned from
 thousands of real world bug-fixes performed by developers, how to generate 
 mutants that resemble real buggy code.
 
+See Tufano, Michele, et al. "[Learning how to mutate source code from bug-fixes](https://ieeexplore.ieee.org/iel7/8910135/8918933/08919234.pdf)." 2019 IEEE International Conference on Software Maintenance and Evolution (ICSME). IEEE, 2019.
+
 ## Table of Contents
 1. [Installation](#install)  
   a. [Requirements](#reqs)  
